@@ -1,0 +1,42 @@
+{% extends "ob/base.html" %}
+{% block title %}Úlohy{% endblock %}
+{% block body_attrs %} data-obnovit{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('stav', 'ikona-nadpis') }}Úlohy na pozadí</h2>
+<p class="evhead">Načítání z ORIS, zpracování nahraných souborů, analýzy a přepočty modelu běží na pozadí. Stránka se
+  sama obnoví, až doběhnou.</p>
+{% if jobs %}
+{% if jobs | selectattr('status', 'in', ['queued', 'running']) | list %}
+<form method="post" action="{{ url_for('ob.jobs_stop_all') }}" class="controls">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn">Zastavit všechny moje</button>
+  <span class="hint">Čekající se zruší hned. Běžící se zastaví do pár sekund; co bylo hotové, zůstane, rozpracovaný závod
+    se zahodí a platí jeho předchozí rozbor.</span>
+</form>
+{% endif %}
+<div class="tablewrap"><table data-ulohy>
+  <thead><tr><th>Zadáno</th><th>Úloha</th><th>Stav</th><th>Výsledek</th></tr></thead>
+  <tbody>
+  {% for j in jobs %}
+  <tr><td>{{ j.created_at | kdy }}</td>
+      <td>{{ kinds.get(j.kind, j.kind) }}{% if j.event_name %}:
+          <a href="{{ url_for('ob.race', entry_id=j.entry_id) }}">{{ j.event_name }}</a>{% endif %}</td>
+      <td><span class="stav {{ states[j.status][1] }}">{{ 'zastavuje se' if j.status == 'running' and j.stop_requested else states[j.status][0] }}</span>
+        {% if j.status in ('queued', 'running') and not j.stop_requested %}<form method="post" action="{{ url_for('ob.job_stop', job_id=j.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-maly">Zastavit</button></form>{% endif %}</td>
+      <td class="ob-wrap"{% if j.status == 'running' %} data-uloha="{{ j.id }}"{% endif %}>{% if j.status == 'failed' %}{{ (j.error or '-').splitlines()[0] }}
+          {% if j.error and (j.error.splitlines() | length) > 1 %}<details><summary>Podrobnosti</summary><pre>{{ j.error }}</pre></details>{% endif %}
+          {% if j.id in by_hand %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=j.entry_id) }}">Usadit fotku ručně</a>{% endif %}
+          {% if j.id in retry %}<form method="post" action="{{ url_for('ob.job_retry', job_id=j.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-maly">Zkusit znovu</button></form>{% endif %}
+          {% else %}{{ j.message or '' }}{% endif %}
+          {% if j.id in by_crop %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=j.entry_id, snimek=1) }}">Oříznout snímek</a>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="prazdno empty">{{ ikona('stav', 'ikona-velka') }}Zatím žádné úlohy.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# generated outputs and the big Garmin export stay out; race inputs live in data/
+out/
+races/
+fits/
+*.zip
+dem_cache.npz
+# elevation tiles of the four reference races, so the tests run without network
+!tests/golden/*/dem_cache.npz
+# web app: database and everything users upload (maps, .fit) or the analysis writes
+instance/
+.env
+/private/
+# more maps from Livelox to check the rules on (not reference races), and the pictures of the night checks
+data-extra/
+kontrola/
+# the backups of the cron service of docker-compose.yml (docs/provoz.md)
+zalohy/

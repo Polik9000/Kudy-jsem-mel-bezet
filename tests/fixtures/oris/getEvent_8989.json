@@ -1,0 +1,90 @@
+{
+ "Method": "getEvent",
+ "Format": "json",
+ "Status": "OK",
+ "ExportCreated": "2026-10-06 19:52:54",
+ "Data": {
+  "ID": "8989",
+  "Name": "Mistrovství oblasti na krátké trati",
+  "Date": "2025-05-17",
+  "Place": "Pohora – louka, GPS: 49.5617644N, 16.7623325E – velký stan + klubové stany",
+  "Region": "HA, JM, VA",
+  "Sport": {
+   "ID": "1",
+   "NameCZ": "OB",
+   "NameEN": "Foot O"
+  },
+  "Discipline": {
+   "ID": "2",
+   "ShortName": "MD",
+   "NameCZ": "Střední trať",
+   "NameEN": "Middle distance"
+  },
+  "LiveloxID": "155715",
+  "StartTime": "11:00",
+  "GPSLat": "49.561589870843",
+  "GPSLon": "16.762241053919",
+  "Cancelled": "0",
+  "Stages": "0",
+  "ParentID": null,
+  "Classes": {
+   "Class_202411": {
+    "ID": "202411",
+    "Name": "D21C",
+    "Distance": "4.80",
+    "Climbing": "90",
+    "Controls": "19",
+    "Splits": 1
+   },
+   "Class_202420": {
+    "ID": "202420",
+    "Name": "H16C",
+    "Distance": "3.70",
+    "Climbing": "90",
+    "Controls": "16",
+    "Splits": 1
+   }
+  },
+  "Links": {
+   "Link_39298": {
+    "ID": "39298",
+    "Url": "https://liveresultat.orientering.se/followfull.php?lang=cz&comp=33397",
+    "SourceType": [],
+    "OtherDescCZ": "LIVE O startovky + výsledky",
+    "OtherDescEN": ""
+   },
+   "Link_39356": {
+    "ID": "39356",
+    "Url": "https://oresults.eu/events/1967?class=D10C",
+    "SourceType": [],
+    "OtherDescCZ": "OResults",
+    "OtherDescEN": ""
+   },
+   "Link_39367": {
+    "ID": "39367",
+    "Url": "https://us.zonerama.com/Robotron01/Album/1000267136",
+    "SourceType": [],
+    "OtherDescCZ": "Fotky z lesa",
+    "OtherDescEN": ""
+   }
+  },
+  "Locations": {
+   "Location_2006": {
+    "ID": "2006",
+    "GPSLat": "49.56075477795202",
+    "GPSLon": "16.752755665048692",
+    "NameCZ": "Parkování autobusů",
+    "NameEN": "",
+    "Letter": "A"
+   },
+   "Location_2007": {
+    "ID": "2007",
+    "GPSLat": "49.56131150813273",
+    "GPSLon": "16.761468369719942",
+    "NameCZ": "Parkování aut",
+    "NameEN": "",
+    "Letter": "P"
+   }
+  }
+ }
+}

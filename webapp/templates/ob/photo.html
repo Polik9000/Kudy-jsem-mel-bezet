@@ -1,0 +1,58 @@
+{% extends "ob/base.html" %}
+{% block title %}{{ 'Usadit mapu ručně' if mapa else 'Usadit fotku ručně' }} · {{ e.event_name }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
+{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ 'Usadit mapu ručně' if mapa else 'Usadit fotku ručně' }}</h2>
+<p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ e.event_name }}</a> · {{ e.date | datum }}
+  · kategorie {{ e.class_name }}</p>
+{% if mapa %}
+<p>Jen když je <b>celá mapa</b> posunutá (všechny kontroly vedle tvé stopy stejným směrem). Když zlobí GPS jen na
+  pár úsecích (město, vysoké domy), oprav si raději stopu u úseku („Opravit moji stopu“).</p>
+<p>Vyber kontrolu v seznamu a klikni na mapě na střed jejího kolečka. <b>Klikni aspoň na {{ min_points }} kontroly,
+  co nejdál od sebe.</b> Kde kontroly leží v terénu, ví aplikace z tvé stopy v oficiálních časech ražení. Uložením se
+  posune {{ 'mapa s tratí i mapa bez tratě z tvých snímků' if screen else 'mapa celého závodu (s tratí všech kategorií i bez tratě)' }}
+  a analýzy závodu se pustí znovu; vrátit to jde v Podkladech.</p>
+{% else %}
+{% if kmz %}
+<div class="stalewarn">Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužije.</div>
+{% endif %}
+<p>Vyber kontrolu v seznamu a klikni na fotce na střed jejího kolečka (start: střed trojúhelníku, cíl: střed
+  dvojkolečka). <b>Klikni aspoň na {{ min_points }} kontroly, co nejdál od sebe (rohy tratě). Víc bodů = přesnější.</b>
+  Kde kontroly leží v terénu, ví aplikace z tvé stopy v oficiálních časech ražení.</p>
+{% endif %}
+<div class="ob-foto-obal">
+  <div class="ob-foto-ram">
+    <div id="foto-mapa" class="ob-foto-mapa" role="application" aria-label="Fotka mapy; klepnutím označíš vybranou kontrolu"></div>
+  </div>
+  <div class="ob-foto-panel">
+    <p id="foto-vyber" class="ob-foto-vyber" aria-live="polite"></p>
+    <ol id="foto-seznam" class="ob-foto-seznam" aria-label="Kontroly"></ol>
+    <div id="foto-stav" class="ob-foto-stav" role="status" aria-live="polite"></div>
+    <label class="check"><input type="checkbox" id="foto-stopa" checked> <span>Ukázat moji stopu přes {{ 'mapu' if mapa else 'fotku' }}</span></label>
+    <form method="post" action="{{ save_url or url_for('ob.photo_save', entry_id=e.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" id="foto-ulozit" class="btn btn-hlavni" disabled{% if kmz %} hidden{% endif %}>Uložit</button>
+      <a class="btn" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">Zpět</a>
+    </form>
+    {% if not mapa %}<p class="hint">Uložením se fotka narovná a stane se mapou s tratí kategorie; analýza všech jejích běžců se pustí
+      znovu. Body si stránka pamatuje, můžeš se k nim vrátit.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script>
+window.OB = {
+  photo: {{ (image_url or url_for('ob.photo_image', entry_id=e.id)) | tojson }},
+  check: {{ (check_url or url_for('ob.photo_points', entry_id=e.id)) | tojson }},
+  size: {{ size | list | tojson }},
+  names: {{ names | tojson }},
+  points: {{ points | tojson }},
+  minPoints: {{ min_points | tojson }},
+  csrf: {{ csrf_token() | tojson }}
+};
+</script>
+<script src="{{ url_for('ob.static', filename='photo.js') }}"></script>
+{% endblock %}

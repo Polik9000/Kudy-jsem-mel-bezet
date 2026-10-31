@@ -1,0 +1,4 @@
+[{"name":"01-mezicasy-desktop","path":"/races/115","width":1440,"height":900,"wait":2500,"full":true,"eval":"document.querySelector('a[href=\"#mezicasy\"]').click(); window.scrollTo(0, 0)"},
+ {"name":"02-mezicasy-mobil","path":"/races/114","width":390,"height":844,"scale":2,"wait":2500,"full":true,"eval":"document.querySelector('a[href=\"#mezicasy\"]').click(); window.scrollTo(0, 0)"},
+ {"name":"03-mezicasy-tmavy-desktop","path":"/races/114","width":1440,"height":900,"wait":2500,"theme":"tmavy","eval":"document.querySelector('a[href=\"#mezicasy\"]').click(); document.querySelector('#mezicasy .ob-graf').scrollIntoView()"},
+ {"name":"04-model-desktop","path":"/model","width":1440,"height":900,"full":true}]

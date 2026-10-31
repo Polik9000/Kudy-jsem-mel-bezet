@@ -1,0 +1,4 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+# reference outputs are compared byte for byte, keep them exactly as the scripts wrote them
+tests/golden/** -text

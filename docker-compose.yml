@@ -1,0 +1,42 @@
+# docker compose up   ->   http://localhost:8000
+# web = the pages, worker = the analysis in the background; both share the database and the uploaded files.
+x-app: &app
+  build: .
+  image: ob-tracker
+  environment:
+    OB_INSTANCE: /data
+  volumes:
+    # a Docker volume, not a folder of the repo: uploads are never committed, and SQLite is reliable on it
+    # (on Windows a folder shared from the host does not lock files properly between two containers)
+    - ob_data:/data
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "8000:8000"
+  worker:
+    <<: *app
+    command: ["python", "-m", "webapp.worker"]
+
+  # The daily jobs of a club server: new races from ORIS for every account, a backup of the database and of
+  # the uploaded files (webapp/cron.py, docs/provoz.md). Off unless started with:
+  #   docker compose --profile cron up -d
+  # (a host with cron runs `flask sync-oris-all` and `flask backup` itself instead: docs/provoz.md)
+  cron:
+    <<: *app
+    command: ["python", "-m", "webapp.cron"]
+    profiles: ["cron"]
+    environment:
+      OB_INSTANCE: /data
+      OB_BACKUP_DIR: /zalohy          # the backups go to the folder zalohy/ next to this file, outside the volume
+      OB_CRON_AT: "04:30"             # every day at this time (Europe/Prague)
+      OB_CRON_ORIS: "1"               # 0 = no loading from ORIS
+      OB_CRON_BACKUP: "1"             # 0 = no backups
+    volumes:
+      - ob_data:/data
+      - ./zalohy:/zalohy
+
+volumes:
+  ob_data:

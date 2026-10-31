@@ -1,0 +1,20 @@
+{% extends "ob/base.html" %}
+{% block title %}Přihlášení{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('start', 'ikona-nadpis') }}Přihlášení</h2>
+<p class="evhead">Rozbor tvých závodů: stopa z hodinek na mapě, nejlepší postupy, mezičasy kategorie.</p>
+<form method="post" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+  <label>Registrační číslo nebo uživatelské jméno
+    <input name="username" autocomplete="username" required autofocus placeholder="BFM0000"></label>
+  <p class="hint">Tři písmena oddílu a čtyři číslice, např. BFM0000.</p>
+  <label>Heslo <input name="password" type="password" autocomplete="current-password" required></label>
+  <button type="submit" class="btn btn-hlavni">Přihlásit</button>
+</form>
+{% if registration_open %}
+<p>Ještě nemáš účet? <a href="{{ url_for('auth.register') }}">Založit účet</a> (registrační číslo ORIS a kód od správce).</p>
+{% endif %}
+<p><a href="{{ url_for('auth.forgot') }}">Zapomenuté heslo</a>: nové si nastavíš s jednorázovým kódem, který ti dá správce
+  aplikace.</p>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "ob/base.html" %}
+{% block title %}Jak na to{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('plan', 'ikona-nadpis') }}Jak na to</h2>
+<p class="evhead">Ke každému závodu appka potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě.
+  Časy a mezičasy si načte z ORIS sama.</p>
+
+<div class="karta" id="garmin">
+  <h3>Běh z hodinek (Garmin)</h3>
+  <p><b>Jeden závod</b> z Garmin Connect (na webu):</p>
+  <ol>
+    <li>Otevři aktivitu a klikni na ozubené kolečko.</li>
+    <li>Vyber <b>Exportovat soubor</b> (ne „originál“). Stáhne se zip, uvnitř je soubor .fit.</li>
+    <li>Zip nahraj v {% if user %}<a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>{% else %}Nahrát běhy{% endif %}, nebo v Podkladech závodu. Rozbalovat ho nemusíš.</li>
+  </ol>
+  <p class="hint">Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.</p>
+  <p><b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):</p>
+  <ol>
+    <li>Otevři <a href="https://www.garmin.com/en-US/account/datamanagement/" target="_blank" rel="noopener">správu
+      dat účtu Garmin</a>.</li>
+    <li>Klikni na <b>Export Your Data</b> a pak <b>Request Data Export</b>.</li>
+    <li>Odkaz na zip přijde e-mailem, za 48 hodin až 30 dní.</li>
+    <li>Celý zip nahraj v {% if user %}<a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>{% else %}Nahrát běhy{% endif %}. Appka si nechá jen běhy ze závodů a zip smaže.</li>
+  </ol>
+  <p class="hint">Běhy se se závody spárují samy podle dne, času startu a místa. Jiný běh jde vybrat v Podkladech
+    závodu.</p>
+</div>
+
+<div class="karta" id="livelox">
+  <h3>Mapa z Livelox (KMZ)</h3>
+  <ol>
+    <li>V Livelox vyber závod a svou kategorii. Odkaz na Livelox bývá u závodu v appce.</li>
+    <li>V zobrazení mapy klikni vpravo nahoře na <b>tři čárky</b> a vyber <b>Stáhnout mapu</b> (Download map).</li>
+    <li>Stáhni dvakrát: <b>Mapa s tratí</b>, formát <b>KMZ</b>, a <b>Pouze mapa</b>, formát <b>KMZ</b>.</li>
+    <li>V Podkladech závodu nahraj první jako mapu s tratí a druhou jako mapu bez tratě.</li>
+  </ol>
+  <p class="hint">Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy. Mapu bez tratě
+    stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.</p>
+</div>
+
+<div class="karta" id="bez-livelox">
+  <h3>Když Livelox stažení nedovolí</h3>
+  <p>Pořadatel může stahování map vypnout. Pak máš dvě cesty:</p>
+  <ul>
+    <li><b>Nejlíp fotka papírové mapy.</b> Vyfoť celou mapu shora, za světla a bez blesku. Mapu polož rovně a nic ať
+      nezakrývá kontroly. Nahraj ji v Podkladech jako fotku mapy. Na místo se usadí sama podle kontrol a tvé stopy
+      (potřebuje běh z hodinek a mezičasy z ORIS); když se neusadí, jde usadit ručně.</li>
+    <li><b>Jinak dva snímky obrazovky z Livelox</b> (níže). Jen pro vlastní rozbor: nesdílej je dál, pořadatel
+      stažení vypnul záměrně.</li>
+  </ul>
+</div>
+
+<div class="karta" id="snimky">
+  <h3>Dva snímky z Livelox (Chrome na počítači)</h3>
+  <ol>
+    <li>Stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení). Nahoře u Dimensions zvol
+      <b>Responsive</b> a nastav <b>5000 × 4000</b>.</li>
+    <li>V Livelox zavři křížkem postranní panel se závodníky. Mapu přibliž co nejvíc tak, aby byla celá vidět.</li>
+    <li>Tři tečky úplně vpravo v liště s Dimensions → <b>Capture full size screenshot</b>. Snímek se uloží do
+      Stažených. To je <b>snímek s tratí</b>.</li>
+    <li><b>Mapu neposouvej ani nepřibližuj.</b> V Livelox vpravo dole klikni na malý výstupek, vysune se panel
+      nastavení. Druhý posuvník dej úplně doleva, tím zmizí kontroly a trať. Panel zavři křížkem vpravo nahoře, těsně
+      pod ozubeným kolečkem.</li>
+    <li>Znovu tři tečky → <b>Capture full size screenshot</b>. To je <b>snímek bez tratě</b>.</li>
+    <li>Oba snímky nahraj do polí „Snímek z Livelox s tratí“ a „Snímek z Livelox bez tratě“ v Podkladech závodu.</li>
+  </ol>
+  <p class="hint">Proč neposouvat: appka usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá
+    stejné místo. Snese posun o pár pixelů, ne jiné přiblížení nebo jinou velikost okna.</p>
+  <p class="hint">Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek
+    s tratí jde nahrát i tak, nejlepší postupy z něj ale nebudou.</p>
+</div>
+
+<div class="karta" id="poznamky">
+  <h3>Poznámky u úseku</h3>
+  <p>Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak appka čte ztrátu
+    a z kterých úseků se učí tvůj model rychlosti.</p>
+  <dl class="detaily">
+    <dt>Schválná zastávka</dt>
+    <dd>Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to appka pozná sama.</dd>
+    <dt>Ztráta kontaktu s mapou</dt>
+    <dd>Celá ztráta úseku je chyba, ne volba postupu. Z úseku se model neučí.</dd>
+    <dt>Zelená</dt>
+    <dd>„Proběhl jsem ji“ nebo „obíhal jsem ji“. Když jsi ji obíhal, body stopy, které GPS dala do zelené, se do
+      modelu nepočítají.</dd>
+    <dt>Únava</dt>
+    <dd>1 až 3 jen popisuje. Od 4 se úsek vyřadí z modelu a ztráta provedením se vede jako únava.</dd>
+    <dt>Poznámka</dt>
+    <dd>Volný text pro tebe.</dd>
+    <dt>Plánovaný postup</dt>
+    <dd>Nakresli, kudy jsi chtěl běžet. Appka ho ocení tvým modelem a porovná s nejlepším postupem.</dd>
+    <dt>Opravit moji stopu</dt>
+    <dd>Když GPS na úseku zlobí (město, vysoké domy; appka napíše „GPS tu asi zlobí“), nakresli, kudy jsi opravdu
+      běžel. Čára nahradí stopu úseku, úsek se z modelu vyřadí. Tlačítko Vrátit GPS stopu ji vrátí.</dd>
+  </dl>
+  <p class="hint">Leží celá mapa vedle stopy (všechny kontroly posunuté stejně)? V Podkladech je „Usadit mapu ručně
+    podle kontrol“. Jde vrátit.</p>
+  <p>Další věty u úseku píše appka sama:</p>
+  <dl class="detaily">
+    <dt>Nejlepší postup</dt>
+    <dd>Modrá čára: nejrychlejší postup pro tebe podle tvého modelu rychlosti.</dd>
+    <dt>Průměrný běžec</dt>
+    <dd>Šedá tečkovaná čára: kudy by běžel běžec s učebnicovým modelem a tvou rychlostí po cestě. Věta řekne, proč je
+      pro tebe lepší jiný postup.</dd>
+    <dt>Kdyby ses ztratil</dt>
+    <dd>Co je kolem kontroly: čeho se chytit, náběhový bod a zarážka za kontrolou.</dd>
+  </dl>
+</div>
+
+<div class="karta" id="ztraceny">
+  <h3>Ztratil jsem se u kontroly</h3>
+  <p><b>Rozbor po závodě</b> pro chvíli „byl jsem u kontroly, neviděl jsem ji a nevěděl jsem přesně, kde jsem“: co
+    tam bylo vidět a jak ses měl vrátit. Na závodě se mobil ani jiné pomůcky používat nesmějí, stránka je na doma.
+    Otevřeš ji tlačítkem <b>Ztratil jsem se u kontroly</b> na stránce závodu (nebo u úseku v části Kdyby ses
+    ztratil). Potřebuje mapu s tratí a mapu bez tratě; s během (.fit) ukáže i místa ze stopy.</p>
+  <ol>
+    <li>Poprvé se mapa kolem kontrol asi minutu připravuje.</li>
+    <li>Nahoře vyber kontrolu.</li>
+    <li>S během: <b>Po závodě: kde jsem se ztratil</b> ukáže místa u kontroly, kde ses podle stopy zdržel.</li>
+    <li>Bez běhu, nebo když stopa místo nechytila: <b>Kde jsem asi byl</b>. Ťukni do mapy, kde jsi asi byl, a vyber,
+      o kolik si nejsi jistý (25, 50, 100 nebo 150 m; v lese je výchozí 50 m, na sprintu 25 m). Oranžový kruh je
+      místo, kde jsi mohl být.</li>
+    <li>Appka napíše jednu až tři věty: kam jsi měl jít, podél čeho, kde byla kontrola. Modrá čára ukazuje cestu,
+      čísla jsou záchytné body.</li>
+  </ol>
+  <dl class="detaily">
+    <dt>Nedalo se minout</dt>
+    <dd>Dlouhá věc (cesta, vodoteč, plot, okraj zástavby nebo velké paseky), na kterou bys narazil odkudkoli z kruhu,
+      kdybys šel daným směrem. Appka vybere nejjistější, ne nejbližší.</dd>
+    <dt>Neměl jsi hádat směr ke kontrole</dt>
+    <dd>Když byla jistá věc dál, než je kruh nejistoty, appka radí, že jsi měl dojít (nebo se vrátit) nejdřív k ní
+      a teprve odtud ke kontrole.</dd>
+    <dt>Jen kontrola a okolí</dt>
+    <dd>Když vůbec nevíš, kde jsi byl: co bylo kolem kontroly nejjistější.</dd>
+    <dt>Po závodě: kde jsem se ztratil</dt>
+    <dd>Místa do 100 m od kontroly, kde jsi podle stopy zpomalil, kroužil nebo se otočil. U každého, co jsi měl
+      vidět a kudy se vrátit.</dd>
+    <dt>Popis kontroly</dt>
+    <dd>Nepovinný, napíšeš ho ručně (třeba „kupka, severní úpatí“). Ukáže se v radě, nic se z něj nepočítá.</dd>
+  </dl>
+  <p class="hint">Rada je odhad z kresby mapy, bez vrstevnic a skal. Do oplocených a zakázaných míst nevede.</p>
+</div>
+{% endblock %}

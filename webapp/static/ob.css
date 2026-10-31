@@ -1,0 +1,310 @@
+/* Rozbor postupů: jen to, co klubový skob.css nemá (formuláře, mapa, úseky, grafy).
+   Barvy a rozměry výhradně přes jeho proměnné, aby seděl světlý i tmavý režim.
+   skob.css se tu nepřepisuje a ručně se neupravuje (je to kopie z repozitáře skob-results). */
+
+:root {
+  /* trať, nejlepší postup, chyba: podle docs/design-klubovy-web.md */
+  --ob-trat: var(--vtisk);
+  /* trať kreslená NA mapě: obrázek mapy je světlý i v tmavém režimu, proto tu je světlá hodnota --vtisk
+     natvrdo (jediná barva mimo proměnné; --vtisk se v tmavém režimu zesvětluje pro tmavý podklad) */
+  --ob-trat-mapa: #7A2F86;
+  --ob-nejlepsi: var(--support);
+  --ob-chyba: var(--accent);
+  --ob-plan: var(--oranz-cit, var(--flag-b));
+  /* stopa podle ztráty: bez ztráty zelená oddílu, pak oranžová z trikolóry, nakonec červená */
+  --ob-ztrata-0: var(--flag-a);
+  --ob-ztrata-1: var(--flag-b);
+  --ob-ztrata-2: color-mix(in srgb, var(--flag-b) 45%, var(--accent));
+  --ob-ztrata-3: var(--accent);
+  --ob-obrys: var(--bg-elev);
+  /* postup průměrného běžce: neutrální tmavě šedá, na mapě (světlý obrázek i v tmavém režimu) natvrdo */
+  --ob-prumer-mapa: #3E3E4A;
+}
+/* totéž mimo mapu (grafy, legenda na tmavém podkladu) */
+:root { --ob-nejlepsi-graf: var(--support); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="svetly"]) { --ob-nejlepsi-graf: var(--support-svetla); }
+}
+:root[data-theme="tmavy"] { --ob-nejlepsi-graf: var(--support-svetla); }
+
+/* --- stránka s mapou: bez levého sloupce, přes celou šířku, nabídka pod třemi čárkami --- */
+.ob-siroka .sidemenu { display: none; }
+.ob-siroka .menu { display: block; margin-left: 0; order: 2; }
+.ob-siroka .headmeta { order: 1; }
+.ob-siroka .shell, .ob-siroka .obsah, .ob-siroka header.site .inner { max-width: none; }
+.ob-menu-tlacitko {
+  font: inherit; display: flex; align-items: center; gap: .55rem; width: 100%;
+  color: var(--ink); background: none; border: 0; border-left: .18rem solid transparent;
+  padding: .5rem .7rem; border-radius: var(--r1); cursor: pointer; text-align: left;
+}
+.menu .ob-menu-tlacitko { padding: .7rem .8rem; }
+.ob-menu-tlacitko:hover { background: var(--bg-soft); color: var(--brand-svetla); }
+.sidemenu .ob-menu-tlacitko { color: var(--on-brand); }
+.sidemenu .ob-menu-tlacitko:hover { background: rgba(255, 255, 255, .14); color: var(--on-brand); }
+.menuseznam form { margin: 0; }
+.ob-ulohy { margin-left: auto; }
+
+/* --- nadpis stránky a drobnosti --- */
+.ob-nadpis { font-size: 1.24rem; font-weight: 640; letter-spacing: -.01em; margin: 0 0 var(--s3); display: flex;
+  align-items: center; gap: .55rem; flex-wrap: wrap; }
+.ob-nadpis::before { content: ""; flex: 0 0 auto; width: .25rem; height: 1.05em; border-radius: var(--r-pill);
+  background: var(--brand-svetla); }
+.hint { color: var(--muted); font-size: .9em; margin: 0 0 var(--s3); white-space: normal; }
+.muted { color: var(--muted); }
+.small { font-size: .86em; }
+.ob-wrap, td.ob-wrap { white-space: normal; }
+td.ob-wrap { min-width: 14rem; }
+.ob-radek { display: flex; flex-wrap: wrap; gap: var(--s4); align-items: flex-start; }
+.ob-radek > * { flex: 1 1 18rem; min-width: 0; }
+.karta { margin-bottom: var(--s4); }
+.karta > :last-child { margin-bottom: 0; }
+.stav.ob-ok { color: var(--brand-svetla); border-color: var(--brand-svetla); }
+.stav.ob-warn { color: var(--oranz-cit, var(--bronz)); border-color: var(--flag-b); }
+.stav.ob-bad { color: var(--cerv-cit, var(--accent)); border-color: var(--accent); }
+pre { white-space: pre-wrap; font-size: .86em; background: var(--bg-soft); padding: var(--s2); border-radius: var(--r1);
+  overflow-x: auto; }
+details > summary { cursor: pointer; }
+
+/* --- formuláře (skob.css má jen řádek filtrů .controls) --- */
+.ob-form { max-width: 30rem; }
+.ob-form label, .ob-pole { display: block; margin: 0 0 var(--s3); font-weight: 600; }
+.ob-form label > input, .ob-form label > select, .ob-form label > textarea,
+.ob-pole > input, .ob-pole > select, .ob-pole > textarea { display: block; width: 100%; margin-top: var(--s1); font-weight: 400; }
+input[type=text], input[type=password], input[type=date], input[type=number], input[type=file], input:not([type]),
+select, textarea {
+  font: inherit; min-height: 2.4rem; padding: .42rem .6rem; border: 1px solid var(--line-2); border-radius: var(--r1);
+  background: var(--bg); color: var(--ink); max-width: 100%;
+}
+input[type=file] { padding: .3rem .4rem; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--brand); }
+label.check { font-weight: 400; display: flex; gap: .45rem; align-items: center; margin: 0 0 var(--s2); }
+label.check input { width: auto; min-height: 0; margin: 0; }
+fieldset { border: 1px solid var(--line); border-radius: var(--r2); margin: 0 0 var(--s3); padding: var(--s2) var(--s3); }
+legend { font-weight: 600; padding: 0 var(--s1); }
+.controls form { margin: 0; display: inline-flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+@media (max-width: 40rem) { input, select, textarea { min-height: 2.6rem; } }
+
+/* --- stránka závodu --- */
+.ob-mapa-obal { display: flex; gap: var(--s3); align-items: stretch; margin: 0 0 var(--s3); }
+.ob-mapa-ram { flex: 1; min-width: 0; position: relative; }
+#map { height: 74vh; min-height: 26rem; background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: var(--r2); box-shadow: var(--stin1); z-index: 0; }
+#panel { width: 23rem; flex: none; margin: 0; max-height: 74vh; overflow-y: auto; }
+#panel h3 { margin-top: 0; }
+@media (max-width: 63.99rem) {
+  .ob-mapa-obal { flex-direction: column; }
+  .ob-mapa-ram { flex: none; }
+  #panel { width: auto; max-height: none; }
+  #map { height: 62vh; }
+}
+/* nad mapou: co se právě načítá a co právě kreslí kliknutí do mapy */
+.ob-mapa-stav, .ob-kresleni { position: absolute; z-index: 1; margin: 0; padding: var(--s2) var(--s3);
+  background: var(--bg-elev); color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r2);
+  box-shadow: var(--stin1); }
+.ob-mapa-stav { left: var(--s3); bottom: var(--s3); max-width: calc(100% - 2 * var(--s3)); }
+.ob-kresleni { top: var(--s3); left: 3.4rem; right: var(--s3); display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3);
+  align-items: center; justify-content: space-between; border-color: var(--brand); }
+.ob-kresleni[hidden] { display: none; }
+.ob-kresleni .controls { margin: 0; }
+.ob-souhrn { font-size: 1.05rem; }
+.ob-legenda { color: var(--muted); font-size: .9em; }
+.sw { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; vertical-align: -.08em; }
+.sw.dot { border-radius: 50%; background: var(--ink); }
+.sw.z0 { background: var(--ob-ztrata-0); } .sw.z1 { background: var(--ob-ztrata-1); }
+.sw.z2 { background: var(--ob-ztrata-2); } .sw.z3 { background: var(--ob-ztrata-3); }
+.sw.best { background: var(--ob-nejlepsi); } .sw.plan { background: var(--ob-plan); }
+.sw.alt { background: var(--ob-nejlepsi); opacity: .45; } .sw.zakaz { background: var(--ob-chyba); }
+.sw.prumer { background: var(--muted); }
+/* čáry v mapě: Leaflet dává barvu atributem, třída ji přebije proměnnou (funguje i po přepnutí režimu) */
+path.ob-trat { stroke: var(--ob-trat-mapa); }
+path.ob-z0 { stroke: var(--ob-ztrata-0); } path.ob-z1 { stroke: var(--ob-ztrata-1); }
+path.ob-z2 { stroke: var(--ob-ztrata-2); } path.ob-z3 { stroke: var(--ob-ztrata-3); }
+path.ob-best { stroke: var(--ob-nejlepsi); }
+path.ob-alt { stroke: var(--ob-nejlepsi); }
+path.ob-prumer { stroke: var(--ob-prumer-mapa); }
+.ob-pro-tebe { margin-top: 0; }
+path.ob-podklad { stroke: #fff; }
+path.ob-plan { stroke: var(--ob-plan); }
+path.ob-zakaz { stroke: var(--ob-chyba); }
+path.ob-oprava { stroke: var(--ink); }
+path.ob-zakaz-osm { stroke: var(--ob-chyba); }
+path.ob-zakaz-plocha { stroke: var(--ob-chyba); fill: var(--ob-chyba); }
+path.ob-prechod { stroke: var(--brand); fill: var(--flag-a); }
+path.ob-stani { stroke: #fff; fill: #14181a; }
+path.ob-chyba-misto { stroke: var(--ob-chyba); fill: var(--ob-chyba); }
+path.ob-nabeh { stroke: var(--ob-nejlepsi); fill: #fff; }
+path.ob-zarazka { stroke: var(--ob-chyba); fill: #fff; }
+path.ob-zarazka-cara, path.ob-prekroceni { stroke: var(--ob-chyba); fill: none; }
+.sw.nabeh, .sw.zarazka { border-radius: 50%; background: #fff; border: 2px solid var(--ob-nejlepsi-graf); }
+.sw.zarazka { border-color: var(--ob-chyba); }
+path.ob-zachyt { stroke: var(--ob-trat-mapa); fill: #fff; }
+path.ob-zachyt-smer { stroke: var(--ob-trat-mapa); }
+path.ob-bloudeni { stroke: var(--ob-chyba); }
+path.ob-kontakt { stroke: var(--ob-chyba); fill: #fff; }
+.ob-zachyt-cislo { display: grid; place-items: center; border-radius: 50%; background: #fff; color: var(--ob-trat-mapa);
+  border: 2px solid var(--ob-trat-mapa); font: 700 11px/1 system-ui, sans-serif; }
+.sw.zachyt { border-radius: 50%; background: #fff; border: 2px solid var(--ob-trat); }
+.ob-ztrata { margin: 0 0 var(--s3); }
+.ob-ztrata summary { font-weight: 600; }
+.ob-ztrata ol { margin: var(--s2) 0; padding-left: 1.4rem; }
+.ob-ztrata li { margin-bottom: var(--s2); }
+.ctrl-label { color: var(--ob-trat-mapa); font: 700 15px/1 system-ui, sans-serif; text-shadow: 0 0 3px #fff, 0 0 3px #fff; }
+.refresh-icon { background: var(--support); color: #fff; border: 2px solid #fff; border-radius: 50%;
+  font: 700 12px/18px system-ui, sans-serif; text-align: center; box-shadow: 0 0 3px rgba(0, 0, 0, .5); }
+.leaflet-container { font: inherit; background: var(--bg-soft); }
+.leaflet-container a { color: var(--odkaz); }
+#legs tbody tr { cursor: pointer; }
+#legs tr.sel td { background: color-mix(in srgb, var(--brand-2) 22%, var(--bg-elev)); }
+#legs td.explain { min-width: 18rem; max-width: 34rem; font-size: .92em; color: var(--ink-soft); white-space: normal; }
+#legs td.co { white-space: normal; max-width: 22rem; }
+.notetext { font-style: italic; color: var(--ink); margin-top: 2px; }
+.ob-typ { font-weight: 600; color: var(--cerv-cit, var(--accent)); }
+
+tr.ob-ja td { font-weight: 650; background: color-mix(in srgb, var(--brand-2) 22%, var(--bg-elev)); }
+.ob-odkazy { margin-top: var(--s3); margin-bottom: 0; }
+
+/* --- grafy (vlastní SVG) --- */
+.ob-graf { width: 100%; height: auto; display: block; background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: var(--r2); box-shadow: var(--stin1); }
+.ob-graf text { fill: var(--muted); font: 11px system-ui, sans-serif; }
+.ob-graf .osa { stroke: var(--line-2); stroke-width: 1; fill: none; }
+.ob-graf .mrizka { stroke: var(--line); stroke-width: 1; fill: none; }
+.ob-graf .ostatni { stroke: var(--muted); stroke-width: 1; fill: none; opacity: .35; }
+.ob-graf .ja { stroke: var(--brand-svetla); stroke-width: 2.5; fill: none; }
+.ob-graf .ref { stroke: var(--ob-nejlepsi-graf); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.ob-graf .chyba { fill: var(--ob-chyba); }
+.ob-graf .bod { fill: var(--brand-svetla); }
+.ob-graf .sloupec { fill: var(--brand-svetla); }
+.ob-graf .sloupec.zle { fill: var(--ob-chyba); }
+.ob-graf .pas { fill: var(--brand-svetla); opacity: .16; stroke: none; }
+.ob-graf .popisek { fill: var(--ink); font-weight: 600; }
+.ob-graf .kontrola { fill: var(--ink); font-weight: 600; }
+.ob-graf .ostatni, .ob-graf .ja { pointer-events: none; }
+.ob-graf .zasah { stroke: transparent; stroke-width: 12; fill: none; pointer-events: stroke; cursor: pointer; }
+.ob-graf .ostatni.zvyrazneno { stroke: var(--ink); stroke-width: 2.5; opacity: 1; }
+.ob-graf .ja.zvyrazneno { stroke-width: 4; }
+.ob-graf-obal { position: relative; overflow-x: auto; }
+.ob-poradi { margin: var(--s3) 0 var(--s2); }
+.ob-graf-obal .ob-graf { min-width: 640px; }   /* on a phone: readable, scrolled sideways */
+.ob-graf-tip { position: absolute; z-index: 2; max-width: 22rem; padding: var(--s1) var(--s2); pointer-events: none;
+  background: var(--bg-elev); color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r1, 4px);
+  box-shadow: var(--stin1); font-size: .85rem; }
+
+/* --- co závod ještě potřebuje (tři kroky nad záložkami) --- */
+.ob-kroky { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); padding: 0; margin: 0 0 var(--s3); }
+.ob-kroky li { display: flex; align-items: center; gap: var(--s2); flex: 1 1 15rem; padding: var(--s2) var(--s3);
+  background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r2); }
+.ob-kroky li > b { flex: none; width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center;
+  border: 2px solid var(--line-2); color: var(--muted); }
+.ob-kroky li.je > b { border-color: var(--brand-svetla); color: var(--brand-svetla); }
+.ob-kroky li.neni { border-color: var(--flag-b); }
+.ob-kroky li > span { flex: 1; min-width: 0; font-weight: 600; }
+.ob-kroky small { display: block; font-weight: 400; color: var(--muted); }
+
+/* --- pás úseků nad mapou a souhrn úseku pod ní --- */
+.ob-pas { display: flex; align-items: center; gap: var(--s2); margin: 0 0 var(--s2); }
+.ob-pas[hidden] { display: none; }
+.ob-pas-useky { flex: 1; min-width: 0; display: flex; gap: .3rem; overflow-x: auto; padding: .15rem 0; scrollbar-width: thin; }
+.ob-cip { font: inherit; font-size: .86em; white-space: nowrap; cursor: pointer; padding: .2rem .5rem; color: var(--ink);
+  background: var(--bg-elev); border: 1px solid var(--line-2); border-bottom-width: .28rem; border-radius: var(--r1); }
+.ob-cip.z0 { border-bottom-color: var(--ob-ztrata-0); } .ob-cip.z1 { border-bottom-color: var(--ob-ztrata-1); }
+.ob-cip.z2 { border-bottom-color: var(--ob-ztrata-2); } .ob-cip.z3 { border-bottom-color: var(--ob-ztrata-3); }
+.ob-cip[aria-pressed="true"] { font-weight: 700; border-color: var(--ink); background: color-mix(in srgb, var(--brand-2) 22%, var(--bg-elev)); }
+.ob-usek-souhrn { display: none; margin: 0; padding: var(--s2) var(--s3); background: var(--bg-elev);
+  border: 1px solid var(--line); border-radius: var(--r2); }
+@media (max-width: 63.99rem) { .ob-usek-souhrn:not([hidden]) { display: block; } }
+.ob-alt-cislo { display: inline-grid; place-items: center; width: 1.15rem; height: 1.15rem; border-radius: 50%;
+  background: var(--ob-nejlepsi); color: #fff; border: 1px solid #fff; font: 700 11px/1 system-ui, sans-serif; font-style: normal; }
+#p-alts tr[data-alt] { cursor: pointer; }
+/* postupy úseku vedle sebe (nejlepší, plán, běžený, další možnosti): pět sloupců se musí vejít i na telefon */
+.ob-postupy { font-size: .92em; }
+.ob-postupy th, .ob-postupy td { padding-left: .35rem; padding-right: .35rem; }
+.ob-postupy td:first-child { white-space: nowrap; }
+#p-alts tr.sel td { background: color-mix(in srgb, var(--brand-2) 22%, var(--bg-elev)); }
+
+/* --- nahrávání: průběh a pole, na které jde soubor pustit myší --- */
+.ob-nahravani-stav progress { vertical-align: middle; width: 9rem; }
+form[data-pretahni] label.ob-pole { padding: var(--s2); border: 1px dashed var(--line-2); border-radius: var(--r1); }
+form[data-pretahni] label.ob-pretahuje { border-color: var(--brand); background: color-mix(in srgb, var(--brand-2) 16%, var(--bg-elev)); }
+a.stav { text-decoration: none; }
+a.stav:hover { text-decoration: underline; }
+/* seznam závodů na úzké obrazovce: co říká sloupec Stav, se neopakuje ve třech dalších */
+@media (max-width: 47.99rem) { .ob-siroky { display: none; } }
+
+.ob-ulohy[hidden] { display: none; }
+
+/* Usadit fotku ručně (templates/ob/photo.html, static/photo.js) */
+.ob-foto-obal { display: flex; gap: var(--s3); align-items: flex-start; margin: 0 0 var(--s3); }
+.ob-foto-ram { flex: 1; min-width: 0; }
+.ob-foto-mapa { height: 76vh; min-height: 24rem; background: var(--bg-elev); border: 1px solid var(--line); }
+.ob-foto-panel { width: 17rem; flex: none; }
+.ob-foto-vyber { font-weight: 600; margin: 0 0 var(--s2); }
+.ob-foto-seznam { list-style: none; margin: 0 0 var(--s3); padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr)); gap: var(--s1, 4px); }
+.ob-foto-seznam li { display: flex; }
+.ob-foto-seznam button { flex: 1; min-height: 2.75rem; padding: 2px 4px; border: 1px solid var(--line-2);
+  background: var(--bg); color: var(--ink); border-radius: 4px; cursor: pointer; text-align: center; }
+.ob-foto-seznam button small { display: block; color: var(--muted); }
+.ob-foto-seznam button:disabled { opacity: .45; cursor: default; }
+.ob-foto-seznam li.je button { border-color: var(--ob-ztrata-0); }
+.ob-foto-seznam li.spatne button { border-color: var(--ob-chyba); }
+.ob-foto-seznam li.vybrany button[data-bod] { outline: 3px solid var(--ob-nejlepsi); outline-offset: -1px; }
+.ob-foto-seznam button.smazat { flex: none; width: 2rem; }
+.ob-foto-stav p { margin: 0 0 var(--s2); }
+.ob-foto-stav.chyba { color: var(--ob-chyba); }
+.ob-foto-bod span { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+  border-radius: 50%; border: 3px solid var(--ob-nejlepsi); background: rgba(255, 255, 255, .55); color: #111;
+  font: 700 12px/1 sans-serif; box-sizing: border-box; }
+.ob-foto-bod.spatne span { border-color: var(--ob-chyba); }
+.ob-foto-bod.vybrany span { outline: 3px solid var(--ob-plan); }
+/* cutting out the map on a Livelox screenshot (screen_crop.html, crop.js) */
+path.ob-orez { stroke: var(--ob-plan); fill: var(--ob-plan); }
+.ob-orez-roh span { cursor: move; }
+path.ob-foto-stopa { stroke: var(--ob-chyba); stroke-width: 3; fill: none; opacity: .8; }
+@media (max-width: 760px) {
+  .ob-foto-obal { flex-direction: column; }
+  .ob-foto-ram, .ob-foto-panel { width: 100%; flex: none; }
+  .ob-foto-mapa { height: 62vh; min-height: 18rem; }
+}
+
+/* "Ztratil jsem se u kontroly" (views/lost.py, static/lost.js): made for a phone in the forest, big targets, no hover */
+.ob-ztr-horni { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-bottom: var(--s2); }
+.ob-ztr-kontroly { display: flex; gap: .35rem; overflow-x: auto; padding-bottom: .2rem; max-width: 100%; }
+.ob-ztr-cip { font: inherit; font-weight: 600; min-width: 2.75rem; min-height: 2.75rem; border-radius: .5rem; cursor: pointer;
+  border: 2px solid var(--line-2); background: var(--bg-elev); color: var(--ink); }
+.ob-ztr-cip[aria-pressed="true"] { border-color: var(--ob-trat-mapa); background: var(--ob-trat-mapa); color: #fff; }
+.ob-ztr-rezim, .ob-ztr-tlacitka, .ob-ztr-r { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.ob-ztr .btn { min-height: 2.75rem; }
+.ob-ztr-r .btn { min-width: 3.6rem; padding-left: .5rem; padding-right: .5rem; }
+.ob-ztr .btn[aria-pressed="true"] { border-color: var(--ink); font-weight: 700;
+  background: color-mix(in srgb, var(--brand-2) 30%, var(--bg-elev)); }
+.ob-ztr-telo { display: grid; grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr); gap: var(--s3); align-items: start; }
+.ob-ztr-mapa-obal { position: relative; }
+.ob-ztr-mapa { height: 70vh; min-height: 22rem; border: 1px solid var(--line-2); border-radius: .4rem; }
+.ob-ztr-mapa-stav { position: absolute; left: .5rem; top: .5rem; z-index: 800; margin: 0; padding: .3rem .6rem;
+  background: var(--bg-elev); border: 1px solid var(--line-2); border-radius: .3rem; }
+.ob-ztr-panel { display: flex; flex-direction: column; gap: var(--s3); }
+.ob-ztr-pokyn { margin: 0; font-weight: 600; }
+.ob-ztr-rada { padding: var(--s3); border: 2px solid var(--ob-nejlepsi); border-radius: .5rem; background: var(--bg-elev); }
+.ob-ztr-vety p { font-size: 1.15em; line-height: 1.45; margin: 0 0 var(--s2); }
+.ob-ztr-seznam { padding-left: 1.4rem; margin: var(--s2) 0 0; }
+.ob-ztr-seznam li { margin-bottom: var(--s2); }
+.ob-ztr-seznam li.jisty { font-weight: 600; }
+.ob-ztr-mista { display: flex; flex-direction: column; gap: .4rem; }
+.ob-ztr-misto { text-align: left; white-space: normal; }
+.ob-ztr-popis-radek { display: flex; gap: .4rem; }
+.ob-ztr-popis-radek input { flex: 1; min-width: 0; min-height: 2.75rem; }
+path.ob-ztr-kolecko { stroke: var(--ob-trat-mapa); stroke-width: 3; fill: none; }
+path.ob-ztr-kruh { stroke: #E07800; stroke-width: 3; fill: #E07800; fill-opacity: .15; }
+path.ob-ztr-ty { stroke: #fff; stroke-width: 2; fill: #E07800; fill-opacity: 1; }
+path.ob-ztr-cesta { stroke: var(--ob-nejlepsi); stroke-width: 5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+path.ob-ztr-bod { stroke: #777; stroke-width: 3; fill: #fff; fill-opacity: .8; }
+path.ob-ztr-bod.jisty { stroke: var(--ob-nejlepsi); }
+path.ob-ztr-bod.vybrany { stroke-width: 5; }
+path.ob-ztr-stopa { stroke: var(--ob-chyba); stroke-width: 3; fill: none; opacity: .8; }
+path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fill-opacity: 1; }
+.ob-ztr-cislo { display: grid; place-items: center; font-weight: 700; font-size: 12px; color: var(--ob-nejlepsi); }
+@media (max-width: 63.99rem) {
+  .ob-ztr-telo { grid-template-columns: 1fr; }
+  .ob-ztr-mapa { height: 55vh; }
+}

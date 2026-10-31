@@ -1,0 +1,213 @@
+{
+  "v_flat": 3.1731471289215905,
+  "up_k": 3.4,
+  "down_gain": -0.0,
+  "steep_down": 0.8,
+  "factors": {
+    "path/road": 1.0,
+    "open land": 0.9568264084723072,
+    "rough open": 0.8101252492189671,
+    "forest (runnable)": 0.7797737411306309,
+    "undergrowth (stripes)": 0.6670097656082545,
+    "light green (slow run)": 0.6594415263533916,
+    "marsh": 0.48895726958295826,
+    "green (walk)": 0.44999151624555267,
+    "dark green (fight)": 0.12127891991606699,
+    "water": 0.0,
+    "out of bounds": 0.0,
+    "building": 0.0
+  },
+  "notes": {
+    "slope_from": {
+      "file": "/app/oroute/slope_prior.json",
+      "activities": 164,
+      "uphill_windows": 1383,
+      "downhill_from_races": 27,
+      "fitted": "2026-10-06"
+    },
+    "samples": 2749,
+    "uphill_samples": 398,
+    "terrain": {
+      "forest (runnable)": {
+        "seconds": 2079,
+        "implied": 0.72,
+        "prior": 0.75,
+        "rel_se": 0.053,
+        "used": 0.78
+      },
+      "light green (slow run)": {
+        "seconds": 374,
+        "implied": 0.67,
+        "prior": 0.55,
+        "rel_se": 0.133,
+        "used": 0.66
+      },
+      "green (walk)": {
+        "seconds": 385,
+        "implied": 0.54,
+        "prior": 0.3,
+        "rel_se": 0.137,
+        "used": 0.45
+      },
+      "dark green (fight)": {
+        "seconds": 31,
+        "implied": 0.37,
+        "prior": 0.1,
+        "rel_se": 0.23,
+        "used": 0.12
+      },
+      "rough open": {
+        "seconds": 164,
+        "implied": 0.71,
+        "prior": 0.78,
+        "rel_se": 0.175,
+        "used": 0.81
+      },
+      "open land": {
+        "seconds": 31,
+        "implied": 1.42,
+        "prior": 0.85,
+        "rel_se": 0.227,
+        "used": 0.96
+      },
+      "undergrowth (stripes)": {
+        "seconds": 126,
+        "implied": 0.68,
+        "prior": 0.6,
+        "rel_se": 0.186,
+        "used": 0.67
+      },
+      "marsh": {
+        "seconds": 47,
+        "implied": 0.49,
+        "prior": 0.45,
+        "rel_se": 0.228,
+        "used": 0.49
+      },
+      "path/road": {
+        "seconds": 1245,
+        "implied": 0.92,
+        "prior": 1.0,
+        "rel_se": 0.06,
+        "used": 1.0
+      }
+    },
+    "clean_legs_scale": 1.044,
+    "race_length": {
+      "dur_exp": 0.073,
+      "prior": 0.057,
+      "ref_s": 3600.0,
+      "races": [
+        {
+          "minutes": 55.1,
+          "slower_than_model": -0.11
+        },
+        {
+          "minutes": 77.0,
+          "slower_than_model": 0.03
+        },
+        {
+          "minutes": 80.3,
+          "slower_than_model": 0.072
+        },
+        {
+          "minutes": 51.1,
+          "slower_than_model": 0.009
+        }
+      ]
+    },
+    "personal": {
+      "fitted": "2026-10-19",
+      "half_life_days": 365.0,
+      "races": [
+        {
+          "title": "Azymut Cup 2026 E4 (Bia\u0142obrzegi)",
+          "date": "2026-08-12",
+          "weight": 0.88,
+          "clean_seconds": 1431
+        },
+        {
+          "title": "Azymut Cup 2026 E5",
+          "date": "2026-08-14",
+          "weight": 0.88,
+          "clean_seconds": 664
+        },
+        {
+          "title": "MO dlouh\u00e1 tra\u0165 2026, Pet\u0159vald u Karvin\u00e9 (H18)",
+          "date": "2026-03-28",
+          "weight": 0.68,
+          "clean_seconds": 2895
+        },
+        {
+          "title": "MO kr\u00e1tk\u00e1 tra\u0165 2025, Pohora (H16C)",
+          "date": "2025-05-17",
+          "weight": 0.37,
+          "clean_seconds": 1872
+        }
+      ],
+      "leave_one_out": [
+        {
+          "title": "Azymut Cup 2026 E4 (Bia\u0142obrzegi)",
+          "pooled": {
+            "total_err": 18.5,
+            "leg_mae": 29.2
+          },
+          "own": {
+            "total_err": -0.0,
+            "leg_mae": 19.0
+          },
+          "textbook": {
+            "total_err": 25.3,
+            "leg_mae": 37.8
+          }
+        },
+        {
+          "title": "Azymut Cup 2026 E5",
+          "pooled": {
+            "total_err": -2.1,
+            "leg_mae": 12.3
+          },
+          "own": {
+            "total_err": -0.0,
+            "leg_mae": 15.0
+          },
+          "textbook": {
+            "total_err": 13.6,
+            "leg_mae": 23.7
+          }
+        },
+        {
+          "title": "MO dlouh\u00e1 tra\u0165 2026, Pet\u0159vald u Karvin\u00e9 (H18)",
+          "pooled": {
+            "total_err": -9.5,
+            "leg_mae": 10.9
+          },
+          "own": {
+            "total_err": 0.0,
+            "leg_mae": 7.3
+          },
+          "textbook": {
+            "total_err": -5.8,
+            "leg_mae": 7.8
+          }
+        },
+        {
+          "title": "MO kr\u00e1tk\u00e1 tra\u0165 2025, Pohora (H16C)",
+          "pooled": {
+            "total_err": -2.0,
+            "leg_mae": 26.3
+          },
+          "own": {
+            "total_err": 0.0,
+            "leg_mae": 20.9
+          },
+          "textbook": {
+            "total_err": 12.4,
+            "leg_mae": 25.3
+          }
+        }
+      ]
+    }
+  },
+  "dur_exp": 0.073
+}

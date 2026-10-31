@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0E7A1C">
+  <title>{% block title %}Rozbor postupů{% endblock %} · {{ club.NAME }}</title>
+  {# the chosen light/dark mode goes on <html> before the styles load (key ob-rezim; without it the one the
+     club site keeps, skob-rezim, see ob.js) #}
+  <script>(function(){try{var r=localStorage.getItem("ob-rezim")||localStorage.getItem("skob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
+  <link rel="stylesheet" href="{{ url_for('ob.static', filename='skob.css') }}">
+  <link rel="stylesheet" href="{{ url_for('ob.static', filename='ob.css') }}">
+  <link rel="icon" href="{{ url_for('ob.static', filename=club.LOGO) }}"{% if club.LOGO.endswith('.svg') %} type="image/svg+xml"{% endif %}>
+  {% block head %}{% endblock %}
+</head>
+{# data-obnovit: the page shows the state of the background jobs and loads itself again when they finish (ob.js) #}
+<body{% if wide %} class="ob-siroka"{% endif %}{% block body_attrs %}{% endblock %}>
+{{ sprite }}
+{% macro menu() %}
+<ul class="menuseznam">
+  {% if user %}
+  {% for endpoint, icon, label in [('ob.races', 'archiv', 'Moje závody'), ('ob.upload', 'kompas', 'Nahrát běhy'),
+                                   ('ob.model', 'graf', 'Můj model rychlosti'), ('ob.jobs_page', 'stav', 'Úlohy'),
+                                   ('ob.profile', 'lide', 'Profil')] %}
+  <li><a href="{{ url_for(endpoint) }}"{% if request.endpoint == endpoint or (endpoint == 'ob.races' and aktivni == 'races') %} aria-current="page"{% endif %}>
+      {{ ikona(icon) }}{{ label }}{% if endpoint == 'ob.jobs_page' %} <span class="badge ob-ulohy" hidden></span>{% endif %}</a></li>
+  {% endfor %}
+  {% else %}
+  <li><a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>{{ ikona('start') }}Přihlášení</a></li>
+  {% if registration_open %}
+  <li><a href="{{ url_for('auth.register') }}"{% if request.endpoint == 'auth.register' %} aria-current="page"{% endif %}>{{ ikona('lide') }}Nový účet</a></li>
+  {% endif %}
+  {% endif %}
+  <li><a href="{{ url_for('ob.help_page') }}"{% if request.endpoint == 'ob.help_page' %} aria-current="page"{% endif %}>{{ ikona('plan') }}Jak na to</a></li>
+  <li class="mn-sep" aria-hidden="true">{{ ikona('kontrola') }}<span class="mn-sep-cara"></span>{{ ikona('kontrola') }}</li>
+  <li><a href="{{ club.home() }}">{{ ikona('live') }}Závodní centrum<span class="mn-pozn">klubový web</span></a></li>
+  {% if user and user.oris_user_id %}
+  <li><a href="{{ club.archive(user.oris_user_id) }}">{{ ikona('zebricek') }}Moje výsledky<span class="mn-pozn">klubový web</span></a></li>
+  <li><a href="{{ club.member(user.oris_user_id) }}">{{ ikona('vlajka') }}Moje vizitka<span class="mn-pozn">klubový web</span></a></li>
+  {% endif %}
+  {% if user %}
+  <li><form method="post" action="{{ url_for('auth.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="ob-menu-tlacitko">{{ ikona('cil') }}Odhlásit</button></form></li>
+  {% endif %}
+</ul>
+{% endmacro %}
+<div class="sitehead">
+  <header class="site">
+    <div class="inner">
+      <h1><a class="brandlink" href="{{ url_for('ob.races') }}">
+        <img src="{{ url_for('ob.static', filename=club.LOGO) }}" alt="" width="269" height="233">
+        <span>{{ club.NAME }} <span class="suffix">— rozbor postupů</span></span></a></h1>
+      <details class="menu">
+        <summary aria-label="Nabídka"><span></span><span></span><span></span></summary>
+        <nav aria-label="Nabídka">{{ menu() }}</nav>
+      </details>
+      <div class="headmeta">
+        <div class="headtexty">
+          <div class="headcas">
+            <button type="button" class="rezim-prepinac" id="rezim" hidden aria-label="Světlý nebo tmavý režim">◐</button>
+            <span class="ted-cas" id="ted-cas"></span>
+          </div>
+          <span class="headverze">{% if user %}{{ user.name or user.username }}{% else %}nepřihlášen{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="flagstrip"></div>
+</div>
+<div class="shell">
+  <nav class="sidemenu" aria-label="Hlavní nabídka">{{ menu() }}</nav>
+  <div class="obsah">
+    <main>
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+      <p class="{{ 'stalewarn' if category == 'error' else 'nota' }}" role="status">{{ message }}</p>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site">
+      Rozbor postupů počítají skripty z tvé stopy, mapy a oficiálních časů; žádná umělá inteligence.
+      Časy a mezičasy: <a href="https://oris.ceskyorientak.cz/">ORIS</a>.
+      Výškopis: Mapzen Terrain Tiles (AWS){% if 'cuzk' in dem_sources %}, DMR 5G © ČÚZK (CC BY 4.0){% endif %}.
+      Překážky: © přispěvatelé <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL).
+      <p class="patverze">ob-tracker {{ app_version }}</p>
+    </footer>
+  </div>
+</div>
+<script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }} };</script>
+<script src="{{ url_for('ob.static', filename='ob.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

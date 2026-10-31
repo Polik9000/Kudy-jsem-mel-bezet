@@ -1,0 +1,10 @@
+.git
+__pycache__
+*.pyc
+.pytest_cache
+instance
+out
+races
+fits
+*.zip
+.env

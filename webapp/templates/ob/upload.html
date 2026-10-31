@@ -1,0 +1,55 @@
+{% extends "ob/base.html" %}
+{% block title %}Nahrát běhy{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}Nahrát běhy</h2>
+<form method="post" enctype="multipart/form-data" class="karta" data-nahravani data-pretahni>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label class="ob-pole">Soubory .fit nebo .zip (jde vybrat víc najednou)
+    <input type="file" name="files" multiple accept=".fit,.zip" required></label>
+  <p class="hint">Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect,
+    Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu.
+    Z celého exportu se navíc spočítá tvůj model kopců; nahraný zip se potom smaže a zůstanou jen běhy
+    spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže).
+    Před párováním se z ORIS načtou tvoje závody. Smazané běhy se vrátí jen opětovným nahráním exportu.
+    Velký export se nahrává i několik minut.</p>
+  <div class="controls">
+    <button type="submit" class="btn btn-hlavni">Nahrát</button>
+    <span class="hint ob-nahravani-stav" role="status"></span>
+  </div>
+</form>
+<h2>Nahrané aktivity ({{ total }})</h2>
+{% if acts %}
+<div class="tablewrap"><table>
+  <thead><tr><th data-sort="text">Start</th><th data-sort="text">Sport</th><th class="num" data-sort="number">Čas</th>
+      <th class="num" data-sort="number">km</th><th>GPS</th><th data-sort="text">Závod</th></tr></thead>
+  <tbody>
+  {% for a in acts %}
+  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ a.sport }}</td>
+      <td class="num" data-value="{{ a.timer_s or 0 }}">{{ a.timer_s | mmss }}</td>
+      <td class="num">{{ '%.2f' | format((a.dist_m or 0) / 1000) }}</td>
+      <td>{{ 'ano' if a.has_gps else 'ne' }}</td>
+      <td class="ob-wrap">{% if a.race_entry %}<a href="{{ url_for('ob.race', entry_id=a.race_entry) }}">{{ a.race }}</a>
+        {% elif a.id in at_races %}
+        {# a run on the day and at the place of a race that was not paired with it: the runner decides #}
+        <span class="stav ob-warn">nespárované u závodu</span>
+        <span class="controls">
+          {% for entry_id, name in at_races[a.id] %}
+          <form method="post" action="{{ url_for('ob.race_activity', entry_id=entry_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="activity_id" value="{{ a.id }}">
+            <button type="submit" class="btn btn-maly" title="Použít tenhle běh jako stopu závodu">Přiřadit: {{ name }}</button>
+          </form>
+          {% endfor %}
+          <form method="post" action="{{ url_for('ob.activity_delete', activity_id=a.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-maly">Smazat</button>
+          </form>
+        </span>
+        {% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="prazdno empty">{{ ikona('kompas', 'ikona-velka') }}Zatím nic. Nahraj první běh.</div>
+{% endif %}
+{% endblock %}

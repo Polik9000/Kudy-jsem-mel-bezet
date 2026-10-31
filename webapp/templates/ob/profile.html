@@ -1,0 +1,49 @@
+{% extends "ob/base.html" %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}Profil</h2>
+<form method="post" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Jméno <input name="name" value="{{ user.name or '' }}"></label>
+  <button type="submit" class="btn btn-hlavni">Uložit</button>
+</form>
+<div class="karta">
+  <dl class="detaily">
+    <dt>Přihlašovací jméno</dt><dd>{{ user.username }}</dd>
+    <dt>Registrační číslo ORIS</dt><dd>{{ user.oris_regno or 'účet ho nemá' }}</dd>
+    <dt>ORIS ID</dt><dd>{{ user.oris_user_id or 'zatím nenačteno' }}</dd>
+    <dt>Závody z ORIS načteny</dt><dd>{{ (user.oris_synced_at | kdy) or 'zatím ne' }}</dd>
+  </dl>
+  <p class="hint">Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.
+    Účet k němu patří napořád, změnit ho nejde.</p>
+  {% if user.oris_user_id %}
+  <p class="controls zavododkazy ob-odkazy">
+    <a class="btn btn-zdroj zdroj-start" href="{{ club.member(user.oris_user_id) }}">{{ ikona('start') }}Vizitka na klubovém webu</a>
+    <a class="btn btn-zdroj zdroj-cil" href="{{ club.archive(user.oris_user_id) }}">{{ ikona('cil') }}Moje výsledky v archivu</a>
+  </p>
+  {% endif %}
+</div>
+<h3>Změna hesla</h3>
+<form method="post" action="{{ url_for('auth.password') }}" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Současné heslo <input name="current" type="password" autocomplete="current-password" required></label>
+  <label>Nové heslo (aspoň 8 znaků) <input name="password" type="password" autocomplete="new-password" required></label>
+  <label>Nové heslo znovu <input name="password2" type="password" autocomplete="new-password" required></label>
+  <button type="submit" class="btn">Změnit heslo</button>
+</form>
+<h3>Zrušení účtu</h3>
+<form method="post" action="{{ url_for('auth.account_delete') }}" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p>Zrušení smaže účet a všechno, co patří jen tobě: závody v aplikaci ({{ has.races }}), běhy z hodinek
+    ({{ has.activities }}), rozbory ({{ has.analyses }}), poznámky a plánované postupy ({{ has.notes }}), osobní modely
+    ({{ has.models }}) a závody, které jsi přidal ručně a nikdo jiný je nemá. Nejde to vrátit.</p>
+  <p class="hint">Zůstane, co je sdílené pro závod: mapa bez tratě, mapa s tratí kategorie, zakázané čáry
+    a občerstvovačky (jen už u nich nebude tvoje jméno). Účet si můžeš později založit znovu.</p>
+  <label>Heslo pro potvrzení <input name="password" type="password" autocomplete="current-password" required></label>
+  <button type="submit" class="btn">Zrušit účet a smazat moje data</button>
+</form>
+<h3>Soukromí</h3>
+<p class="hint">Tvoje stopy z hodinek a poznámky vidíš jen ty. Mapa bez tratě, občerstvovačky a zakázané přechody jsou
+  sdílené pro závod, takže poslouží i ostatním přihlášeným členům, kteří ho běželi. Celý export z Garminu se po
+  zpracování z aplikace maže; zůstanou jen běhy spárované se závody a z ostatních jen odvozený model kopců.</p>
+{% endblock %}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 269 233">
+  <!--
+    Logo SKOB Frýdek-Místek — vektorové překreslení z rastrové předlohy
+    (2026-08-11). Barvy odpovídají paletě „logo" v tabulce club_color.
+    Až bude k dispozici oficiální vektor, tenhle soubor se prostě nahradí.
+  -->
+  <!-- pískový trojúhelník v pozadí -->
+  <polygon points="96,16 30,170 250,170" fill="#FBD08C"/>
+  <!-- zelené „B" — dva zaoblené pruhy -->
+  <rect x="30" y="24" width="90" height="25" rx="12" fill="#0E7A1C"/>
+  <rect x="30" y="53" width="82" height="25" rx="12" fill="#0E7A1C"/>
+  <!-- modro-bílý blesk vpravo nahoře (šipka k M) -->
+  <polygon points="163,99 256,44 256,74" fill="#1A1AC6"/>
+  <polygon points="163,99 256,74 243,96" fill="#FFFFFF" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- modro-bílý blesk vlevo dole -->
+  <polygon points="62,155 150,176 97,183" fill="#FFFFFF" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+  <polygon points="150,180 94,181 59,224" fill="#1A1AC6"/>
+  <!-- červený trojúhelník (lampion) -->
+  <polygon points="194,100 236,165 178,165" fill="#CC1417"/>
+  <!-- černé „FM" — linková kresba, kurzívní sklon -->
+  <g fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 58 166 L 86 97 L 150 97"/>
+    <path d="M 72 131 L 128 131"/>
+    <path d="M 100 166 L 128 97 L 149 151 L 172 97 L 194 97 L 178 166"/>
+  </g>
+</svg>

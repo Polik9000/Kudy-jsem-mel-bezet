@@ -1,0 +1,14 @@
+# Development: the source folder is mounted into the containers, so edits show up without a rebuild.
+#   docker compose -p obdev -f docker-compose.yml -f docker-compose.dev.yml up
+# (-p obdev keeps a separate data volume, so the data of the ordinary `docker compose up` stay untouched)
+services:
+  web:
+    environment:
+      OB_DEV: "1"
+    volumes:
+      - .:/app
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--reload", "--worker-class", "gthread", "--workers", "1",
+              "--threads", "4", "--timeout", "900", "webapp.wsgi:app"]
+  worker:
+    volumes:
+      - .:/app

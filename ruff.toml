@@ -1,0 +1,17 @@
+# Linter: docker compose run --rm web ruff check .
+line-length = 125
+target-version = "py312"
+exclude = ["webapp/static", "garmin-matching", "private", "data"]
+
+[lint]
+select = ["E", "F", "W", "I"]
+# E731: short lambdas are used on purpose; E741: l for a leg; E701/E702: one-liners in the older scripts
+ignore = ["E731", "E741", "E701", "E702", "E401"]
+
+[lint.per-file-ignores]
+"analyze.py" = ["E402"]
+"oroute/slopefit.py" = ["E501"]
+"oroute/terrain.py" = ["E501"]
+"bestroute.py" = ["E402"]
+"tests/*" = ["E402"]
+"webapp/views/__init__.py" = ["E402", "F401"]

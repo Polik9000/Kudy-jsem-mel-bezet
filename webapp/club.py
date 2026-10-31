@@ -1,0 +1,31 @@
+"""The club: its name, logo and the links to its site (skob-results). Its pages are keyed by ORIS ids, the same
+ids we keep in events.oris_id and users.oris_user_id; the mapping is the table in docs/pruzkum.md."""
+import os
+from urllib.parse import urlencode
+
+BASE = os.environ.get("OB_CLUB_URL", "https://skobfm.vzdyonline.cz").rstrip("/")
+NAME = os.environ.get("OB_CLUB_NAME", "SKOB Frýdek-Místek")   # in the title and the header of every page
+LOGO = os.environ.get("OB_CLUB_LOGO", "skob-logo.svg")       # a file in webapp/static: header and icon
+
+
+def home():
+    return BASE + "/"
+
+
+def event(oris_id):
+    """The club page of a race (results and entries of the club's runners)."""
+    return f"{BASE}/zavod/oris-{int(oris_id)}" if oris_id else None
+
+
+def member(oris_user_id):
+    return f"{BASE}/clen/{int(oris_user_id)}" if oris_user_id else None
+
+
+def archive(oris_user_id, season=None):
+    """All results of a member, optionally one season."""
+    if not oris_user_id:
+        return None
+    q = dict(clen=int(oris_user_id))
+    if season:
+        q["season"] = int(season)
+    return f"{BASE}/archiv?{urlencode(q)}"

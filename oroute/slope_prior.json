@@ -1,0 +1,219 @@
+{
+ "up_k": 3.4,
+ "down_gain": -0.0,
+ "steep_down": 0.8,
+ "downhill_from_races": 27,
+ "race_up_k": 2.5,
+ "race_curve": [
+  {
+   "grade": -0.217,
+   "pace_mult": 1.182,
+   "n": 15
+  },
+  {
+   "grade": -0.189,
+   "pace_mult": 0.89,
+   "n": 17
+  },
+  {
+   "grade": -0.165,
+   "pace_mult": 1.128,
+   "n": 24
+  },
+  {
+   "grade": -0.139,
+   "pace_mult": 1.091,
+   "n": 30
+  },
+  {
+   "grade": -0.111,
+   "pace_mult": 1.036,
+   "n": 60
+  },
+  {
+   "grade": -0.086,
+   "pace_mult": 0.931,
+   "n": 80
+  },
+  {
+   "grade": -0.06,
+   "pace_mult": 1.048,
+   "n": 108
+  },
+  {
+   "grade": -0.035,
+   "pace_mult": 0.98,
+   "n": 178
+  },
+  {
+   "grade": -0.009,
+   "pace_mult": 1.0,
+   "n": 447
+  },
+  {
+   "grade": 0.009,
+   "pace_mult": 1.0,
+   "n": 463
+  },
+  {
+   "grade": 0.037,
+   "pace_mult": 1.088,
+   "n": 211
+  },
+  {
+   "grade": 0.06,
+   "pace_mult": 1.067,
+   "n": 145
+  },
+  {
+   "grade": 0.084,
+   "pace_mult": 1.106,
+   "n": 108
+  },
+  {
+   "grade": 0.112,
+   "pace_mult": 1.311,
+   "n": 51
+  },
+  {
+   "grade": 0.14,
+   "pace_mult": 1.326,
+   "n": 36
+  },
+  {
+   "grade": 0.162,
+   "pace_mult": 1.318,
+   "n": 40
+  },
+  {
+   "grade": 0.191,
+   "pace_mult": 1.501,
+   "n": 28
+  },
+  {
+   "grade": 0.208,
+   "pace_mult": 1.908,
+   "n": 19
+  }
+ ],
+ "source": "7065d60a-5e38-4391-8051-7b72153bda2e_1.zip",
+ "sports": "running",
+ "activities": 164,
+ "windows": 14872,
+ "uphill_windows": 1383,
+ "downhill_windows": 1111,
+ "half_life_days": 365,
+ "fitted": "2026-10-06",
+ "curve": [
+  {
+   "grade": -0.24,
+   "pace_mult": 1.038,
+   "n": 16
+  },
+  {
+   "grade": -0.215,
+   "pace_mult": 0.95,
+   "n": 28
+  },
+  {
+   "grade": -0.188,
+   "pace_mult": 0.89,
+   "n": 44
+  },
+  {
+   "grade": -0.163,
+   "pace_mult": 1.12,
+   "n": 52
+  },
+  {
+   "grade": -0.137,
+   "pace_mult": 1.044,
+   "n": 95
+  },
+  {
+   "grade": -0.112,
+   "pace_mult": 0.96,
+   "n": 153
+  },
+  {
+   "grade": -0.086,
+   "pace_mult": 1.038,
+   "n": 233
+  },
+  {
+   "grade": -0.061,
+   "pace_mult": 1.121,
+   "n": 435
+  },
+  {
+   "grade": -0.034,
+   "pace_mult": 1.026,
+   "n": 1073
+  },
+  {
+   "grade": -0.007,
+   "pace_mult": 0.999,
+   "n": 5046
+  },
+  {
+   "grade": 0.007,
+   "pace_mult": 1.007,
+   "n": 5089
+  },
+  {
+   "grade": 0.035,
+   "pace_mult": 1.126,
+   "n": 1170
+  },
+  {
+   "grade": 0.061,
+   "pace_mult": 1.181,
+   "n": 526
+  },
+  {
+   "grade": 0.086,
+   "pace_mult": 1.293,
+   "n": 319
+  },
+  {
+   "grade": 0.111,
+   "pace_mult": 1.419,
+   "n": 165
+  },
+  {
+   "grade": 0.137,
+   "pace_mult": 1.407,
+   "n": 108
+  },
+  {
+   "grade": 0.162,
+   "pace_mult": 1.601,
+   "n": 89
+  },
+  {
+   "grade": 0.185,
+   "pace_mult": 1.508,
+   "n": 56
+  },
+  {
+   "grade": 0.211,
+   "pace_mult": 1.94,
+   "n": 46
+  },
+  {
+   "grade": 0.233,
+   "pace_mult": 2.021,
+   "n": 29
+  },
+  {
+   "grade": 0.264,
+   "pace_mult": 1.663,
+   "n": 16
+  },
+  {
+   "grade": 0.29,
+   "pace_mult": 1.776,
+   "n": 16
+  }
+ ]
+}

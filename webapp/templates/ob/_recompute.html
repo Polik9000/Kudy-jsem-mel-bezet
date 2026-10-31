@@ -1,0 +1,6 @@
+{# "Přepočítat všechno": samples of every race, one model, then the routes of every race (handlers._recompute_all) #}
+<form method="post" action="{{ url_for('ob.recompute_all') }}" class="ob-odkazy">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="zpet" value="{{ request.script_root }}{{ request.full_path if request.query_string else request.path }}">
+  <button type="submit" class="btn{{ ' btn-maly' if maly }}" title="Znovu přečte vzorky stop, jednou přepočítá model a s ním postupy všech závodů, jeden po druhém">Přepočítat všechno</button>
+</form>

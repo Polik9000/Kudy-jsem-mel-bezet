@@ -1,0 +1,87 @@
+{
+ "Method": "getEvent",
+ "Format": "json",
+ "Status": "OK",
+ "ExportCreated": "2026-10-06 19:52:54",
+ "Data": {
+  "ID": "9827",
+  "Name": "Mistrovství oblasti na dlouhé trati",
+  "Date": "2026-03-28",
+  "Place": "Petřvald u Karviné",
+  "Region": "MSK",
+  "Sport": {
+   "ID": "1",
+   "NameCZ": "OB",
+   "NameEN": "Foot O"
+  },
+  "Discipline": {
+   "ID": "1",
+   "ShortName": "LD",
+   "NameCZ": "Dlouhá trať",
+   "NameEN": "Long distance"
+  },
+  "LiveloxID": "182468",
+  "StartTime": "10:00",
+  "GPSLat": "49.830190382977",
+  "GPSLon": "18.372691869736",
+  "Cancelled": "0",
+  "Stages": "0",
+  "ParentID": null,
+  "Classes": {
+   "Class_215125": {
+    "ID": "215125",
+    "Name": "D21",
+    "Distance": "6.60",
+    "Climbing": "255",
+    "Controls": "20",
+    "Splits": 1
+   },
+   "Class_215134": {
+    "ID": "215134",
+    "Name": "H18",
+    "Distance": "7.88",
+    "Climbing": "280",
+    "Controls": "19",
+    "Splits": 1
+   }
+  },
+  "Links": {
+   "Link_43064": {
+    "ID": "43064",
+    "Url": "https://mapy.ceskyorientak.cz/mapa/pansky-les-foot-2024",
+    "SourceType": {
+     "ID": "10",
+     "NameCZ": "Stará mapa",
+     "NameEN": "Old map"
+    },
+    "OtherDescCZ": "",
+    "OtherDescEN": ""
+   },
+   "Link_43120": {
+    "ID": "43120",
+    "Url": "https://oresults.eu/events/2924",
+    "SourceType": [],
+    "OtherDescCZ": "Online výsledky",
+    "OtherDescEN": "Online results"
+   }
+  },
+  "Locations": {
+   "Location_2185": {
+    "ID": "2185",
+    "GPSLat": "49.83363676421134",
+    "GPSLon": "18.373147845268253",
+    "NameCZ": "Centrum závodu (na louce)",
+    "NameEN": "",
+    "Letter": "C"
+   },
+   "Location_2184": {
+    "ID": "2184",
+    "GPSLat": "49.83009695356037",
+    "GPSLon": "18.372716009616855",
+    "NameCZ": "Parkoviště aut závodníků",
+    "NameEN": "",
+    "Letter": "P"
+   }
+  }
+ }
+}

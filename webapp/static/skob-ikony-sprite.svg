@@ -1,0 +1,114 @@
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-live" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+    <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+    <path d="M7.9 7.9a5.8 5.8 0 0 0 0 8.2M16.1 7.9a5.8 5.8 0 0 1 0 8.2"/>
+    <path d="M5 5a9.9 9.9 0 0 0 0 14M19 5a9.9 9.9 0 0 1 0 14" opacity=".55"/>
+  </symbol>
+  <symbol id="i-kalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3.5" y="5.2" width="17" height="15.3" rx="2.4"/>
+    <path d="M3.5 10h17M8 3.2v3.6M16 3.2v3.6"/>
+    <circle cx="8.4" cy="14.2" r="1.1" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="i-archiv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4.4" width="18" height="4.6" rx="1.6"/>
+    <path d="M4.8 9v9.6a2 2 0 0 0 2 2h10.4a2 2 0 0 0 2-2V9"/>
+    <path d="M10 13.4h4"/>
+  </symbol>
+  <symbol id="i-lide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9.2" cy="8.2" r="3.4"/>
+    <path d="M2.8 20.3a6.4 6.4 0 0 1 12.8 0"/>
+    <path d="M16.4 5.5a3.3 3.3 0 0 1 0 5.6M17.8 14.4a5.6 5.6 0 0 1 3.4 5.9"/>
+  </symbol>
+  <symbol id="i-graf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3.8 20.2h16.4"/>
+    <rect x="5.4" y="11.4" width="3.3" height="6.4" rx="1"/>
+    <rect x="10.4" y="7.2" width="3.3" height="10.6" rx="1"/>
+    <rect x="15.4" y="13.4" width="3.3" height="4.4" rx="1"/>
+  </symbol>
+  <!-- Porovnání v letech: lomená čára s body, tedy VÝVOJ v čase.
+       Ne sloupce (i-graf u statistik) a ne stupně vítězů
+       (i-zebricek) - stránka porovnává jednu sérii rok po roce. -->
+  <symbol id="i-vyvoj" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3.8 20.2h16.4"/>
+    <path d="M5.6 16.4 10 11.2l3.6 2.8 5-6.4"/>
+    <circle cx="10" cy="11.2" r="1.2"/>
+    <circle cx="13.6" cy="14" r="1.2"/>
+  </symbol>
+  <!-- Žebříčky: stupně vítězů. Ne sloupcový graf (to je i-graf u
+       statistik) - žebříček je průběžné POŘADÍ, ne čísla o výkonu. -->
+  <symbol id="i-zebricek" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="4.4" r="2.1"/>
+    <path d="M3.4 20.6h17.2"/>
+    <path d="M9 20.6v-10h6v10"/>
+    <path d="M3.9 20.6v-6.2h5.1M20.1 20.6v-6.2H15"/>
+  </symbol>
+  <symbol id="i-chyba" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.4 12.3c0 4-3.8 7.3-8.4 7.3-1 0-2-.15-2.9-.42L4 20.8l1.2-3.4c-1.1-1.4-1.6-3.1-1.6-5.1C3.6 8.3 7.4 5 12 5s8.4 3.3 8.4 7.3Z"/>
+    <path d="M12 9v3.5"/>
+    <circle cx="12" cy="15.3" r="1" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.4 6.4h10.4M9.4 12h10.4M9.4 17.6h10.4"/>
+    <path d="M3.6 6.1l1.3 1.3 2.2-2.4M3.6 11.7l1.3 1.3 2.2-2.4"/>
+    <circle cx="5" cy="17.6" r="1.4"/>
+  </symbol>
+  <symbol id="i-vlajka" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 21.2V3.4"/>
+    <path d="M6 4.6h12.4l-2.9 3.9 2.9 3.9H6"/>
+  </symbol>
+  <!-- Separátor v menu mezi LIVE a Novinky (zadal Jakub 28. 8. 2026):
+       dvě kontroly spojené čarou postupu z mapového klíče OB — stejný
+       motiv jako i-start/i-cil, jen zmenšený a zjednodušený, ať je to
+       na první pohled oddělovač, ne další položka. -->
+  <!-- Kontrola z mapového klíče OB: samotný kroužek. Motiv separátoru
+       („dvě kontroly spojené čarou postupu") se skládá ze DVOU těchto
+       ikon a čáry z CSS mezi nimi - ne z jednoho širokého obrázku.
+       Důvod je měřený: celý motiv ve viewBoxu 24x24 se v širokém boxu
+       kvůli zachování poměru stran zmenšil na výšku boxu, takže
+       kolečka měla v průměru čtvrt em a separátor byl skoro
+       neviditelný (nahlásil Jakub 28. 8. 2026 se snímkem). Takhle
+       kroužky drží velikost ikon u položek a roztahuje se jen čára. -->
+  <symbol id="i-kontrola" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <circle cx="12" cy="12" r="9"/>
+  </symbol>
+  <!-- Stav aplikace: tep. Křivka, ne srdce - je to zdraví BĚHU, ne oblíbenost. -->
+  <symbol id="i-stav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12.5h4l2.2-5 3.4 9.6 2.3-6.1 1.6 3.4H21"/>
+  </symbol>
+  <symbol id="i-kompas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8.6"/>
+    <path d="M15.4 8.6l-2.1 4.7-4.7 2.1 2.1-4.7z"/>
+  </symbol>
+  <!-- Startovka a výsledky u zdroje: značky z MAPOVÉHO KLÍČE OB (ISOM)
+       — start je rovnostranný trojúhelník, cíl dvě soustředné kružnice
+       (zadal Jakub 23. 8. 2026 pozdě večer: „přidej jim ikony dle
+       specifikace pro orientační běh"). Obojí jen obrys v barvě textu
+       tlačítka, aby to sedělo na papír i do obou režimů. -->
+  <symbol id="i-start" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3.9 20.4 18.5H3.6Z"/>
+  </symbol>
+  <symbol id="i-cil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <circle cx="12" cy="12" r="8.6"/>
+    <circle cx="12" cy="12" r="4.9"/>
+  </symbol>
+  <!-- Detaily závodu — přejmenované decentní tlačítko na popis závodu
+       (zadal Jakub 24. 8. 2026): nepravidelná plocha jako otevřený
+       prostor z mapového klíče OB — na rozdíl od start/cíl to není
+       bodová značka trati, jen odkaz na obecné informace, proto tvarem
+       plocha, ne bod. -->
+  <symbol id="i-prostor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M12 4.3 17.6 7 19 12.7 15.4 18.1 9 19 5.1 14.4 5.6 8.3Z"/>
+  </symbol>
+  <!-- Tlačítka na externí mapové služby v kartě polohy závodu (zadal
+       Jakub 24. 8. 2026). Vlastní jednoduchá kresba, ne cizí ochranná
+       známka — jen naznačují mapu/špendlík, ať jde OSM od Mapy.cz
+       rozeznat i bez textu. -->
+  <symbol id="i-osm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M4 6.3 9 4.4l6 1.9 5-1.9v13.4l-5 1.9-6-1.9-5 1.9Z"/>
+    <path d="M9 4.4v13.4M15 6.3v13.4"/>
+  </symbol>
+  <symbol id="i-mapy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M12 20.2c3.8-4.3 5.8-7.6 5.8-10.1a5.8 5.8 0 0 0-11.6 0c0 2.5 2 5.8 5.8 10.1Z"/>
+    <circle cx="12" cy="10" r="2.2"/>
+  </symbol>
+</svg>

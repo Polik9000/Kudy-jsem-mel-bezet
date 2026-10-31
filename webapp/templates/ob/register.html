@@ -1,0 +1,21 @@
+{% extends "ob/base.html" %}
+{% block title %}Nový účet{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}Nový účet</h2>
+<p class="evhead">Účet se zakládá registračním číslem ORIS. Jméno a tvoje závody se podle něj načtou samy.</p>
+<form method="post" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Registrační číslo ORIS <input name="oris_regno" autocomplete="username" required autofocus placeholder="BFM0000"
+         value="{{ request.form.get('oris_regno') or request.args.get('regno', '') }}"></label>
+  <p class="hint">Tři písmena oddílu a čtyři číslice, např. BFM0000. Je to i tvoje přihlašovací jméno a později ho
+    nejde změnit.</p>
+  <label>Kód od správce <input name="code" autocomplete="off" required placeholder="ABCD-2345"
+         value="{{ request.form.get('code') or request.args.get('kod', '') }}"></label>
+  <p class="hint">Kód patří k tvému registračnímu číslu a dostaneš ho od správce aplikace. Díky němu si účet na tvoje
+    číslo nezaloží nikdo jiný.</p>
+  <label>Heslo (aspoň 8 znaků) <input name="password" type="password" autocomplete="new-password" required></label>
+  <label>Heslo znovu <input name="password2" type="password" autocomplete="new-password" required></label>
+  <button type="submit" class="btn btn-hlavni">Založit účet</button>
+</form>
+<p>Už účet máš? <a href="{{ url_for('auth.login') }}">Přihlásit</a></p>
+{% endblock %}

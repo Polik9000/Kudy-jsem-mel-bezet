@@ -1,0 +1,35 @@
+{
+ "Method": "getUserEventEntries",
+ "Format": "json",
+ "Status": "OK",
+ "ExportCreated": "2026-10-06 19:52:53",
+ "Data": {
+  "Entry_2929961": {
+   "ID": "2929961",
+   "EventID": "8989",
+   "EventDate": "2025-05-17",
+   "ClassID": "202420",
+   "ClassDesc": "H16C",
+   "RegNo": "BFM0903",
+   "UserID": "45118"
+  },
+  "Entry_3183676": {
+   "ID": "3183676",
+   "EventID": "9827",
+   "EventDate": "2026-03-28",
+   "ClassID": "215134",
+   "ClassDesc": "H18",
+   "RegNo": "BFM0903",
+   "UserID": "45118"
+  },
+  "Entry_3349658": {
+   "ID": "3349658",
+   "EventID": "10250",
+   "EventDate": "2026-09-13",
+   "ClassID": "223515",
+   "ClassDesc": "HA",
+   "RegNo": "BFM0903",
+   "UserID": "45118"
+  }
+ }
+}
