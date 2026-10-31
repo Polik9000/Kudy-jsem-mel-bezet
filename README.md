@@ -6,7 +6,8 @@ for this runner, and what kind of mistake was made at a control. Rules and geome
 
 **Česky v kostce:** Program porovná tvůj postup z hodinek Garmin (.fit) s nejrychlejším postupem podle mapy a
 tvého osobního modelu rychlosti a ukáže, kde jsi ztratil čas. Spouští se na vlastním počítači; tvoje mapy a .fit
-zůstávají u tebe. Mapy ani záznamy běhů v tomto repozitáři nejsou, nahraješ si vlastní.
+zůstávají u tebe. Mapy ani záznamy běhů v tomto repozitáři nejsou, nahraješ si vlastní. Licence: PolyForm
+Noncommercial 1.0.0, tedy zdarma pro jakékoli nekomerční použití (sám, oddíl, škola); komerční jen se svolením autora.
 
 ## Your data stays on your computer
 
@@ -30,7 +31,10 @@ skipped here (`needs the race maps and runs ... (not public)`); the rest run as 
 and `oroute/slope_prior.json` are the author's own speed model, used as the default until you add your races.
 The docs in `docs/` are the development notes of the project, in Czech.
 
-No licence has been chosen yet, so for now all rights are reserved; ask before reusing the code.
+## Licence
+
+[PolyForm Noncommercial 1.0.0](LICENSE): free to use, change and share for any noncommercial purpose (personal use,
+clubs, schools, research). Commercial use needs the author's permission.
 
 # Web app
 
