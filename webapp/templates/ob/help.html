@@ -15,7 +15,9 @@
   </ol>
   <p class="hint">Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: aplikace čte jen .fit.</p>
   <p><b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code>
-    jako soubory .fit.</p>
+    jako soubory .fit.{% if local_app %} V aplikaci v <a href="{{ url_for('ob.upload') }}">Nahrát běhy</a> klikni na
+    <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Novější hodinky (často na
+    Macu) se připojují přes MTP a jako disk se neukážou. Tam běhy exportuj z Garmin Connect, jak je popsáno výše.{% endif %}</p>
   <p><b>Celý export</b> (všechny běhy najednou, aplikace z nich spočítá i tvůj model kopců):</p>
   <ol>
     <li>Otevři <a href="https://www.garmin.com/en-US/account/datamanagement/" target="_blank" rel="noopener">správu
