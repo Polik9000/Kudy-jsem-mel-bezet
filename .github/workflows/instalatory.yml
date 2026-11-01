@@ -1,6 +1,6 @@
 # Instalátory lokální aplikace: Windows (.exe, Inno Setup) a macOS (.dmg, Apple Silicon).
 #
-# - ručně (Actions -> Instalátory -> Run workflow): jen sestaví a otestuje, instalátory jsou ke stažení
+# - ručně (Actions -> Instalátory -> Run workflow) nebo pull request, který mění balení: jen sestaví a otestuje, instalátory jsou ke stažení
 #   u běhu workflow (Artifacts), nic se nezveřejní;
 # - tag v* (např. git tag v0.1.0 && git push origin v0.1.0): navíc založí KONCEPT vydání (draft) v Releases
 #   s oběma instalátory. Zveřejní ho až autor tlačítkem Publish, po vyzkoušení na čistém počítači.
@@ -14,6 +14,12 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+  # pull request, který mění balení: jen sestavit a vyzkoušet
+  pull_request:
+    paths:
+      - "desktop/**"
+      - ".github/workflows/instalatory.yml"
+      - "requirements*.txt"
 
 permissions:
   contents: read
