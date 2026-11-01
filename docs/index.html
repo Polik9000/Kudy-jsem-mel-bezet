@@ -10,12 +10,9 @@
   Statická stránka pro GitHub Pages (Settings -> Pages -> Deploy from a branch -> main, /docs).
   Žádné externí skripty, fonty, cookies ani měření návštěvnosti.
 
-  AŽ BUDOU INSTALÁTORY V GITHUB RELEASES:
-  u obou tlačítek níže (hledej "STAHOVANI") smaž  aria-disabled="true"  a  tabindex="-1"
-  a nastav href na soubor z vydání, např.
-    https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/Kudy-jsem-mel-bezet-Windows.exe
-    https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/Kudy-jsem-mel-bezet-macOS.dmg
-  (jméno souboru musí sedět s tím, co nahraje release). Pak smaž odstavec s třídou "brzy".
+  STAHOVANI: tlačítka vedou na soubory vydání v0.1.0. To je zatím pre-release, a na pre-release
+  odkaz https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/... nefunguje (404). Po vydání bez příznaku pre-release
+  stačí v obou href nahradit "download/v0.1.0" za "latest/download"; pak už se nové verze měnit nemusí.
 -->
 <style>
 :root {
@@ -69,7 +66,7 @@ body {
 a { color: var(--brand); text-underline-offset: 2px; }
 a:hover { text-decoration-thickness: 2px; }
 h1, h2, h3 { line-height: 1.2; margin: 0 0 .5em; }
-h1 { font-size: clamp(2rem, 6vw, 3.1rem); letter-spacing: -.01em; }
+h1 { font-size: clamp(2rem, 5vw, 2.8rem); letter-spacing: -.01em; text-wrap: balance; }
 h2 { font-size: 1.45rem; margin-top: .2em; }
 h3 { font-size: 1.08rem; }
 p { margin: 0 0 1em; }
@@ -83,12 +80,12 @@ pre code { background: none; border: 0; padding: 0; }
 
 /* Language: Czech by default, English when html has class "en". */
 html:not(.en) [lang="en"] { display: none !important; }
-html.en [lang="cs"] { display: none !important; }
+html.en [lang="cs"]:not(.keep) { display: none !important; }
 
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); text-decoration: none; min-width: 0; }
 .logo svg { flex: none; }
-.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg-elev); }
+.lang { flex: none; display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg-elev); }
 .lang a { padding: 6px 12px; font-size: .9rem; text-decoration: none; color: var(--ink-soft); }
 html:not(.en) .lang a[data-l="cs"], html.en .lang a[data-l="en"] { background: var(--brand); color: var(--brand-ink); }
 
@@ -97,21 +94,37 @@ html:not(.en) .lang a[data-l="cs"], html.en .lang a[data-l="en"] { background: v
 .hero figure { margin: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; }
 .hero figcaption { font-size: .82rem; color: var(--muted); padding: 6px 4px 0; }
 
-.dl { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 10px; }
-.btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 12px;
-  background: var(--brand); color: var(--brand-ink); font-weight: 600; text-decoration: none; min-height: 48px; }
-.btn small { display: block; font-weight: 400; font-size: .78rem; opacity: .85; }
-.btn[aria-disabled="true"] { background: var(--bg-soft); color: var(--muted); border: 1px dashed var(--line);
-  pointer-events: none; cursor: not-allowed; }
+.dl { display: grid; gap: 10px; max-width: 380px; margin: 22px 0 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 12px 18px; border-radius: 12px;
+  background: var(--brand); color: var(--brand-ink); font-weight: 600; text-decoration: none; min-height: 52px; }
+.btn small { display: block; font-weight: 400; font-size: .8rem; }
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible, .lang a:focus-visible, summary:focus-visible, .skip:focus { outline: 3px solid var(--accent); outline-offset: 3px; }
+.btn .sipka { margin-left: auto; font-size: 1.2rem; }
 .btn.ghost { background: transparent; color: var(--brand); border: 1.5px solid var(--brand); }
-.brzy { font-size: .95rem; color: var(--muted); }
-.brzy strong { color: var(--orange); }
+.req { font-size: .95rem; color: var(--ink-soft); max-width: 34em; }
+.pozor { font-size: .95rem; color: var(--ink-soft); background: var(--bg-elev); border: 1px solid var(--line);
+  border-left: 4px solid var(--orange); border-radius: 10px; padding: 10px 14px; margin: 0 0 12px; max-width: 34em; }
+.pozor > p { margin: 0 0 .5em; }
+.pozor strong { color: var(--ink); }
+details { margin: .35em 0; }
+details > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+details > ol, details > ul, details > p { margin: .5em 0 .6em; }
+.pc-only { display: none; }
+@media (hover: none) and (pointer: coarse) { .pc-only { display: block; } }
+.skip { position: absolute; left: -9999px; top: 8px; background: var(--bg-elev); color: var(--ink); padding: 8px 12px; border-radius: 8px; }
+.skip:focus { left: 16px; z-index: 10; }
 
 section.card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 24px; margin: 0 0 20px; }
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 .step { background: var(--bg-soft); border-radius: 12px; padding: 16px; }
+.zacit { counter-reset: k; list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.zacit li { background: var(--bg-soft); border-radius: 12px; padding: 14px 16px; margin: 0; }
+.zacit li::before { counter-increment: k; content: counter(k); display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  border: 2.5px solid var(--accent); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+.zacit strong { display: block; color: var(--ink); }
 .step .n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
   border: 2.5px solid var(--accent); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
 ol, ul { padding-left: 1.25em; margin: 0 0 1em; }
@@ -121,14 +134,18 @@ li { margin: .25em 0; }
 .net th, .net td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
 .net th { color: var(--ink-soft); font-weight: 600; }
 .muted { color: var(--muted); font-size: .92rem; }
+.contour { stroke-opacity: .45; }
+:root[data-theme="dark"] .contour { stroke-opacity: .8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .contour { stroke-opacity: .8; } }
 footer { padding: 24px 0 40px; color: var(--muted); font-size: .9rem; }
 footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
 
 @media (max-width: 760px) {
   .hero { grid-template-columns: 1fr; padding-top: 8px; }
-  .grid3, .grid2 { grid-template-columns: 1fr; }
+  .grid2 { grid-template-columns: 1fr; }
   section.card { padding: 18px; }
-  .btn { flex: 1 1 100%; justify-content: center; }
+  .dl, .pozor, .req { max-width: none; }
+  .logo .muted { display: none; }
   .net th, .net td { padding: 6px 4px; }
 }
 </style>
@@ -141,57 +158,92 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
     if (location.hash === "#cs") l = "cs";
     if (!l) l = (navigator.language || "cs").toLowerCase().indexOf("cs") === 0 || (navigator.language || "").toLowerCase().indexOf("sk") === 0 ? "cs" : "en";
     if (l === "en") { document.documentElement.classList.add("en"); document.documentElement.lang = "en"; }
+    window.obLang = l;
   })();
 </script>
 </head>
 <body>
+<a class="skip" href="#obsah"><span lang="cs">Přeskočit na obsah</span><span lang="en">Skip to content</span></a>
 
 <div class="wrap">
   <header class="top">
     <a class="logo" href="#">
       <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 29 27H3Z" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/></svg>
-      <span lang="cs">Kudy jsem měl běžet</span><span lang="en">Kudy jsem měl běžet <span class="muted">(Which way should I have run)</span></span>
+      <span lang="cs" class="keep">Kudy jsem měl běžet</span><span lang="en" class="muted">(Which way should I have run)</span>
     </a>
     <nav class="lang" aria-label="Jazyk / Language">
-      <a href="#cs" data-l="cs" hreflang="cs">CZ</a><a href="#en" data-l="en" hreflang="en">EN</a>
+      <a href="#cs" data-l="cs" hreflang="cs" aria-label="Česky">CZ</a><a href="#en" data-l="en" hreflang="en" aria-label="English">EN</a>
     </nav>
   </header>
 
+  <main id="obsah">
   <div class="hero">
     <div>
       <h1 lang="cs">Kudy jsem měl běžet?</h1>
       <h1 lang="en">Which way should I have run?</h1>
-      <p class="lead" lang="cs">Program pro orientační běžce. Vezme tvůj záznam z hodinek Garmin (.fit) a mapu závodu (KMZ)
-        a u každého postupu ukáže, kudy jsi běžel, kudy by to pro <em>tebe</em> bylo nejrychlejší a kde jsi ztratil čas.
-        Počítá podle tvé vlastní rychlosti v lese, na cestách, do kopce i z kopce.</p>
-      <p class="lead" lang="en">A tool for orienteers. It takes your Garmin watch recording (.fit) and the race map (KMZ)
-        and, for every leg, shows the route you ran, the fastest route for <em>you</em> and where you lost time.
-        It uses your own speed in forest, on paths, uphill and downhill.</p>
+      <p class="lead" lang="cs">Program pro orientační běžce. Vezme tvůj běh z hodinek Garmin a mapu závodu z Liveloxu
+        a u každého postupu ukáže, kudy jsi běžel, kudy by to pro <em>tebe</em> bylo nejrychlejší a kde jsi ztratil čas.</p>
+      <p class="lead" lang="en">A tool for orienteers. It takes your run from a Garmin watch and the race map from Livelox
+        and, for every leg, shows the route you ran, the fastest route for <em>you</em> and where you lost time.</p>
 
       <div class="dl">
         <!-- STAHOVANI Windows -->
-        <a class="btn" id="dl-win" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases" aria-disabled="true" tabindex="-1">
+        <a class="btn" id="dl-win" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/download/v0.1.0/KudyJsemMelBezet-windows-setup.exe">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.5 4.4v7.1H3zm8.5-1.2L21 3v8.5h-9.5zM3 12.5h7.5v7.1L3 18.5zm8.5 0H21V21l-9.5-1.3z"/></svg>
-          <span><span lang="cs">Windows</span><span lang="en">Windows</span>
-            <small lang="cs">instalátor .exe</small><small lang="en">.exe installer</small></span>
+          <span><span lang="cs">Stáhnout pro Windows</span><span lang="en">Download for Windows</span>
+            <small lang="cs">Windows 10 a 11</small><small lang="en">Windows 10 and 11</small></span>
+          <span class="sipka" aria-hidden="true">↓</span>
         </a>
         <!-- STAHOVANI macOS -->
-        <a class="btn" id="dl-mac" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases" aria-disabled="true" tabindex="-1">
+        <a class="btn" id="dl-mac" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/download/v0.1.0/KudyJsemMelBezet-macos.dmg">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.7 1.3-2.8 0 0-2.4-1-2.4-4zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>
-          <span><span lang="cs">macOS</span><span lang="en">macOS</span>
-            <small lang="cs">obraz disku .dmg</small><small lang="en">.dmg disk image</small></span>
+          <span><span lang="cs">Stáhnout pro Mac</span><span lang="en">Download for Mac</span>
+            <small lang="cs">Mac s čipem M1 a novějším (ne Intel)</small><small lang="en">Mac with an M1 chip or later (not Intel)</small></span>
+          <span class="sipka" aria-hidden="true">↓</span>
         </a>
       </div>
-      <p class="brzy" lang="cs"><strong>Instalátor brzy ke stažení.</strong> Zatím se dá spustit ze zdrojového kódu (návod níž).</p>
-      <p class="brzy" lang="en"><strong>Installer coming soon.</strong> For now you can run it from the source code (see below).</p>
+      <p class="pc-only req" lang="cs"><strong>Program je pro počítač, ne pro mobil.</strong> Pošli si odkaz na tuhle stránku a otevři ho na počítači.</p>
+      <p class="pc-only req" lang="en"><strong>The program is for a computer, not a phone.</strong> Send yourself the link and open it on your computer.</p>
+      <div class="pozor" lang="cs">
+        <p><strong>Při instalaci tě počítač varuje. To je normální.</strong> Program je nový a nemá placený podpis od Microsoftu ani Applu.</p>
+        <details>
+          <summary>Windows napíše „Systém Windows ochránil váš počítač“</summary>
+          <ol><li>Klikni na <em>Další informace</em>.</li><li>Klikni na <em>Přesto spustit</em>.</li><li>Pak už instalace běží jako u každého programu.</li></ol>
+        </details>
+        <details>
+          <summary>Mac napíše, že aplikaci nelze otevřít</summary>
+          <ol><li>Otevři stažený soubor a přetáhni ikonu do složky <em>Aplikace</em>.</li>
+            <li>Spusť aplikaci. Mac ji napoprvé neotevře, hlášku zavři.</li>
+            <li>Otevři <em>Nastavení systému → Soukromí a zabezpečení</em>, sjeď dolů a klikni na <em>Přesto otevřít</em>. Potvrď heslem.</li>
+            <li>Napříště se aplikace otevře normálně.</li></ol>
+          <p class="muted">Jaký máš čip, zjistíš v nabídce s jablkem vlevo nahoře → <em>O tomto Macu</em>. U Macu s Intelem instalátor zatím nefunguje, viz <a href="#zdroj">spuštění přes Docker</a>.</p>
+        </details>
+      </div>
+      <p class="muted" lang="cs">Verze 0.1.0, první zkušební. Může mít chyby, napiš mi o nich (<a href="#licence">kontakt</a>). Linux zatím instalátor nemá, viz <a href="#zdroj">spuštění přes Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Všechna vydání</a></p>
+      <div class="pozor" lang="en">
+        <p><strong>Your computer will warn you during installation. That is normal.</strong> The program is new and has no paid signature from Microsoft or Apple.</p>
+        <details>
+          <summary>Windows says “Windows protected your PC”</summary>
+          <ol><li>Click <em>More info</em>.</li><li>Click <em>Run anyway</em>.</li><li>The installation then runs like any other.</li></ol>
+        </details>
+        <details>
+          <summary>Mac says the app cannot be opened</summary>
+          <ol><li>Open the downloaded file and drag the icon into <em>Applications</em>.</li>
+            <li>Start the app. The first time the Mac will refuse; close the message.</li>
+            <li>Open <em>System Settings → Privacy &amp; Security</em>, scroll down and click <em>Open Anyway</em>. Confirm with your password.</li>
+            <li>From then on the app opens normally.</li></ol>
+          <p class="muted">You can see your chip in the Apple menu (top left) → <em>About This Mac</em>. The installer does not work on Intel Macs yet, see <a href="#zdroj">running with Docker</a>.</p>
+        </details>
+      </div>
+      <p class="muted" lang="en">Version 0.1.0, the first trial release. It may have bugs, please tell me about them (<a href="#licence">contact</a>). No installer for Linux yet, see <a href="#zdroj">running with Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">All releases</a></p>
     </div>
 
     <figure>
       <!-- Ilustrace, ne skutečná mapa: na stránce nejsou cizí mapy. -->
-      <svg viewBox="0 0 400 300" width="100%" role="img" aria-labelledby="ill-t">
-        <title id="ill-t">Ilustrace: dva postupy mezi kontrolami / Illustration: two routes between controls</title>
+      <svg viewBox="0 0 400 300" width="100%" role="img" aria-labelledby="ill-cs" id="ill">
+        <title id="ill-cs" lang="cs">Ilustrace: dva postupy mezi kontrolami</title><title id="ill-en" lang="en">Illustration: two routes between controls</title>
         <rect width="400" height="300" rx="8" fill="var(--bg-soft)"/>
-        <g fill="none" stroke="#8a5a2b" stroke-opacity=".45" stroke-width="1.6">
+        <g class="contour" fill="none" stroke="#8a5a2b" stroke-width="1.6">
           <path d="M60 230c30-60 110-70 150-40s40 80 0 95"/>
           <path d="M85 225c25-40 85-48 115-25s28 55 0 65"/>
           <path d="M112 222c18-22 55-26 75-12s16 32 0 38"/>
@@ -199,7 +251,7 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
           <path d="M240 70c45 8 85 40 95 85"/>
         </g>
         <path d="M0 150 C80 140 120 120 200 118 S320 110 400 96" stroke="#e9e1c8" stroke-width="7" fill="none"/>
-        <path d="M0 150 C80 140 120 120 200 118 S320 110 400 96" stroke="#3a3a3a" stroke-width="1.6" stroke-dasharray="9 5" fill="none"/>
+        <path d="M0 150 C80 140 120 120 200 118 S320 110 400 96" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="9 5" fill="none"/>
         <!-- actual route -->
         <path d="M70 255 C110 215 140 205 170 200 S230 210 240 180 S260 150 300 140 S330 100 330 70" stroke="#d32f2f" stroke-width="5" stroke-linecap="round" fill="none" opacity=".9"/>
         <!-- best route -->
@@ -214,9 +266,64 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
           <text x="60" y="56" fill="var(--ink)">nejlepší pro tebe</text>
         </g>
       </svg>
-      <figcaption lang="cs">Ilustrace, ne skutečný závod. Snímky obrazovky přidáme, až budou s mapou, kterou smíme ukázat.</figcaption>
-      <figcaption lang="en">Illustration, not a real race (“tvůj postup” = your route, “nejlepší pro tebe” = best for you). Screenshots will follow once we have a map we may show.</figcaption>
+      <figcaption lang="cs">Ilustrace, ne skutečný závod.</figcaption>
+      <figcaption lang="en">Illustration, not a real race (“tvůj postup” = your route, “nejlepší pro tebe” = best for you).</figcaption>
     </figure>
+  </div>
+
+  <section class="card" id="zacit">
+    <h2 lang="cs">Jak začít</h2>
+    <h2 lang="en">How to start</h2>
+    <ol class="zacit" lang="cs">
+      <li><strong>Stáhni a nainstaluj program</strong> tlačítkem nahoře.</li>
+      <li><strong>Stáhni mapu z Liveloxu</strong> dvakrát: bez tratě a s tratí (<a href="#kmz">jak na to</a>).</li>
+      <li><strong>Stáhni svůj běh z Garminu</strong> (<a href="#fit">jak na to</a>).</li>
+      <li><strong>V programu přidej závod</strong> a nahraj k němu obě mapy a běh. Rozbor se spočítá sám, trvá to pár minut.</li>
+    </ol>
+    <ol class="zacit" lang="en">
+      <li><strong>Download and install the program</strong> with the button above.</li>
+      <li><strong>Download the map from Livelox</strong> twice: without and with the course (<a href="#kmz">how</a>).</li>
+      <li><strong>Download your run from Garmin</strong> (<a href="#fit">how</a>).</li>
+      <li><strong>Add the race in the program</strong> and upload both maps and the run. The analysis runs by itself in a few minutes.</li>
+    </ol>
+    <p class="muted" lang="cs">Program se otevře ve vlastním okně, nic se nepřihlašuje. Když v Profilu zadáš registrační číslo ORIS, načte tvoje závody a oficiální mezičasy sám. Při rozboru je potřeba internet (kvůli kopcům).</p>
+    <p class="muted" lang="en">The program opens in its own window, no login. If you enter your ORIS registration number in the Profile, it loads your races and official splits by itself. The analysis needs the internet (for the hills).</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="kmz">
+      <h2 lang="cs">Mapa z Livelox (KMZ)</h2>
+      <h2 lang="en">The map from Livelox (KMZ)</h2>
+      <ol lang="cs">
+        <li>Otevři svůj závod a kategorii na <a href="https://www.livelox.com/">Livelox</a>.</li>
+        <li>V nabídce mapy zvol stažení mapy a formát <strong>KMZ</strong>. KMZ je mapa, která „ví“, kde přesně leží; obyčejný obrázek to neumí.</li>
+        <li>Stáhni ji dvakrát: <strong>jen mapu</strong> (bez tratě) a <strong>s tratí</strong> (s kontrolami). Z první program čte terén, z druhé kontroly.</li>
+        <li>V programu otevři závod a oba soubory nahraj, je jedno, který první.</li>
+      </ol>
+      <ol lang="en">
+        <li>Open your race and class on <a href="https://www.livelox.com/">Livelox</a>.</li>
+        <li>In the map menu choose to download the map, format <strong>KMZ</strong>. A KMZ map “knows” exactly where it lies; a plain image does not.</li>
+        <li>Download it twice: <strong>map only</strong> (no course) and <strong>with course</strong> (with controls). The program reads the terrain from the first and the controls from the second.</li>
+        <li>In the program open the race and upload both files, in any order.</li>
+      </ol>
+      <p class="muted" lang="cs">Když Livelox stažení nedovolí, zkus KMZ na <a href="https://obpostupy.orientacnisporty.cz/">OB postupech</a>, nebo velký snímek obrazovky či fotku papírové mapy. Mapa patří pořadateli: používej ji jen pro sebe.</p>
+      <p class="muted" lang="en">If Livelox does not allow downloading, try the KMZ on <a href="https://obpostupy.orientacnisporty.cz/">OB postupy</a>, or a large screenshot or a photo of the paper map. The map belongs to the organiser: use it for yourself only.</p>
+    </section>
+
+    <section class="card" id="fit">
+      <h2 lang="cs">Záznam z hodinek (.fit)</h2>
+      <h2 lang="en">The watch recording (.fit)</h2>
+      <ul lang="cs">
+        <li><strong>Garmin Connect na počítači</strong> (<a href="https://connect.garmin.com/">connect.garmin.com</a>, v mobilní aplikaci to nejde): otevři závod, ozubené kolo / tři tečky &rarr; <em>Exportovat originál</em>. Stáhne se soubor .zip a ten nahraj do programu tak, jak je.</li>
+        <li><strong>Přímo z hodinek</strong>: připoj je kabelem k počítači, ve složce <code>GARMIN/Activity</code> najdi soubor s datem závodu (končí na .fit).</li>
+        <li><strong>Všechno najednou</strong>: na garmin.com si můžeš vyžádat export všech dat. Přijde e-mailem, někdy až za několik dní. Program z něj sám vybere závody podle data a místa.</li>
+      </ul>
+      <ul lang="en">
+        <li><strong>Garmin Connect on a computer</strong> (<a href="https://connect.garmin.com/">connect.garmin.com</a>, the phone app cannot do it): open the race, gear / three dots &rarr; <em>Export Original</em>. You get a .zip file; upload it to the program as it is.</li>
+        <li><strong>Straight from the watch</strong>: connect it to the computer with the cable and find the file with the race date in <code>GARMIN/Activity</code> (it ends in .fit).</li>
+        <li><strong>Everything at once</strong>: on garmin.com you can request an export of all your data. It comes by e-mail, sometimes after several days. The program picks the races by date and place.</li>
+      </ul>
+    </section>
   </div>
 
   <section class="card">
@@ -226,8 +333,8 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
       <div class="step">
         <h3 lang="cs">Tvůj osobní model rychlosti</h3>
         <h3 lang="en">Your personal speed model</h3>
-        <p lang="cs">Z tvých závodů se naučí, jak rychle běžíš v jakém terénu a sklonu. Silný do kopce? Program to ví.</p>
-        <p lang="en">It learns from your races how fast you run in each terrain and slope. Strong on hills? It knows.</p>
+        <p lang="cs">Z tvých závodů se naučí, jak rychle běžíš v jakém terénu a sklonu. Silný do kopce? Program to ví. Čím víc závodů nahraješ, tím je přesnější.</p>
+        <p lang="en">It learns from your races how fast you run in each terrain and slope. Strong on hills? It knows. The more races you add, the more accurate it gets.</p>
       </div>
       <div class="step">
         <h3 lang="cs">Nejlepší postup pro tebe</h3>
@@ -239,7 +346,7 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
         <h3 lang="cs">Chyby u kontrol</h3>
         <h3 lang="en">Mistakes at controls</h3>
         <p lang="cs">Pozná, kde jsi u kontroly kroužil nebo stál, a podle oficiálních mezičasů ukáže, kolik tě to stálo.</p>
-        <p lang="en">It spots where you circled or stopped near a control and, with the official splits, how much that cost.</p>
+        <p lang="en">It spots where you circled or stopped near a control and uses the official splits to show how much time that cost you.</p>
       </div>
     </div>
     <p class="muted" lang="cs" style="margin-top:1em">Bez umělé inteligence a bez placených služeb: jen geometrie, mapa a tvoje data.</p>
@@ -250,66 +357,36 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
     <h2 lang="cs">Tvoje data zůstávají u tebe</h2>
     <h2 lang="en">Your data stays on your device</h2>
     <p lang="cs">Program běží na tvém počítači. <strong>Mapy ani záznamy z hodinek (.fit) se nikam nenahrávají</strong>,
-      žádný účet u nás, žádný server, žádné měření. Na internet se program obrací jen pro veřejné údaje, které sám nezná:</p>
+      žádný účet u nás, žádný server, žádné sledování. Z internetu si program bere jen veřejné údaje: závody a mezičasy z ORIS a výškopis (kopce).</p>
     <p lang="en">The program runs on your computer. <strong>Maps and watch recordings (.fit) are never uploaded</strong>:
-      no account with us, no server, no tracking. It only goes online for public data it cannot know by itself:</p>
-    <table class="net" lang="cs">
-      <tr><th>Služba</th><th>Na co</th><th>Co se pošle</th></tr>
+      no account with us, no server, no tracking. It only fetches public data from the internet: races and splits from ORIS and the elevation (hills).</p>
+    <details lang="cs">
+      <summary>Kam přesně se program připojuje</summary>
+    <table class="net"><caption class="muted" style="text-align:left">Kam se program připojuje</caption>
+      <tr><th scope="col">Služba</th><th scope="col">Na co</th><th scope="col">Co se pošle</th></tr>
       <tr><td>ORIS (ČSOS)</td><td>údaje o závodě a oficiální mezičasy</td><td>číslo závodu, případně tvoje registrační číslo</td></tr>
       <tr><td>ČÚZK (DMR 5G), záložně AWS Terrain Tiles</td><td>výškopis, tedy kopce</td><td>jen obdélník oblasti mapy, ne tvoje trasa</td></tr>
       <tr><td>OpenStreetMap (Overpass)</td><td>železnice a dálnice, přes které se nesmí</td><td>jen obdélník oblasti mapy, ne tvoje trasa</td></tr>
     </table>
-    <table class="net" lang="en">
-      <tr><th>Service</th><th>What for</th><th>What is sent</th></tr>
+    </details>
+    <details lang="en">
+      <summary>Where exactly the program connects</summary>
+    <table class="net"><caption class="muted" style="text-align:left">Where the program connects</caption>
+      <tr><th scope="col">Service</th><th scope="col">What for</th><th scope="col">What is sent</th></tr>
       <tr><td>ORIS (Czech Orienteering Federation)</td><td>race details and official splits</td><td>the race number, optionally your registration number</td></tr>
       <tr><td>ČÚZK (DMR 5G), AWS Terrain Tiles as fallback</td><td>elevation, i.e. the hills</td><td>only the rectangle of the map area, not your track</td></tr>
       <tr><td>OpenStreetMap (Overpass)</td><td>railways and motorways you must not cross</td><td>only the rectangle of the map area, not your track</td></tr>
     </table>
-    <p class="muted" lang="cs">Jako každý požadavek na internet tyto služby vidí tvoji IP adresu. Tahle stránka nepoužívá cookies ani počítadla návštěv.</p>
-    <p class="muted" lang="en">Like any internet request, these services see your IP address. This page uses no cookies and no visitor counters.</p>
+    </details>
+    <p class="muted" lang="cs">Jako u každého spojení přes internet vidí tyto služby tvoji IP adresu. Tahle stránka nepoužívá cookies ani počítadla návštěv.</p>
+    <p class="muted" lang="en">As with any internet request, these services can see your IP address. This page uses no cookies and no visitor counters.</p>
   </section>
 
-  <div class="grid2">
-    <section class="card" id="kmz">
-      <h2 lang="cs">Mapa z Livelox (KMZ)</h2>
-      <h2 lang="en">The map from Livelox (KMZ)</h2>
-      <ol lang="cs">
-        <li>Otevři svůj závod a kategorii na <a href="https://www.livelox.com/">Livelox</a>.</li>
-        <li>V menu mapy zvol stažení / export mapy a formát <strong>KMZ</strong> (ten je zeměpisně umístěný, obrázek ne).</li>
-        <li>Stáhni ho dvakrát: <strong>jen mapa</strong> (bez tratě) a <strong>s tratí</strong> (s kontrolami).</li>
-        <li>Oba soubory nahraj v programu k závodu.</li>
-      </ol>
-      <ol lang="en">
-        <li>Open your race and class on <a href="https://www.livelox.com/">Livelox</a>.</li>
-        <li>In the map menu choose download / export map, format <strong>KMZ</strong> (it is georeferenced, an image is not).</li>
-        <li>Download it twice: <strong>map only</strong> (no course) and <strong>with course</strong> (with controls).</li>
-        <li>Upload both files to the race in the program.</li>
-      </ol>
-      <p class="muted" lang="cs">Když Livelox stažení nedovolí, zkus KMZ na OB postupech, nebo velký snímek obrazovky či fotku papírové mapy. Mapa patří pořadateli: používej ji jen pro sebe.</p>
-      <p class="muted" lang="en">If Livelox does not allow downloading, try the KMZ on OB postupy, or a large screenshot or a photo of the paper map. The map belongs to the organiser: use it for yourself only.</p>
-    </section>
-
-    <section class="card" id="fit">
-      <h2 lang="cs">Záznam z hodinek (.fit)</h2>
-      <h2 lang="en">The watch recording (.fit)</h2>
-      <ul lang="cs">
-        <li><strong>Garmin Connect</strong> (web): otevři aktivitu, ozubené kolo / tři tečky &rarr; <em>Exportovat originál</em>. Stáhne se .zip, uvnitř je .fit.</li>
-        <li><strong>Přímo z hodinek</strong>: připoj je kabelem k počítači, soubory jsou ve složce <code>GARMIN/Activity</code>.</li>
-        <li><strong>Celý export</strong>: na garmin.com si můžeš vyžádat export všech dat (zip). Program z něj sám vybere závody podle data a místa.</li>
-      </ul>
-      <ul lang="en">
-        <li><strong>Garmin Connect</strong> (web): open the activity, gear / three dots &rarr; <em>Export Original</em>. You get a .zip with the .fit inside.</li>
-        <li><strong>Straight from the watch</strong>: connect it to the computer with the cable, the files are in <code>GARMIN/Activity</code>.</li>
-        <li><strong>Full export</strong>: on garmin.com you can request an export of all your data (zip). The program picks the races by date and place.</li>
-      </ul>
-    </section>
-  </div>
-
   <section class="card" id="zdroj">
-    <h2 lang="cs">Spustit už teď ze zdrojového kódu</h2>
-    <h2 lang="en">Run it now from the source code</h2>
-    <p lang="cs">Než bude instalátor, jde to s <a href="https://www.docker.com/products/docker-desktop/">Dockerem</a>:</p>
-    <p lang="en">Until the installer is ready, you can use <a href="https://www.docker.com/products/docker-desktop/">Docker</a>:</p>
+    <h2 lang="cs">Linux, Mac s Intelem a pro programátory</h2>
+    <h2 lang="en">Linux, Intel Macs and developers</h2>
+    <p lang="cs">Běžný uživatel Windows nebo nového Macu tohle nepotřebuje, stačí tlačítko nahoře. Na Linuxu a Macu s Intelem spustíš program ze zdrojového kódu s <a href="https://www.docker.com/products/docker-desktop/">Dockerem</a> (potřebuješ Docker a git, příkazy zadáš do terminálu):</p>
+    <p lang="en">On Windows or a recent Mac you do not need this, the button above is enough. On Linux and Intel Macs, run it from the source code with <a href="https://www.docker.com/products/docker-desktop/">Docker</a> (you need Docker and git; type the commands into a terminal):</p>
 <pre><code>git clone https://github.com/Polik9000/Kudy-jsem-mel-bezet.git
 cd Kudy-jsem-mel-bezet
 docker compose up --build</code></pre>
@@ -321,9 +398,9 @@ docker compose up --build</code></pre>
   <section class="card" id="licence">
     <h2 lang="cs">Licence a kontakt</h2>
     <h2 lang="en">Licence and contact</h2>
-    <p lang="cs">Licence <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/blob/main/LICENSE">PolyForm Noncommercial 1.0.0</a>:
+    <p lang="cs"><strong>Zdarma pro tebe, oddíl i školu.</strong> Licence <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/blob/main/LICENSE">PolyForm Noncommercial 1.0.0</a>:
       zdarma pro jakékoli nekomerční použití (sám, oddíl, škola, výzkum). Komerční použití jen se svolením autora.</p>
-    <p lang="en">Licence <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/blob/main/LICENSE">PolyForm Noncommercial 1.0.0</a>:
+    <p lang="en"><strong>Free for you, your club and your school.</strong> Licence <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/blob/main/LICENSE">PolyForm Noncommercial 1.0.0</a>:
       free for any noncommercial use (personal, clubs, schools, research). Commercial use only with the author's permission.</p>
     <p lang="cs">Autor: Tobiáš Otta, SKOB Frýdek-Místek. Nápady, chyby a dotazy: <a href="mailto:tobiasotta@seznam.cz">tobiasotta@seznam.cz</a>,
       Instagram <a href="https://www.instagram.com/tobias_otta/">@tobias_otta</a>, nebo
@@ -332,6 +409,7 @@ docker compose up --build</code></pre>
       Instagram <a href="https://www.instagram.com/tobias_otta/">@tobias_otta</a>, or a
       <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/issues">GitHub issue</a>.</p>
   </section>
+  </main>
 </div>
 
 <footer>
@@ -349,8 +427,17 @@ docker compose up --build</code></pre>
       document.documentElement.classList.toggle("en", en);
       document.documentElement.lang = en ? "en" : "cs";
       try { localStorage.setItem("lang", en ? "en" : "cs"); } catch (err) {}
+      mark(en ? "en" : "cs");
     });
   });
+  function mark(l) {
+    document.querySelectorAll(".lang a").forEach(function (x) {
+      if (x.getAttribute("data-l") === l) x.setAttribute("aria-current", "true"); else x.removeAttribute("aria-current");
+    });
+    var ill = document.getElementById("ill");
+    if (ill) ill.setAttribute("aria-labelledby", "ill-" + l);
+  }
+  mark(window.obLang === "en" ? "en" : "cs");
 </script>
 </body>
 </html>
