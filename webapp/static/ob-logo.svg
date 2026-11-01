@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 269 233">
+  <!-- Logo of the app on one's own computer: an orienteering control flag (white and orange, split diagonally). -->
+  <rect x="58" y="40" width="153" height="153" fill="#ffffff" stroke="#3a3a3a" stroke-width="6"/>
+  <polygon points="211,40 211,193 58,193" fill="#f26b1d"/>
+  <rect x="58" y="40" width="153" height="153" fill="none" stroke="#3a3a3a" stroke-width="6"/>
+</svg>

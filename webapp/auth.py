@@ -18,10 +18,30 @@ from .services import accounts, jobs
 bp = Blueprint("auth", __name__, template_folder="templates")
 
 
+LOCAL_USER = "ja"  # the one runner of the app on one's own computer (OB_LOCAL=1)
+LOGIN_PAGES = ("auth.login", "auth.register", "auth.forgot", "auth.password", "auth.account_delete", "auth.logout")
+
+
+def local_user(db):
+    """The runner of the app on one's own computer: made on the first start, never asked for a password."""
+    row = db.execute("SELECT * FROM users WHERE username = ?", (LOCAL_USER,)).fetchone()
+    if row is None:
+        db.execute("INSERT INTO users (username, password_hash) VALUES (?, '!')", (LOCAL_USER,))
+        db.commit()
+        row = db.execute("SELECT * FROM users WHERE username = ?", (LOCAL_USER,)).fetchone()
+    return row
+
+
 @bp.before_app_request
 def load_user():
     if request.endpoint == "ob.static":
         g.user = None  # style sheets and scripts are the same for everyone: no database for them
+        return
+    if cfg().local:
+        # one runner on their own computer: no accounts, the login pages lead to the races
+        g.user = local_user(get_db())
+        if request.endpoint in LOGIN_PAGES:
+            return redirect(url_for("ob.races"))
         return
     uid = session.get("user_id")
     g.user = get_db().execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone() if uid else None
@@ -57,7 +77,7 @@ def _safe_next():
 
 
 def registration_open():
-    return os.environ.get("OB_REGISTRATION", "1") != "0"
+    return os.environ.get("OB_REGISTRATION", "1") != "0" and not cfg().local
 
 
 @bp.route("/register", methods=["GET", "POST"])

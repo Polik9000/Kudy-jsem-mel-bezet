@@ -9,6 +9,12 @@ tvého osobního modelu rychlosti a ukáže, kde jsi ztratil čas. Spouští se 
 zůstávají u tebe. Mapy ani záznamy běhů v tomto repozitáři nejsou, nahraješ si vlastní. Licence: PolyForm
 Noncommercial 1.0.0, tedy zdarma pro jakékoli nekomerční použití (sám, oddíl, škola); komerční jen se svolením autora.
 
+## Download (Windows, macOS)
+
+Installers without Docker or Python: the GitHub Releases of this repository (Windows 10/11, macOS on Apple
+Silicon). One runner, no login; the data is in your own user folder. How they are built and what still needs a
+test on a clean computer: `docs/instalatory.md` (in Czech).
+
 ## Your data stays on your computer
 
 Run the app on your own machine (`docker compose up --build`, then http://localhost:8000/ob/). The maps and `.fit`

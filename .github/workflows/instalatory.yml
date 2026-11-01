@@ -1,0 +1,156 @@
+# Instalátory lokální aplikace: Windows (.exe, Inno Setup) a macOS (.dmg, Apple Silicon).
+#
+# - ručně (Actions -> Instalátory -> Run workflow) nebo pull request, který mění balení: jen sestaví a otestuje, instalátory jsou ke stažení
+#   u běhu workflow (Artifacts), nic se nezveřejní;
+# - tag v* (např. git tag v0.1.0 && git push origin v0.1.0): navíc založí KONCEPT vydání (draft) v Releases
+#   s oběma instalátory. Zveřejní ho až autor tlačítkem Publish, po vyzkoušení na čistém počítači.
+#
+# Názvy souborů jsou bez verze, takže stránka ke stažení (docs/index.html) může odkazovat napořád na
+# https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/<soubor>.
+# Balíček obsahuje jen kód (desktop/kudy.spec): žádné mapy, běhy ani závody.
+name: Instalátory
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+  # pull request, který mění balení: jen sestavit a vyzkoušet
+  pull_request:
+    paths:
+      - "desktop/**"
+      - ".github/workflows/instalatory.yml"
+      - "requirements*.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    # jen ve veřejném repu: v soukromém by macOS stroje rychle spotřebovaly minuty Actions zdarma
+    if: github.repository == 'Polik9000/Kudy-jsem-mel-bezet'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+          - name: macOS
+            os: macos-latest   # Apple Silicon (M1 a novější)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-desktop.txt
+
+      - name: Závislosti
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-desktop.txt
+
+      - name: Verze
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.0"; fi
+          echo "APP_VERSION=$v" >> "$GITHUB_ENV"
+          echo "verze $v"
+
+      - name: Ikony
+        run: python desktop/icons.py build/icons
+
+      - name: PyInstaller
+        run: pyinstaller --noconfirm desktop/kudy.spec
+
+      # --- Windows ---
+      - name: Zkouška spuštění (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # okenní aplikace: PowerShell na ni sám nepočká, proto Start-Process -Wait
+          $p = Start-Process -FilePath "dist\KudyJsemMelBezet\KudyJsemMelBezet.exe" -ArgumentList "--smoke-test" `
+               -Wait -PassThru -NoNewWindow -RedirectStandardOutput smoke.txt -RedirectStandardError smoke-err.txt
+          Get-Content smoke.txt, smoke-err.txt
+          if ($p.ExitCode -ne 0) { throw "zkouška spuštění selhala ($($p.ExitCode))" }
+
+      - name: Instalátor (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          & $iscc "/DAppVersion=$env:APP_VERSION" desktop\kudy.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup selhal" }
+          Get-Item dist\KudyJsemMelBezet-windows-setup.exe
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: windows
+          path: dist/KudyJsemMelBezet-windows-setup.exe
+          if-no-files-found: error
+
+      # --- macOS ---
+      - name: Podpis ad hoc a zkouška spuštění (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          app="dist/Kudy jsem měl běžet.app"
+          # bez certifikátu Apple: podpis ad hoc (Apple Silicon nespustí nepodepsaný kód vůbec)
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict "$app"
+          "$app/Contents/MacOS/KudyJsemMelBezet" --smoke-test
+
+      - name: Disk .dmg (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p build/dmg
+          cp -R "dist/Kudy jsem měl běžet.app" build/dmg/
+          ln -s /Applications build/dmg/Applications
+          hdiutil create -volname "Kudy jsem měl běžet" -srcfolder build/dmg -ov -format UDZO \
+            dist/KudyJsemMelBezet-macos.dmg
+          ls -la dist/KudyJsemMelBezet-macos.dmg
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'macOS'
+        with:
+          name: macos
+          path: dist/KudyJsemMelBezet-macos.dmg
+          if-no-files-found: error
+
+  release:
+    name: Koncept vydání
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Kudy jsem měl běžet ${{ github.ref_name }}
+          body: |
+            Instalátory aplikace Kudy jsem měl běžet. Mapy a běhy z hodinek si nahraješ vlastní, nikam se neposílají.
+
+            - **Windows 10/11:** KudyJsemMelBezet-windows-setup.exe. Instalátor není podepsaný, Windows SmartScreen
+              proto ukáže varování: Další informace -> Přesto spustit.
+            - **macOS (Apple Silicon, M1 a novější):** KudyJsemMelBezet-macos.dmg. Aplikace není podepsaná u Applu:
+              po prvním pokusu o spuštění otevři Nastavení systému -> Soukromí a zabezpečení -> Přesto otevřít.
+
+            Data jsou ve složce %LOCALAPPDATA%\KudyJsemMelBezet (Windows) nebo
+            ~/Library/Application Support/KudyJsemMelBezet (macOS); odinstalace je nemaže.
+          files: |
+            out/KudyJsemMelBezet-windows-setup.exe
+            out/KudyJsemMelBezet-macos.dmg
+          fail_on_unmatched_files: true

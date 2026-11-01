@@ -13,7 +13,9 @@
       <button type="submit" class="btn btn-hlavni">Načíst moje závody z ORIS</button>
     </form>
     <a class="btn btn-zdroj zdroj-prostor" href="{{ oris_url }}" rel="noopener">{{ ikona('prostor') }}Závod v ORIS</a>
+    {% if club.ENABLED %}
     <a class="btn btn-zdroj zdroj-start" href="{{ club.event(oris_id) }}">{{ ikona('start') }}Závod na klubovém webu</a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -6,7 +6,9 @@
   <p>Rozbory postupů vidí jen ten, komu patří. Stopy z hodinek ostatních členů se v aplikaci neukazují.</p>
   <div class="controls zavododkazy">
     <a class="btn btn-hlavni" href="{{ url_for('ob.races') }}">Moje závody</a>
+    {% if club.ENABLED %}
     <a class="btn btn-zdroj zdroj-start" href="{{ club.member(oris_user_id) }}">{{ ikona('start') }}Vizitka na klubovém webu</a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

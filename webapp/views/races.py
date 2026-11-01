@@ -5,7 +5,7 @@ import os
 import re
 import zipfile
 
-from flask import abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
+from flask import abort, current_app, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from oroute import garmin
 
@@ -676,7 +676,41 @@ def profile():
         db = get_db()
         db.execute("UPDATE users SET name = ? WHERE id = ?",
                    (request.form.get("name", "").strip() or None, g.user["id"]))
+        regno = accounts.clean_regno(request.form.get("oris_regno"))
+        if cfg().local and regno and not g.user["oris_regno"]:
+            # on one's own computer the number is given once here (there is no registration form)
+            if not re.fullmatch(accounts.REGNO, regno):
+                db.commit()
+                flash("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000.", "error")
+                return redirect(url_for("ob.profile"))
+            try:
+                person = oris.client(cfg()).user(regno)
+            except oris.OrisError:
+                db.commit()
+                flash("ORIS teď neodpovídá, zkus registrační číslo uložit později.", "error")
+                return redirect(url_for("ob.profile"))
+            if person is None:
+                db.commit()
+                flash(f"Registrační číslo {regno} v ORIS není.", "error")
+                return redirect(url_for("ob.profile"))
+            db.execute("UPDATE users SET oris_regno = ?, oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
+                       (regno, person["oris_user_id"], person["name"], g.user["id"]))
+            db.commit()
+            jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
+            flash(f"Uloženo. Závody z ORIS se načítají ({person['name']}).", "ok")
+            return redirect(url_for("ob.races"))
         db.commit()
         flash("Uloženo.", "ok")
         return redirect(url_for("ob.profile"))
     return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]))
+
+
+@bp.route("/konec", methods=["POST"])
+@login_required
+def quit_app():
+    """The app on one's own computer: "Ukončit aplikaci" in the menu (desktop.py sets OB_QUIT)."""
+    stop = current_app.config.get("OB_QUIT")
+    if not cfg().local or stop is None:
+        abort(404)
+    stop()
+    return render_template("ob/quit.html")
