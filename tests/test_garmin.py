@@ -34,7 +34,6 @@ def test_scan_fit():
     assert "error" in garmin.scan_fit(b"not a fit file")
 
 
-@pytest.mark.needs_data
 def test_four_races_find_their_activity():
     acts = [scanned(f) for f, _, _ in OFFICIAL]
     for folder, date, time_s in OFFICIAL:
@@ -74,7 +73,6 @@ def test_local_date_decides():
     assert garmin.match_race(dt.date(2026, 5, 1), 3000, [late])[1] == "none"
 
 
-@pytest.mark.needs_data
 def test_iter_fit_garmin_export(tmp_path):
     """A Garmin export keeps the .fit files in zips inside the zip."""
     fit = open(inputs("pohora")[2], "rb").read()

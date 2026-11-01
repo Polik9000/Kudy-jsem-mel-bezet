@@ -30,6 +30,11 @@ DEMO = [
 ]
 
 
+def demo_dir(folder):
+    """Where the maps and the run of a demo race are: data/, or the folder OB_TEST_DATA."""
+    return os.path.join(os.environ.get("OB_TEST_DATA") or os.path.join(ROOT, "data"), folder)
+
+
 def _fixture(name):
     with open(os.path.join(ROOT, "tests", "fixtures", "oris", name), encoding="utf-8") as f:
         return json.load(f)["Data"]
@@ -65,7 +70,7 @@ def seed_demo(con, conf, user_id, refit=True):
                                                      (user_id, class_id)).lastrowid
         con.execute("UPDATE entries SET official_time_s = ?, start_local = ?, result_place = ?, splits = ? WHERE id = ?",
                     (*official, entry_id))
-        src = os.path.join(ROOT, "data", d["folder"])
+        src = demo_dir(d["folder"])
         for name, cid in (("maponly.kmz", None), ("course.kmz", class_id)):
             tmp = storage.incoming(conf, ".kmz")[1]
             shutil.copyfile(os.path.join(src, name), tmp)

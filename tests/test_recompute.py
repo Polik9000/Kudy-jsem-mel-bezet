@@ -3,7 +3,6 @@ with that model, and nothing at all when nothing has changed."""
 import json
 import os
 
-import pytest
 from conftest import post
 from test_web_races import con_of, work
 
@@ -74,7 +73,6 @@ def _models(con):
     return {r["entry_id"]: r["model_id"] for r in con.execute("SELECT entry_id, model_id FROM analyses")}
 
 
-@pytest.mark.needs_data
 def test_recompute_all_uses_one_model_and_does_nothing_twice(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     entries = seed_demo(con, conf, user)
@@ -127,7 +125,6 @@ def test_recompute_all_uses_one_model_and_does_nothing_twice(app, client, user, 
     assert set(_models(con).values()) == {model["id"]}
 
 
-@pytest.mark.needs_data
 def test_recompute_all_shows_progress_by_race(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     seed_demo(con, conf, user)
@@ -145,7 +142,6 @@ def test_recompute_all_shows_progress_by_race(app, client, user, monkeypatch):
     assert any(t.startswith("postupy 3 z 4 závodů") for t in said), said
 
 
-@pytest.mark.needs_data
 def test_model_page_and_race_list_offer_recompute_all(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     entries = seed_demo(con, conf, user)

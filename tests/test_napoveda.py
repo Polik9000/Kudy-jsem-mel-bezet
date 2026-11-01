@@ -3,7 +3,6 @@ import io
 import os
 import zipfile
 
-import pytest
 from conftest import csrf
 from races import inputs
 from test_web_races import synced, work
@@ -38,7 +37,6 @@ def _one_run_zip(folder):
     return buf.getvalue()
 
 
-@pytest.mark.needs_data
 def test_zip_of_one_activity_is_a_run_not_an_account_export(app, client, user):
     """A zip with one .fit is imported like the .fit: nothing of an earlier Garmin export is dropped for it."""
     con, _ = synced(app, client, user)
@@ -65,7 +63,6 @@ def test_zip_of_one_activity_is_a_run_not_an_account_export(app, client, user):
     assert os.listdir(app.config["OB"].path("incoming")) == []
 
 
-@pytest.mark.needs_data
 def test_race_page_takes_the_zip_of_one_activity(app, client, user):
     con, _ = synced(app, client, user)
     e = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id JOIN events ev ON ev.id = c.event_id"

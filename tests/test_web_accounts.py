@@ -134,7 +134,6 @@ def scene(app, client, user):
     return con, conf, mine["event_id"], mate
 
 
-@pytest.mark.needs_data
 def test_delete_account_takes_what_is_its_own_and_leaves_what_is_shared(app, client, user):
     con, conf, event, mate = scene(app, client, user)
     count = lambda sql, *a: con.execute(sql, a).fetchone()[0]
@@ -163,7 +162,6 @@ def test_delete_account_takes_what_is_its_own_and_leaves_what_is_shared(app, cli
     assert count("SELECT COUNT(*) FROM users WHERE oris_regno = 'BFM0903'") == 1
 
 
-@pytest.mark.needs_data
 def test_runner_closes_their_own_account_from_the_profile(app, client, user):
     con, conf, event, mate = scene(app, client, user)
     count = lambda sql, *a: con.execute(sql, a).fetchone()[0]
@@ -191,7 +189,6 @@ def test_runner_closes_their_own_account_from_the_profile(app, client, user):
     assert post(client, "/login", username="BFM0903", password="tajneheslo").status_code == 200
 
 
-@pytest.mark.needs_data
 def test_delete_account_command(app, client, user, monkeypatch):
     con, conf, event, mate = scene(app, client, user)
     monkeypatch.setenv("OB_INSTANCE", conf.instance)
@@ -205,7 +202,6 @@ def test_delete_account_command(app, client, user, monkeypatch):
     assert run.invoke(args=["delete-account", "nobody", "--yes"]).exit_code != 0
 
 
-@pytest.mark.needs_data
 def test_seed_demo_goes_to_the_account_that_has_the_number(app, client, user, monkeypatch):
     conf, con = app.config["OB"], con_of(app)
     monkeypatch.setenv("OB_INSTANCE", conf.instance)

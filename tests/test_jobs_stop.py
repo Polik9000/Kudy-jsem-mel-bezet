@@ -5,7 +5,6 @@ import os
 import threading
 import time
 
-import pytest
 from conftest import post, register
 from test_recompute import _fake_refit, _scripts
 from test_web_races import con_of, work
@@ -65,7 +64,6 @@ def test_waiting_job_stops_at_once_and_only_its_owner_can(app, client, user):
     assert con.execute("SELECT status FROM jobs WHERE id = ?", (d,)).fetchone()[0] == "queued"
 
 
-@pytest.mark.needs_data
 def test_running_analysis_is_killed_and_the_finished_one_stays(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     entry = seed_demo(con, conf, user)["pohora"]
@@ -106,7 +104,6 @@ def test_running_analysis_is_killed_and_the_finished_one_stays(app, client, user
     assert "Poslední analýzu jsi zastavil. Platí rozbor, který byl hotový před ní." in page
 
 
-@pytest.mark.needs_data
 def test_stopped_recompute_all_keeps_the_races_it_finished(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     entries = seed_demo(con, conf, user)

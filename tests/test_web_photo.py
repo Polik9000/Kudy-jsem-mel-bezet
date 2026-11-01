@@ -44,7 +44,6 @@ def test_heic_photo_gets_a_sentence_on_what_to_do(app, client, user):
     assert not con.execute("SELECT 1 FROM jobs WHERE kind = 'georef_map'").fetchone()
 
 
-@pytest.mark.needs_data
 def test_heic_renamed_to_jpg_and_a_big_photo(app, client, user):
     con, mine = entry(app, client, user)
     assert "formátu HEIC" in send(client, mine, "mapa.jpg", b"\0\0\0\x18ftypheic\0\0\0\0mif1heic" + b"\0" * 2000)

@@ -4,7 +4,6 @@ import io
 import json
 import os
 
-import pytest
 from conftest import csrf, post
 from races import inputs
 from test_web_plans import CONTROLS, flat_elevation, made_up_map, scripts, work
@@ -40,7 +39,6 @@ def with_average(run, seen):
     return wrapped
 
 
-@pytest.mark.needs_data
 def test_average_runner_is_stored_shown_and_counted(app, client, user, monkeypatch):
     con, conf = dbm.connect(app.config["OB"].db_path), app.config["OB"]
     page = post(client, "/races/new", name="Trénink na louce", date="2026-03-28", class_name="T").headers["Location"]
