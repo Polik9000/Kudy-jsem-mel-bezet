@@ -195,13 +195,13 @@ def save_course(path, geomap, course_px):
         "controls": [dict(pt(c), code=i + 1) for i, c in enumerate(course_px["controls"])],
         "finish": pt(course_px["finish"]) if course_px.get("finish") else None,
     }
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2)
     return out
 
 
 def load_course(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

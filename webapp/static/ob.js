@@ -307,4 +307,17 @@
   });
 
   window.addEventListener("error", function (e) { (window.__errors = window.__errors || []).push(String(e.message)); });
+
+  // the app window (desktop app): a link to another site opens in the system browser, the window stays on the app
+  if (window.OBAPP && window.OBAPP.external) {
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest ? e.target.closest("a[href]") : null;
+      if (!a || e.defaultPrevented || !/^https?:$/.test(a.protocol) || a.origin === location.origin) { return; }
+      e.preventDefault();
+      fetch(window.OBAPP.external, {
+        method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": window.OBAPP.csrf },
+        body: JSON.stringify({ url: a.href })
+      });
+    });
+  }
 })();

@@ -19,7 +19,11 @@ from . import club
 from . import db as dbm
 from .config import Config
 
-VERSION = "2026.10.21"
+try:
+    from ._build import BUILD  # written by the installer workflow: the commit the installer was built from
+except ImportError:
+    BUILD = ""
+VERSION = "2026.10.21" + (f"+{BUILD}" if BUILD else "")
 # the club site's policy (docs/design-klubovy-web.md): nothing from another origin, no framing
 CSP = ("default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; "
        "script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'")

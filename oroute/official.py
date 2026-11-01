@@ -23,7 +23,53 @@ and info["no_data"] lists the course points the recording does not show.
 import datetime as dt
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
+
+try:
+    from scipy.optimize import linear_sum_assignment
+except ImportError:  # e.g. Windows Application Control blocks scipy.optimize's compiled files: do without it
+    def linear_sum_assignment(cost):
+        """The cheapest one-to-one assignment (Hungarian algorithm, small matrices); same answer as scipy's:
+        (rows, cols) with rows sorted."""
+        c = np.asarray(cost, float)
+        flip = c.shape[0] > c.shape[1]
+        if flip:
+            c = c.T
+        n, m = c.shape
+        u, v = np.zeros(n + 1), np.zeros(m + 1)
+        way, match = np.zeros(m + 1, int), np.zeros(m + 1, int)      # match[j]: row (1-based) holding column j
+        for i in range(1, n + 1):
+            match[0], j0 = i, 0
+            minv, used = np.full(m + 1, np.inf), np.zeros(m + 1, bool)
+            while True:
+                used[j0] = True
+                i0, delta, j1 = match[j0], np.inf, 0
+                for j in range(1, m + 1):
+                    if not used[j]:
+                        cur = c[i0 - 1, j - 1] - u[i0] - v[j]
+                        if cur < minv[j]:
+                            minv[j], way[j] = cur, j0
+                        if minv[j] < delta:
+                            delta, j1 = minv[j], j
+                for j in range(m + 1):
+                    if used[j]:
+                        u[match[j]] += delta
+                        v[j] -= delta
+                    else:
+                        minv[j] -= delta
+                j0 = j1
+                if match[j0] == 0:
+                    break
+            while j0:
+                j1 = way[j0]
+                match[j0], j0 = match[j1], j1
+        pairs = sorted((match[j] - 1, j - 1) for j in range(1, m + 1) if match[j])
+        rows = np.array([r for r, _ in pairs], int)
+        cols = np.array([k for _, k in pairs], int)
+        if flip:
+            rows, cols = cols, rows
+            o = np.argsort(rows)
+            rows, cols = rows[o], cols[o]
+        return rows, cols
 
 PAD_S = 30.0       # watch started this much late / stopped this much early is still accepted
 MAX_SHIFT_S = 60   # largest clock difference between the timing system and the watch that is tried

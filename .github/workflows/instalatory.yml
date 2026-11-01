@@ -1,7 +1,8 @@
 # Instalátory lokální aplikace: Windows (.exe, Inno Setup) a macOS (.dmg, Apple Silicon).
 #
-# - ručně (Actions -> Instalátory -> Run workflow) nebo pull request, který mění balení: jen sestaví a otestuje, instalátory jsou ke stažení
-#   u běhu workflow (Artifacts), nic se nezveřejní;
+# - ručně (Actions -> Instalátory -> Run workflow, vyber větev) nebo pull request, který mění aplikaci nebo balení:
+#   jen sestaví a otestuje, instalátory jsou ke stažení u běhu workflow (Artifacts), nic se nezveřejní.
+#   Verze v aplikaci (patička, Profil) má za plusem začátek ID commitu, ze kterého je instalátor sestavený;
 # - tag v* (např. git tag v0.1.0 && git push origin v0.1.0): navíc založí KONCEPT vydání (draft) v Releases
 #   s oběma instalátory. Zveřejní ho až autor tlačítkem Publish, po vyzkoušení na čistém počítači.
 #
@@ -14,10 +15,14 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-  # pull request, který mění balení: jen sestavit a vyzkoušet
+  # pull request, který mění aplikaci nebo balení: jen sestavit a vyzkoušet
   pull_request:
     paths:
       - "desktop/**"
+      - "webapp/**"
+      - "oroute/**"
+      - "analyze.py"
+      - "bestroute.py"
       - ".github/workflows/instalatory.yml"
       - "requirements*.txt"
 
@@ -60,6 +65,10 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.0"; fi
           echo "APP_VERSION=$v" >> "$GITHUB_ENV"
           echo "verze $v"
+          # commit, ze kterého se staví (u pull requestu jeho vrchol, ne dočasné sloučení): v aplikaci za verzí
+          sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          echo "BUILD = \"${sha:0:7}\"" > webapp/_build.py
+          cat webapp/_build.py
 
       - name: Ikony
         run: python desktop/icons.py build/icons

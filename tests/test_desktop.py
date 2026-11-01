@@ -190,3 +190,46 @@ def test_new_version_opens_the_database_of_an_old_one(tmp_path, monkeypatch):
     second = create_app(str(tmp_path / "data"))
     html = second.test_client().get("/").get_data(as_text=True)
     assert "Starý závod" in html
+
+
+def test_script_survives_a_closed_pipe_and_closing_the_app_ends_scripts():
+    """The app was closed while a calculation ran: its print into the lost pipe (OSError 22 on Windows) must not
+    end the calculation, and kill_all ends the scripts that are still running."""
+    import subprocess
+    import sys
+
+    from desktop import app as desktop_app
+    from webapp.services import runner
+
+    class Lost:
+        def write(self, text):
+            raise OSError(22, "Invalid argument")
+
+        def flush(self):
+            raise OSError(22, "Invalid argument")
+    t = desktop_app._Tolerant(Lost())
+    assert t.write("abc") == 3
+    t.flush()
+    p = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    runner._RUNNING.add(p)
+    runner.kill_all()
+    assert p.wait(10) != 0
+    runner._RUNNING.discard(p)
+
+
+def test_external_links_open_in_the_system_browser(local, monkeypatch):
+    """The app window has no address bar: ORIS and other sites open in the browser (POST, with the token)."""
+    import webbrowser
+    opened = []
+    monkeypatch.setattr(webbrowser, "open", lambda url: opened.append(url))
+    cl = local.test_client()
+    html = cl.get("/").get_data(as_text=True)
+    import re
+    assert 'external: "/externi"' in html
+    tok = re.search(r'csrf: "([0-9a-f]+)"', html).group(1)
+    r = cl.post("/externi", json={"url": "https://oris.ceskyorientak.cz/"}, headers={"X-CSRF-Token": tok})
+    assert r.status_code == 204 and opened == ["https://oris.ceskyorientak.cz/"]
+    for bad in ("file:///etc/passwd", "javascript:alert(1)", "", "oris"):
+        assert cl.post("/externi", json={"url": bad}, headers={"X-CSRF-Token": tok}).status_code == 400
+    assert cl.post("/externi", json={"url": "https://x.cz"}).status_code in (400, 403)
+    assert opened == ["https://oris.ceskyorientak.cz/"]

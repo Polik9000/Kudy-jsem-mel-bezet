@@ -767,6 +767,21 @@ def profile():
 RELEASES = "https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest"
 
 
+@bp.route("/externi", methods=["POST"])
+def external_open():
+    """The app on one's own computer: a link to another web site (ORIS, OpenStreetMap) opens in the system
+    browser, the window stays on the app (the window has no address bar or back button)."""
+    if not cfg().local:
+        abort(404)
+    import webbrowser
+    from urllib.parse import urlparse
+    url = (request.get_json(silent=True) or {}).get("url", "")
+    if urlparse(url).scheme not in ("http", "https") or not urlparse(url).netloc:
+        abort(400)
+    webbrowser.open(url)
+    return "", 204
+
+
 @bp.route("/data/slozka", methods=["POST"])
 @login_required
 def data_open():

@@ -39,6 +39,29 @@ def data_dir():
     return os.path.join(base, APP_FOLDER)
 
 
+class _Tolerant:
+    """stdout/stderr of a script: when the app that reads them has gone (the pipe is closed), printing must not
+    end the calculation (Windows: OSError 22)."""
+
+    def __init__(self, stream):
+        self._s = stream
+
+    def write(self, text):
+        try:
+            return self._s.write(text)
+        except (OSError, ValueError):
+            return len(text)
+
+    def flush(self):
+        try:
+            self._s.flush()
+        except (OSError, ValueError):
+            pass
+
+    def __getattr__(self, name):
+        return getattr(self._s, name)
+
+
 def _fix_streams(unbuffered):
     """A windowed app may have no stdout; the scripts print Czech, the web layer reads UTF-8 (runner.py)."""
     for name, fd in (("stdout", 1), ("stderr", 2)):
@@ -69,6 +92,7 @@ def as_python(argv):
     else:
         return False
     _fix_streams(unbuffered)
+    sys.stdout, sys.stderr = _Tolerant(sys.stdout), _Tolerant(sys.stderr)
     sys.argv = [module, *rest]
     code = 0
     try:
@@ -80,6 +104,12 @@ def as_python(argv):
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(code)  # also ends the threads a script may have left behind
+
+
+def _end_scripts():
+    """Closing the app ends the calculations too (a job half done runs again next time)."""
+    from webapp.services import runner
+    runner.kill_all()
 
 
 def _certificates():
@@ -97,6 +127,8 @@ def _certificates():
 
 def _environment(instance):
     _certificates()
+    # text files in UTF-8, not in the Windows code page (cp1252 has no Č); the child processes too
+    os.environ["PYTHONUTF8"] = "1"
     os.environ["OB_LOCAL"] = "1"
     os.environ["OB_INSTANCE"] = instance
     os.environ.setdefault("OB_URL_PREFIX", "")
@@ -244,6 +276,7 @@ def main(argv=None):
                                            text_select=True)
             webview.start(private_mode=False, storage_path=os.path.join(instance, "okno"))
             server.close()
+            _end_scripts()
             os._exit(0)  # the window is closed: so is the app (a job half done runs again next time)
         except Exception as e:  # noqa: BLE001  (no WebView2 on an old Windows, say): the browser instead
             print(f"no window ({e}), opening the browser", file=sys.stderr, flush=True)
@@ -257,6 +290,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         pass
     server.close()
+    _end_scripts()
     os._exit(0)
 
 
