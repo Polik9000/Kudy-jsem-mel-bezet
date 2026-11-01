@@ -653,10 +653,32 @@ def unbent(pts, axis, k, a, b):
     return bent(pts, axis, -k, a, b)
 
 
+def _golden_minimum(f, bounds, method=None, tol=1e-6):
+    """Minimum of f on bounds (golden section): an object with x and fun, like scipy's minimize_scalar."""
+    lo, hi = bounds
+    g = (5 ** 0.5 - 1) / 2
+    x1, x2 = hi - g * (hi - lo), lo + g * (hi - lo)
+    f1, f2 = f(x1), f(x2)
+    while hi - lo > tol:
+        if f1 < f2:
+            hi, x2, f2 = x2, x1, f1
+            x1 = hi - g * (hi - lo)
+            f1 = f(x1)
+        else:
+            lo, x1, f1 = x1, x2, f2
+            x2 = lo + g * (hi - lo)
+            f2 = f(x2)
+    x = (lo + hi) / 2
+    return type("Res", (), dict(x=x, fun=f(x)))
+
+
 def bend_fit(src, dst, a, b):
     """The bend of the sheet (bent()) that fits the controls best, with the flat fit on top: dict(rms,
     bend = [axis, k, a, b], S = the flat fit as 3 x 3) or None."""
-    from scipy.optimize import minimize_scalar
+    try:
+        from scipy.optimize import minimize_scalar
+    except ImportError:  # scipy.optimize blocked (Windows Application Control): golden section does the same job
+        minimize_scalar = _golden_minimum
 
     def rms(axis, k):
         p = bent(src, axis, k, a, b)
