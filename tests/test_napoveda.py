@@ -73,7 +73,8 @@ def test_race_page_takes_the_zip_of_one_activity(app, client, user):
     html = client.get(f"/races/{e}").get_data(as_text=True)
     assert 'accept=".fit,.zip"' in html
     # the three ways to the map, best first
-    assert html.index("1. Mapa s tratí (KMZ)") < html.index("2. Dva snímky z Livelox") < html.index("3. Fotka papírové mapy")
+    heads = ["1a. Mapa s tratí (KMZ)", "1b. Mapa bez tratě (KMZ)", "2. Dva snímky z Livelox", "3. Fotka papírové mapy"]
+    assert [html.index(h) for h in heads] == sorted(html.index(h) for h in heads)
     one = (io.BytesIO(_one_run_zip("pohora")), "x.zip")
     r = client.post(f"/races/{e}/files", data=dict(csrf_token=csrf(client), fit=one),
                     content_type="multipart/form-data", follow_redirects=True)

@@ -154,7 +154,7 @@ def test_model_page_and_race_list_offer_recompute_all(app, client, user, monkeyp
     monkeypatch.setattr(personal, "refit", _fake_refit(log, news))
     work(app)
     html = client.get("/model").get_data(as_text=True)
-    assert "Model se učí z tvých stop ve všech závodech." in html and "Přepočítat všechno" in html
+    assert "Model se učí z tvých stop ve všech závodech" in html and "Přepočítat všechno" in html
     assert "Přepočítat všechno" in client.get("/").get_data(as_text=True)
     # the first race was drawn with an older model than the latest
     page = client.get(f"/races/{entries['pohora']}").get_data(as_text=True)
