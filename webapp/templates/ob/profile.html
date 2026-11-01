@@ -51,6 +51,31 @@
   <button type="submit" class="btn">Zrušit účet a smazat moje data</button>
 </form>
 {% endif %}
+{% if local_app %}
+<h3 id="data">Data a verze</h3>
+<div class="karta">
+  <dl class="detaily">
+    <dt>Verze aplikace</dt><dd>{{ app_version }}</dd>
+    <dt>Složka s daty</dt><dd><code>{{ data_dir }}</code> ({{ '%.0f' | format(data_mb) }} MB)</dd>
+  </dl>
+  <div class="controls">
+    <form method="post" action="{{ url_for('ob.data_open') }}" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn">Otevřít složku s daty</button></form>
+    <a class="btn" href="{{ releases }}" target="_blank" rel="noopener">Zkontrolovat nové vydání</a>
+  </div>
+  <p class="hint">Aplikace sama nikam nevolá a nové verze nehledá: odkaz jen otevře stránku vydání v prohlížeči. Novou
+    verzi nainstaluj přes starou, data ve složce zůstanou a závody budou vidět dál.</p>
+</div>
+<form method="post" action="{{ url_for('ob.data_wipe') }}" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p>Smaže všechno, co je v aplikaci: závody ({{ has.races }}), běhy z hodinek ({{ has.activities }}), rozbory
+    ({{ has.analyses }}), poznámky ({{ has.notes }}), osobní modely ({{ has.models }}), mapy i registrační číslo ORIS.
+    Nejde to vrátit.</p>
+  <label>Pro potvrzení napiš SMAZAT <input name="potvrzeni" autocomplete="off"></label>
+  <button type="submit" class="btn">Smazat všechna moje data</button>
+</form>
+{% endif %}
 <h3>Soukromí</h3>
 {% if local_app %}
 <p class="hint">Aplikace běží jen na tomhle počítači. Mapy, běhy z hodinek, poznámky a modely jsou ve složce
