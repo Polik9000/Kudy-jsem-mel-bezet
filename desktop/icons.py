@@ -1,4 +1,5 @@
-"""The app logo and icons: a course drawn as a question mark (start triangle -> route -> control circle), "Kudy?".
+"""The app logo and icons: "Kudy?". The straight purple course line from start (triangle) to control (circle) and
+next to it the runner's red GPS track bent into a question mark: the way I ran against the way I could have run.
 
 One geometry feeds both outputs, so the SVG on the web and the icons in the installers look the same and no
 binary picture has to live in the repo:
@@ -12,6 +13,7 @@ import sys
 from PIL import Image, ImageDraw
 
 PURPLE = "#C2185B"          # course overprint, the same as --accent on the download page
+RED = "#E0262B"             # the GPS track
 TILE = "#ffffff"
 EDGE = "#d5dcd8"            # thin edge so the white tile is visible on a white desktop
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +23,9 @@ DX = 6                                  # the drawing is a bit heavier on the le
 ARC_C, ARC_R = (128 + DX, 106), 44      # the bow of the question mark
 ARC_FROM, ARC_TO = 167, 421.6           # degrees, y down, clockwise; the end is where the bow's tangent meets the stem
 HOOK_CTRL, HOOK_END = (128 + DX, 156), (128 + DX, 174)
-ROUTE_W = 22
+ROUTE_W = 15                            # diameter of one GPS point
+ROUTE_STEP = 19                         # distance between the points along the track
+LINE_W = 6                              # the straight course line
 CONTROL_C, CONTROL_R, CONTROL_W = (128 + DX, 214), 17, 9
 TRI_W = 9
 
@@ -46,10 +50,12 @@ def svg(tile=True):
         lines.append(f'  <rect x="9.5" y="9.5" width="237" height="237" rx="52" fill="{TILE}"'
                      f' stroke="{EDGE}" stroke-width="3"/>')
     fill = TILE if tile else "none"
+    (lx1, ly1), (lx2, ly2) = _course_line()
     lines += [
+        f'  <line x1="{lx1:.1f}" y1="{ly1:.1f}" x2="{lx2:.1f}" y2="{ly2:.1f}" stroke="{PURPLE}" stroke-width="{LINE_W}"/>',
         f'  <path d="M{sx:.1f} {sy:.1f}A{ARC_R} {ARC_R} 0 1 1 {ex:.1f} {ey:.1f}'
         f'Q{HOOK_CTRL[0]} {HOOK_CTRL[1]} {HOOK_END[0]} {HOOK_END[1]}"'
-        f' fill="none" stroke="{PURPLE}" stroke-width="{ROUTE_W}" stroke-linecap="round"/>',
+        f' fill="none" stroke="{RED}" stroke-width="{ROUTE_W}" stroke-linecap="round" stroke-dasharray="0 {ROUTE_STEP}"/>',
         f'  <polygon points="{tri}" fill="{fill}" stroke="{PURPLE}" stroke-width="{TRI_W}" stroke-linejoin="round"/>',
         f'  <circle cx="{CONTROL_C[0]}" cy="{CONTROL_C[1]}" r="{CONTROL_R}" fill="none"'
         f' stroke="{PURPLE}" stroke-width="{CONTROL_W}"/>',
@@ -57,11 +63,35 @@ def svg(tile=True):
     return "\n".join(lines)
 
 
+def _course_line():
+    """The straight line from the start to the control, from the edge of the triangle to the edge of the circle."""
+    tri = _triangle()
+    cx, cy = sum(p[0] for p in tri) / 3, sum(p[1] for p in tri) / 3
+    dx, dy = CONTROL_C[0] - cx, CONTROL_C[1] - cy
+    n = math.hypot(dx, dy)
+    dx, dy = dx / n, dy / n
+    t0 = (tri[1][1] + TRI_W / 2 - cy) / dy                 # leaves the triangle through its bottom side
+    t1 = n - CONTROL_R - CONTROL_W / 2
+    return (cx + dx * t0, cy + dy * t0), (cx + dx * t1, cy + dy * t1)
+
+
+def _gps_points():
+    """Points every ROUTE_STEP along the track, like stroke-dasharray="0 ROUTE_STEP" in the SVG."""
+    pts = _route_points()
+    out, since = [pts[0]], 0.0
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        since += math.hypot(x1 - x0, y1 - y0)
+        if since >= ROUTE_STEP:
+            out.append((x1, y1))
+            since -= ROUTE_STEP
+    return out
+
+
 def _route_points():
-    pts = [_arc_point(ARC_FROM + (ARC_TO - ARC_FROM) * i / 400) for i in range(401)]
+    pts = [_arc_point(ARC_FROM + (ARC_TO - ARC_FROM) * i / 4000) for i in range(4001)]
     p0, p1, p2 = pts[-1], HOOK_CTRL, HOOK_END
-    for i in range(1, 101):
-        t = i / 100
+    for i in range(1, 1001):
+        t = i / 1000
         pts.append(((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0],
                     (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]))
     return pts
@@ -85,8 +115,10 @@ def draw(size, body=1.0):
 
     d.rounded_rectangle([*P(8, 8), *P(248, 248)], radius=52 * k, fill=EDGE)
     d.rounded_rectangle([*P(11, 11), *P(245, 245)], radius=49 * k, fill=TILE)
-    for x, y in _route_points():
-        dot(x, y, ROUTE_W / 2, PURPLE)
+    a, b = _course_line()
+    d.line([P(*a), P(*b)], fill=PURPLE, width=round(LINE_W * k))
+    for x, y in _gps_points():
+        dot(x, y, ROUTE_W / 2, RED)
     tri = _triangle()
     d.polygon([P(*p) for p in tri], fill=PURPLE)
     for a, b in zip(tri, tri[1:] + tri[:1]):
