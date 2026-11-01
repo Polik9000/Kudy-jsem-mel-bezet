@@ -28,6 +28,8 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    # jen ve veřejném repu: v soukromém by macOS stroje rychle spotřebovaly minuty Actions zdarma
+    if: github.repository == 'Polik9000/Kudy-jsem-mel-bezet'
     strategy:
       fail-fast: false
       matrix:
