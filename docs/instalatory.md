@@ -68,11 +68,24 @@ python -m desktop.app                              # nebo bez balení, rovnou ze
 
 ## Podpis
 
-Instalátory nejsou podepsané (podpis stojí peníze: Windows certifikát, Apple Developer 99 USD/rok).
+Instalátory zatím nejsou podepsané (podpis stojí peníze: Windows certifikát, Apple Developer 99 USD/rok). Systémy
+proto při prvním spuštění varují před neznámým autorem. Je to varování, ne nález viru. Stejný postup je i na stránce
+ke stažení (`docs/index.html`, česky i anglicky), aby ho uživatel našel dřív, než se lekne.
 
-- Windows: SmartScreen ukáže „Systém Windows ochránil váš počítač“ → Další informace → Přesto spustit.
-- macOS: aplikace je podepsaná jen ad hoc. Při prvním spuštění macOS řekne, že ji nelze ověřit → Nastavení
-  systému → Soukromí a zabezpečení → dole „Přesto otevřít“. Potom už se spouští normálně.
+**Windows (SmartScreen)**
+
+1. Modré okno „Systém Windows ochránil váš počítač“.
+2. Klik na **Další informace** (malý odkaz v textu).
+3. Objeví se tlačítko **Přesto spustit**.
+
+**macOS (Gatekeeper)**
+
+1. Otevřít .dmg, přetáhnout aplikaci do složky Aplikace.
+2. V Aplikacích na ni kliknout **pravým tlačítkem** (nebo Ctrl + klik) → **Otevřít**.
+3. V okně s varováním znovu **Otevřít**. Příště se spouští normálně.
+4. Když okno tlačítko Otevřít nenabídne: Nastavení systému → Soukromí a zabezpečení → dole **Přesto otevřít**.
+
+Až bude podpis, tahle část i blok na stránce odpadnou.
 
 ## Co je ověřené a co ne (1. 11. 2026)
 

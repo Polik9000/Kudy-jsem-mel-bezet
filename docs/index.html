@@ -106,6 +106,10 @@ html:not(.en) .lang a[data-l="cs"], html.en .lang a[data-l="en"] { background: v
 .btn.ghost { background: transparent; color: var(--brand); border: 1.5px solid var(--brand); }
 .brzy { font-size: .95rem; color: var(--muted); }
 .brzy strong { color: var(--orange); }
+.prvni { margin-top: 14px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-elev); font-size: .95rem; }
+.prvni summary { cursor: pointer; font-weight: 600; }
+.prvni h4 { margin: 14px 0 4px; font-size: 1rem; }
+.prvni ol { margin: 4px 0 0; padding-left: 1.3em; }
 
 section.card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 24px; margin: 0 0 20px; }
@@ -185,6 +189,43 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
       </div>
       <p class="brzy" lang="cs"><strong>Instalátor brzy ke stažení.</strong> Zatím se dá spustit ze zdrojového kódu (návod níž).</p>
       <p class="brzy" lang="en"><strong>Installer coming soon.</strong> For now you can run it from the source code (see below).</p>
+
+      <details class="prvni">
+        <summary lang="cs">Při instalaci se objeví varování? To je v pořádku.</summary>
+        <summary lang="en">A warning appears when installing? That is expected.</summary>
+        <p lang="cs">Instalátor zatím není podepsaný digitálním certifikátem (ten stojí peníze každý rok), proto ho Windows a macOS
+          neznají a na první spuštění varují. Je to varování před neznámým autorem, ne před nalezeným virem. Program je
+          s celým zdrojovým kódem veřejně k nahlédnutí v tomto repozitáři. Stahuj ho jen odsud.</p>
+        <p lang="en">The installer is not signed with a digital certificate yet (it costs money every year), so Windows and macOS do not
+          know it and warn on first launch. It is a warning about an unknown publisher, not about a virus found. The whole
+          source code is public in this repository. Download it only from here.</p>
+        <h4 lang="cs">Windows (SmartScreen)</h4><h4 lang="en">Windows (SmartScreen)</h4>
+        <ol lang="cs">
+          <li>Objeví se modré okno „Systém Windows ochránil váš počítač“.</li>
+          <li>Klikni na <strong>Další informace</strong> (malý odkaz v textu).</li>
+          <li>Objeví se tlačítko <strong>Přesto spustit</strong>, klikni na něj.</li>
+        </ol>
+        <ol lang="en">
+          <li>A blue window says “Windows protected your PC”.</li>
+          <li>Click <strong>More info</strong> (the small link in the text).</li>
+          <li>The <strong>Run anyway</strong> button appears, click it.</li>
+        </ol>
+        <h4 lang="cs">macOS (Gatekeeper)</h4><h4 lang="en">macOS (Gatekeeper)</h4>
+        <ol lang="cs">
+          <li>Otevři obraz .dmg a přetáhni aplikaci do složky Aplikace.</li>
+          <li>Ve složce Aplikace na ni klikni <strong>pravým tlačítkem</strong> (nebo Ctrl + klik) a zvol <strong>Otevřít</strong>.</li>
+          <li>V okně s varováním klikni znovu na <strong>Otevřít</strong>. Příště se spustí normálně.</li>
+          <li>Kdyby se tlačítko Otevřít v okně nenabízelo: Nastavení systému → Soukromí a zabezpečení → dole
+            <strong>Přesto otevřít</strong>.</li>
+        </ol>
+        <ol lang="en">
+          <li>Open the .dmg and drag the app to the Applications folder.</li>
+          <li>In Applications, <strong>right-click</strong> it (or Ctrl-click) and choose <strong>Open</strong>.</li>
+          <li>Click <strong>Open</strong> again in the warning window. Next time it starts normally.</li>
+          <li>If the window offers no Open button: System Settings → Privacy &amp; Security → at the bottom
+            <strong>Open Anyway</strong>.</li>
+        </ol>
+      </details>
     </div>
 
     <figure>
