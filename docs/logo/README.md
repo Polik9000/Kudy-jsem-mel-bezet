@@ -8,3 +8,7 @@ otazníku a kontrola (kroužek), tedy „Kudy?“. Barva je fialová značka tra
   `webapp/static/ob-logo.svg` a `docs/logo.svg`) i ikony instalátorů (`python desktop/icons.py build/icons`:
   `app.png`, `app.ico` pro Windows, `app.icns` pro macOS s okrajem podle Applu 824/1024).
 - `docs/ikona-180.png` je ikona pro plochu iPhonu (apple-touch-icon).
+
+## Varianty otazníku
+
+`otaznik/`: šest obměn varianty A (lampion jako tečka, na kousku mapy, z vrstevnic, GPS stopa proti čáře tratě, zelená dlaždice, v kontrolním kruhu), náhled `otaznik/nahled.png`.
