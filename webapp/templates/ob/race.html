@@ -11,7 +11,7 @@
 <h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ e.event_name }} <span class="stav {{ status[1] }}">{{ status[0] }}</span></h2>
 <p class="evhead">{{ e.date | datum }}{% if e.place %} · {{ e.place }}{% endif %} · kategorie {{ e.class_name }}
   {%- if e.distance_km %} · {{ e.distance_km }} km{% endif %}{% if e.climb_m %}, {{ e.climb_m | int }} m stoupání{% endif %}
-  {%- if e.controls %}, {{ e.controls }} kontrol{% endif %}
+  {%- if e.controls %}, {{ e.controls }} {{ 'kontrola' if e.controls == 1 else 'kontroly' if e.controls < 5 else 'kontrol' }}{% endif %}
   {%- if e.official_time_s %} · oficiální čas <b>{{ e.official_time_s | mmss }}</b>{% endif %}
   {%- if e.result_place %} ({{ e.result_place }}. místo){% endif %}</p>
 <div class="controls zavododkazy">
@@ -86,23 +86,35 @@
 {% if analysis %}
 <section class="tabpanel" id="mapa">
 <h3 class="tabnadpis">Mapa a úseky</h3>
-<p>Čas start–cíl <b>{{ analysis.total_time_s | mmss }}</b>.
-  {% if official and official.used %}Časy na kontrolách jsou oficiální mezičasy z ORIS
-    {%- if official.clock_shift_s %} (hodinky a časomíra se liší o {{ official.clock_shift_s | int }} s){% endif %}.
-  {% elif official %}Časy na kontrolách jsou odhad z GPS; oficiální mezičasy nešly použít ({{ official_reason }}).
-  {% else %}Časy na kontrolách jsou odhad z GPS (závod nemá mezičasy v ORIS).{% endif %}
-  {% if not analysis.has_routes and e.maponly_file and progress %}<b>Nejlepší postupy se právě počítají</b>;
+<p id="totals" class="ob-souhrn"></p>
+{% if not analysis.has_routes %}<p>
+  {% if e.maponly_file and progress %}<b>Nejlepší postupy se právě počítají</b>;
     stopa, mezičasy a typy chyb jsou už hotové.
-  {% elif not analysis.has_routes and e.maponly_file %}<b>Nejlepší postupy nejsou spočítané</b>; analýzu jde
+  {% elif e.maponly_file %}<b>Nejlepší postupy nejsou spočítané</b>; analýzu jde
     spustit znovu v Podkladech.
-  {% elif not analysis.has_routes and course_acc %}<b>Nejlepší postupy z fotky nepočítáme</b>, terén se z ní nedá
+  {% elif course_acc %}<b>Nejlepší postupy z fotky se nepočítají</b>, terén se z ní nedá
     spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ a přepočítá se to.
-  {% elif not analysis.has_routes %}<b>Nejlepší postupy chybí</b>, dokud někdo nenahraje mapu bez tratě.
-  {% else %}Výškopis: {{ 'DMR 5G (ČÚZK, laserové skenování)' if summary.dem == 'cuzk' else 'AWS Terrain Tiles (zdroj kolem 30 m)' }}.
+  {% else %}<b>Nejlepší postupy chybí</b>, dokud nenahraješ mapu bez tratě.{% endif %}</p>{% endif %}
+<details class="ob-jak">
+  <summary>Jak se ztráta počítá</summary>
+  <p><b>Ztráta</b> u úseku je rozdíl proti tvému nejlepšímu možnému běhu podle tvého modelu rychlosti: nejlepší postup
+    a tvoje tempo bez zaváhání. Dělí se na <b>volbu postupu</b> (zvolil jsi pomalejší variantu) a <b>chybu</b>
+    (bloudění, přeběhnutí, kroužení a dohledávání u kontroly, zastavení). Když stopa vypadá na bloudění, nebo se čas
+    ztratil smyčkami u kontroly, počítá se to jako chyba, ne jako volba postupu.</p>
+  {% if sp %}<p><b>Mezičasy kategorie</b> měří něco jiného: o kolik jsi byl na úseku pomalejší než tvoje obvyklé tempo
+    proti ostatním běžcům. Proto jsou čísla v mezičasech menší. Kde se model a mezičasy rozcházejí o víc než minutu,
+    úsek to napíše; tam ber ztrátu z modelu s rezervou.</p>{% endif %}
+  <p class="hint">Čas start–cíl podle hodinek {{ analysis.total_time_s | mmss }}{% if e.official_time_s %}, oficiální
+    čas {{ e.official_time_s | mmss }} (hodinky se spouštějí a zastavují jindy než časomíra){% endif %}.
+    {% if official and official.used %}Časy na kontrolách jsou oficiální mezičasy z ORIS
+    {%- if official.clock_shift_s %} (hodinky a časomíra se liší o {{ official.clock_shift_s | int }} s){% endif %}.
+    {% elif official %}Časy na kontrolách jsou odhad z GPS; oficiální mezičasy nešly použít ({{ official_reason }}).
+    {% else %}Časy na kontrolách jsou odhad z GPS (závod nemá mezičasy v ORIS).{% endif %}
+    {% if analysis.has_routes %}Výškopis: {{ 'DMR 5G (ČÚZK, laserové skenování)' if summary.dem == 'cuzk' else 'AWS Terrain Tiles (zdroj kolem 30 m)' }}.
     {% if summary.barriers %}Zakázané přechody: {{ summary.barriers.forbidden }} zakázaných a {{ summary.barriers.hard }}
       těžko překonatelných čar, {{ summary.barriers.crossings }} průchodů
       {%- if summary.barriers.areas %}, {{ summary.barriers.areas }} zakázaných prostorů ze šrafování mapy{% endif %}.{% endif %}{% endif %}</p>
-<p id="totals" class="ob-souhrn"></p>
+</details>
 {% if model_stale %}
 <div class="nota controls" id="starsi-model">
   <span>Postupy jsou spočítané se starším modelem rychlosti. Přepočítat všechno je přepočítá u všech závodů s jedním
@@ -164,7 +176,9 @@
   {# on a narrow screen the panel of the leg is far below the map: the gist of the leg right under it #}
   <p id="souhrn" class="ob-usek-souhrn" hidden></p>
   <aside id="panel" class="karta">
-    <div id="panel-empty" class="muted">Klikni na úsek v mapě nebo v tabulce. Otevře se tu jeho rozbor a poznámky.</div>
+    <div id="panel-empty"><div id="p-nejhorsi"></div>
+      <p class="muted">Klikni na úsek v mapě, v pásu nad ní nebo v tabulce. Otevře se tu jeho rozbor a poznámky.
+        Šipkami ← → přepínáš úseky.</p></div>
     <div id="panel-leg" hidden>
       <h3 id="p-title"></h3>
       <p id="p-numbers"></p>
@@ -259,7 +273,7 @@
         z Garminu: <a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>.</p>
     </div>
   </div>
-  <p class="ob-poradi"><b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b> (nebo z OB postupů), dva soubory: s tratí a bez
+  <p class="ob-poradi"><b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b>, dva soubory: s tratí a bez
     ní. Když ho Livelox stáhnout nedovolí, <b>2. dva snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>.
     <a href="{{ url_for('ob.help_page') }}#livelox">Jak na to</a></p>
   <p class="hint">{% if livelox %}<a href="{{ livelox }}" target="_blank" rel="noopener">Otevřít závod v Livelox</a>:

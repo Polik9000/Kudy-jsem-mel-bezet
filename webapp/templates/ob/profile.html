@@ -5,12 +5,12 @@
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label>Jméno <input name="name" value="{{ user.name or '' }}"></label>
-  {% if local_app %}
+  {% if local_app and not user.oris_regno %}
   <label>Registrační číslo ORIS (nepovinné, např. ABC1234)
-    <input name="oris_regno" autocomplete="off" value="{{ user.oris_regno or '' }}"
+    <input name="oris_regno" autocomplete="off"
            pattern="\s*[A-Za-z]{3}\s*[0-9]{4}\s*" title="tři písmena oddílu a čtyři číslice, např. ABC1234"></label>
-  <p class="hint">Podle něj se z ORIS načtou tvoje závody a kategorie. Před uložením se ověří v ORIS a ukáže se
-    jméno, ke kterému patří. Jde ho později změnit; závody načtené podle starého čísla zůstanou.</p>
+  <p class="hint">Podle něj se z ORIS načtou tvoje závody a kategorie. Ověří se v ORIS a po uložení se ukáže jméno,
+    ke kterému patří. Zadat ho jde jen jednou, tak ho zkontroluj.</p>
   {% endif %}
   <button type="submit" class="btn btn-hlavni">Uložit</button>
 </form>

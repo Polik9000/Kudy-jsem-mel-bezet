@@ -61,7 +61,7 @@ def flags(leg, vref, deliberate_s=0.0):
     out = []
     for c in leg.get("flag_codes") or []:
         if c == "ratio":
-            out.append(f"postup {leg['ratio']:.1f}× delší než přímka")
+            out.append(f"postup {leg['ratio']:.1f}× delší než přímka".replace(".", ","))
         elif c == "entries":
             out.append(f"{leg['zone_entries']}× vstup do 100 m okolo kontroly (přeběhnutí, kroužení)")
         elif c == "zone":
@@ -69,7 +69,7 @@ def flags(leg, vref, deliberate_s=0.0):
         elif c == "stop" and leg["stop_time"] - deliberate_s > 15:
             out.append(f"stání {leg['stop_time'] - deliberate_s:.0f} s")
         elif c == "slow":
-            out.append(f"pomalu ({leg['speed'] * 3.6:.1f} km/h, obvykle {vref * 3.6:.1f})")
+            out.append(f"pomalu ({leg['speed'] * 3.6:.1f} km/h, obvykle {vref * 3.6:.1f})".replace(".", ","))
         elif c == "no_data":
             out.append("chybí záznam z hodinek (nedostatek dat)")
     return out
@@ -367,7 +367,8 @@ def lost_advice(a):
             first = f"Měl jsi jít na {compass(h['az'])} {n[1]} ({way})."
         out += [first, _from_line(h)]
         if not h["sure"] and t and t.get("to") and not a.get("no_runner"):
-            out[-1] += (f" Kdybys {_rod(h['kind'], 'ho', 'ji', 'ho')} nenašel, měl ses vrátit na náběhový bod ({_ln(t['kind'])[0]}, {about(t['dist'])} m "
+            out[-1] += (f" Kdybys {_rod(h['kind'], 'ho', 'ji', 'ho')} nenašel, měl ses vrátit na náběhový bod "
+                        f"({_ln(t['kind'])[0]}, {about(t['dist'])} m "
                         f"na azimut {bearing(t['az'])}).")
     if a.get("desc"):
         out.append(f"Podle popisu jsi hledal: {a['desc']}.")

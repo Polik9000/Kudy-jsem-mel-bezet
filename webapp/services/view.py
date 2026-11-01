@@ -50,7 +50,7 @@ def legs_view(con, entry, analysis, event_id, ws=None, geometry=True):
             straight=d["straight"], run=d["run"], climb=d["climb"], stop_time=d["stop_time"], stops=d["stops"],
             best=d.get("best"), line=d.get("line"), est_loss=rd["est_loss"],
             loss_total=rd["loss_total"], loss_route=rd["loss_route"], loss_exec=rd["loss_exec"],
-            parts=rd["parts"], deliberate_s=rd["deliberate_s"], refreshment_s=rd["refreshment_s"],
+            parts=rd["parts"], why=rd.get("why"), deliberate_s=rd["deliberate_s"], refreshment_s=rd["refreshment_s"],
             in_model=rd["in_model"], loss=rd["parts"]["route"] + rd["parts"]["mistake"] + rd["parts"]["fatigue"],
             flags=texts.flags(d, summary.get("vref") or 0.0, rd["deliberate_s"]),
             explain=r["explain_cs"], best_route=loads(r["best_route"]), note=note_dict(notes.get(r["n"])),

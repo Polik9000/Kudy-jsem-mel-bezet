@@ -422,7 +422,8 @@ def _take_map(db, e, kind, f):
         screens.drop_event(db, cfg(), e["event_id"])
         who = db.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id WHERE c.event_id = ?",
                          (e["event_id"],)).fetchall()
-        flash(("Mapa bez tratě je uložená." if cfg().local else "Mapa bez tratě je uložená pro všechny, kdo tenhle závod běželi.")
+        flash(("Mapa bez tratě je uložená." if cfg().local
+               else "Mapa bez tratě je uložená pro všechny, kdo tenhle závod běželi.")
               + (" Nahradila mapu ze snímku Livelox; nejlepší postupy se přepočítají."
                  if e["maponly_source"] == "snimek" else ""), "ok")
     else:
@@ -677,9 +678,8 @@ def profile():
         db.execute("UPDATE users SET name = ? WHERE id = ?",
                    (request.form.get("name", "").strip() or None, g.user["id"]))
         regno = accounts.clean_regno(request.form.get("oris_regno"))
-        if cfg().local and regno and regno != g.user["oris_regno"]:
-            # on one's own computer the number is set here (there is no registration form) and can be changed:
-            # there is no other account it could block
+        if cfg().local and regno and not g.user["oris_regno"]:
+            # on one's own computer the number is given once here (there is no registration form)
             if not re.fullmatch(accounts.REGNO, regno):
                 db.commit()
                 flash("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. ABC1234.", "error")
@@ -699,7 +699,7 @@ def profile():
             db.commit()
             jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
             flash(f"Uloženo: {regno} patří v ORIS jménu {person['name']}. Závody z ORIS se načítají. "
-                  "Když to nejsi ty, oprav číslo v Profilu.", "ok")
+                  "Když to nejsi ty, napiš autorovi aplikace.", "ok")
             return redirect(url_for("ob.races"))
         db.commit()
         flash("Uloženo.", "ok")

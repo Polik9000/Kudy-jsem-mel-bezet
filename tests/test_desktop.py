@@ -29,7 +29,7 @@ def test_no_login(local):
     assert r.status_code == 200
     html = r.get_data(as_text=True)
     assert "Ukončit aplikaci" in html and "Odhlásit" not in html and "klubový web" not in html
-    assert "registrační číslo ORIS" in html          # the hint to give the number in the profile
+    assert "číslo ORIS" in html          # the hint to give the number in the profile
     for page in ("/login", "/register", "/forgot"):
         assert c.get(page).status_code == 302
     profile = c.get("/profile").get_data(as_text=True)

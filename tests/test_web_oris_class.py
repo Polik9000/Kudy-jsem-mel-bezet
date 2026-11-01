@@ -109,7 +109,7 @@ def test_a_race_from_oris_is_added_by_its_link_with_the_chosen_class(app, client
     html = post(client, "/races/oris/9827", class_id=h18).headers["Location"]
     assert html.endswith(f"/races/{e['id']}") and len(entry_of(con, 9827)) == 1
     assert fake.calls == [("getEvent", 9827), ("getSplits", 215134)]
-    assert "Přidat závod z ORIS" in client.get("/").get_data(as_text=True)
+    assert "Přidat závod podle ORIS" in client.get("/").get_data(as_text=True)
 
 
 def test_a_race_oris_does_not_know_says_so(app, client, user):

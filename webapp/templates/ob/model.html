@@ -6,22 +6,28 @@
 <div class="prazdno empty">{{ ikona('graf', 'ikona-velka') }}Model se spočítá sám po první analýze závodu, ke kterému je
   mapa s tratí, mapa bez tratě a běh z hodinek.</div>
 {% else %}
-<p class="evhead">Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech. Nový závod
-  nebo poznámka ho změní; postupy ostatních závodů se přepočítají tlačítkem Přepočítat všechno.</p>
+<p class="evhead">Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech, jen z úseků
+  bez chyb.</p>
 <div class="karta">
+  <h3>V kostce</h3>
+  <ul class="ob-kostka">{% for t in gist %}<li>{{ t }}</li>{% endfor %}</ul>
   <dl class="detaily">
     <dt>Rychlost na rovné cestě</dt>
-    <dd><b>{{ '%.1f' | format(model.v_flat * 3.6) }} km/h</b> ({{ (1000 / model.v_flat) | mmss }} min/km)</dd>
+    <dd><b>{{ ('%.1f' | format(model.v_flat * 3.6)).replace('.', ',') }} km/h</b> ({{ (1000 / model.v_flat) | mmss }} min/km)</dd>
     <dt>Z čeho</dt>
-    <dd>čisté úseky (bez chyb) z {{ personal.races | length }} závodů; novější mají vyšší váhu
-      (poločas {{ personal.half_life_days | int }} dní)</dd>
+    {% set nr = personal.races | length %}
+    <dd>čisté úseky (bez chyb) z {{ nr }} {{ 'závodu' if nr == 1 else 'závodů' }}; novější mají vyšší váhu</dd>
     <dt>Spočítáno</dt><dd>{{ fitted_at | kdy }}</dd>
   </dl>
-  <form method="post" action="{{ url_for('ob.model_refit') }}" class="controls ob-odkazy">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn">Přepočítat teď</button>
-  </form>
-  {% include "ob/_recompute.html" %}
+  <div class="controls">
+    <form method="post" action="{{ url_for('ob.model_refit') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn" title="Spočítá model znovu ze všech závodů; postupy závodů nemění">Přepočítat model</button>
+    </form>
+    {% include "ob/_recompute.html" %}
+  </div>
+  <p class="hint">Nový závod nebo poznámka model změní sama. „Přepočítat všechno“ pak s novým modelem spočítá znovu
+    nejlepší postupy u všech závodů (trvá to pár minut na závod).</p>
 </div>
 
 <h2>Proti průměrnému běžci</h2>
@@ -49,25 +55,36 @@
 <h2>Terény</h2>
 <div class="tablewrap"><table>
   <thead><tr><th data-sort="text">Terén</th><th class="num" data-sort="number">km/h</th><th class="num">min/km</th>
-      <th class="num" data-sort="number">vůči cestě</th><th class="num" data-sort="number">kolik dat (s)</th>
-      <th class="num">data říkají</th><th class="num">výchozí (ISOM)</th><th class="num" data-sort="number">nejistota</th>
-      <th>spolehlivost</th></tr></thead>
+      <th class="num" data-sort="number">Proti cestě</th><th>Spolehlivost</th></tr></thead>
   <tbody>
   {% for r in terrain %}
-  <tr><td>{{ r.name }}</td><td class="num"><b>{{ '%.1f' | format(r.kmh) }}</b></td><td class="num">{{ r.pace | mmss }}</td>
+  <tr><td>{{ r.name }}</td><td class="num"><b>{{ ('%.1f' | format(r.kmh)).replace('.', ',') }}</b></td><td class="num">{{ r.pace | mmss }}</td>
       <td class="num" data-value="{{ r.factor }}">{{ '%.0f' | format(r.factor * 100) }} %</td>
-      <td class="num">{{ r.seconds }}</td>
-      <td class="num">{% if r.implied is not none %}{{ '%.0f' | format(r.implied * 100) }} %{% endif %}</td>
-      <td class="num">{% if r.prior is not none %}{{ '%.0f' | format(r.prior * 100) }} %{% endif %}</td>
-      <td class="num" data-value="{{ r.se }}">± {{ '%.1f' | format(r.kmh_pm) }} km/h ({{ '%.0f' | format(r.se * 100) }} %)</td>
-      <td><span class="stav {{ 'ob-ok' if r.trust == 'dobrá' else 'ob-warn' if r.trust == 'střední' else '' }}">{{ r.trust }}</span></td></tr>
+      <td>{% if r.seconds < 60 %}<span class="muted">bez tvých dat, hodnota podle mapového klíče</span>
+          {% else %}<span class="stav {{ 'ob-ok' if r.trust == 'dobrá' else 'ob-warn' if r.trust == 'střední' else '' }}">{{ r.trust }}</span>{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table></div>
-<p class="hint">Rychlosti platí na rovině. „Výchozí“ je hodnota podle mapového klíče ISOM; čím víc sekund v terénu máš,
-  tím víc se použitá hodnota posune k tomu, co říkají tvoje data. Nejistota je odhad jedné směrodatné odchylky:
-  vychází z rozptylu tvých rychlostí v terénu a z toho, kolik nezávislých měření to je (15 s běhu = jedno);
-  terén bez dat má nejistotu výchozí hodnoty (asi 25 %).</p>
+<p class="hint">Rychlosti platí na rovině.</p>
+<details class="ob-jak">
+  <summary>Podrobnosti pro zvídavé</summary>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Terén</th><th class="num">Kolik dat (s)</th><th class="num">Data říkají</th>
+        <th class="num">Výchozí (ISOM)</th><th class="num">Nejistota</th></tr></thead>
+    <tbody>
+    {% for r in terrain %}
+    <tr><td>{{ r.name }}</td><td class="num">{{ r.seconds }}</td>
+        <td class="num">{% if r.implied is not none and r.seconds >= 60 %}{{ '%.0f' | format(r.implied * 100) }} %{% elif r.seconds %}málo dat{% endif %}</td>
+        <td class="num">{% if r.prior is not none %}{{ '%.0f' | format(r.prior * 100) }} %{% endif %}</td>
+        <td class="num">± {{ ('%.1f' | format(r.kmh_pm)).replace('.', ',') }} km/h ({{ '%.0f' | format(r.se * 100) }} %)</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="hint">„Výchozí“ je hodnota podle mapového klíče ISOM; čím víc sekund v terénu máš, tím víc se použitá hodnota
+    posune k tomu, co říkají tvoje data. Nejistota je odhad jedné směrodatné odchylky: vychází z rozptylu tvých rychlostí
+    v terénu a z toho, kolik nezávislých měření to je (15 s běhu = jedno); terén bez dat má nejistotu výchozí hodnoty
+    (asi 25 %). Novější závody mají vyšší váhu (poločas {{ personal.half_life_days | int }} dní).</p>
+</details>
 
 <h2>Kopce</h2>
 <div class="ob-radek">
@@ -75,6 +92,7 @@
     {{ slope_chart }}
     <p class="hint">Čára je model, tečky jsou naměřené hodnoty z běhů po 30 s. Nad čárkovanou jedničkou je to pomalejší
       než po rovině. 1 m stoupání stojí jako {{ '%.1f' | format(model.up_k) }} m běhu po rovině.
+      Z kopce nebývá rychleji než po rovině: v terénu brzdíš (měřeno na běžných bězích).
       {% if slope_own %}Tvar kopců je spočítaný z tvých běhů v Garmin exportu ({{ slope.activities }} běhů).
       {% else %}Tvar kopců je zatím výchozí (z běhů autora aplikace). Vlastní se spočítá, když nahraješ celý export z Garminu.{% endif %}</p>
   </div>
@@ -91,6 +109,8 @@
   </table></div>
 </div>
 
+<details class="ob-jak ob-pro-zvidave">
+<summary>Závody v modelu, kontrola modelu a historie</summary>
 <h2>Závody v modelu</h2>
 <div class="tablewrap"><table>
   <thead><tr><th>Závod</th><th class="num">Datum</th><th class="num">Váha</th><th class="num">Čisté sekundy</th>
@@ -140,5 +160,6 @@
   {% endfor %}
   </tbody>
 </table></div>
+</details>
 {% endif %}
 {% endblock %}
