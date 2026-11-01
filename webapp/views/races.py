@@ -12,7 +12,20 @@ from oroute import garmin
 from .. import cfg, club, get_db, oris, texts
 from ..auth import login_required
 from ..db import loads
-from ..services import accounts, barriers, jobs, mapfix, matching, oris_class, plans, results, screens, storage, view
+from ..services import (
+    accounts,
+    barriers,
+    jobs,
+    mapfix,
+    matching,
+    oris_class,
+    plans,
+    race_file,
+    results,
+    screens,
+    storage,
+    view,
+)
 from ..services import splits as class_splits
 from . import bp, go
 from .jobs import analysis_stamp, entry_progress
@@ -225,6 +238,48 @@ def race_oris_class(oris_id):
                       " WHERE e.user_id = ? AND c.event_id = ? ORDER BY e.id LIMIT 1", (g.user["id"], ev["id"])).fetchone()
     return render_template("ob/race_oris.html", ev=ev, classes=oris_class.event_classes(db, ev["id"]), have=have,
                            oris_url=oris.event_url(oris_id), aktivni="races")
+
+
+MAX_RACE_FILE = 400 * 1024 * 1024      # two KMZ from Livelox and a .fit
+
+
+@bp.route("/races/nacist", methods=["GET", "POST"])
+@login_required
+def race_file_load():
+    """A race saved by another runner of the app (.obzavod, services/race_file.py): only the app on one's own
+    computer; on the server the runners of a race share its maps already."""
+    if not cfg().local:
+        abort(404)
+    if request.method == "POST":
+        f = request.files.get("soubor")
+        data = f.read(MAX_RACE_FILE + 1) if f and f.filename else b""
+        if not data:
+            flash("Vyber soubor se závodem (.obzavod).", "error")
+        elif len(data) > MAX_RACE_FILE:
+            flash("Soubor je na uložený závod příliš velký.", "error")
+        else:
+            try:
+                entry_id, msg = race_file.load(get_db(), cfg(), g.user, data)
+                flash(msg, "ok")
+                return go(url_for("ob.race", entry_id=entry_id))
+            except race_file.BadFile as err:
+                flash(str(err), "error")
+        return go(url_for("ob.race_file_load"))
+    return render_template("ob/race_file.html", aktivni="races")
+
+
+@bp.route("/races/<int:entry_id>/soubor", methods=["POST"])
+@login_required
+def race_file_save(entry_id):
+    """Save the race to a file for another runner: maps, course and official times; the runner's own track and
+    settings only when ticked."""
+    if not cfg().local:
+        abort(404)
+    e = get_entry(entry_id)
+    data = race_file.export(get_db(), cfg(), entry_id, track=request.form.get("stopa") == "1",
+                            mine=request.form.get("nastaveni") == "1")
+    return send_file(io.BytesIO(data), mimetype="application/zip", as_attachment=True,
+                     download_name=race_file.file_name(e))
 
 
 @bp.route("/races/<int:entry_id>/class", methods=["POST"])

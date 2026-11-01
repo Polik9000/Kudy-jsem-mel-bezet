@@ -37,6 +37,7 @@
   {% endif %}
   <a class="btn" href="{{ url_for('ob.race_oris') }}" title="Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem">Přidat závod podle ORIS</a>
   <a class="btn" href="{{ url_for('ob.race_new') }}">Přidat závod ručně</a>
+  {% if local_app %}<a class="btn" href="{{ url_for('ob.race_file_load') }}" title="Závod uložený jiným běžcem (.obzavod)">Načíst závod ze souboru</a>{% endif %}
   {% if counts.hotovo %}{% include "ob/_recompute.html" %}{% endif %}
   <span class="spacer"></span>
   {% if seasons | length > 1 %}
