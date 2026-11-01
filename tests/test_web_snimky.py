@@ -135,6 +135,7 @@ def test_the_one_without_course_can_come_later(app, client, user, pair_png):
     assert event_of(con, mine)["maponly_source"] == "snimek"
 
 
+@pytest.mark.needs_data
 def test_screenshots_need_the_run_and_official_times(app, client, user, pair_png):
     con, mine = entry(app, client, user, run=False)
     assert "chybí běh z hodinek" in upload(client, mine, *pair_png)
@@ -154,6 +155,7 @@ def other():
     ("postupy", "Vypni v Livelox ostatní běžce"),
     ("jiny-zavod", "Snímky k sobě nepatří"),
 ])
+@pytest.mark.needs_data
 def test_wrong_pairs_get_one_sentence(app, client, user, pohora, other, kind, said):
     con, mine = entry(app, client, user)
     a, b, _ = snimek.bad_pair(kind, pohora, other)

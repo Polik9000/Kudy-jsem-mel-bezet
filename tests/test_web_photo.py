@@ -125,6 +125,7 @@ def test_photo_lands_then_a_kmz_replaces_it(app, client, user, pohora):
     assert not job(con)
 
 
+@pytest.mark.needs_data
 def test_photo_is_not_used_over_a_kmz_that_came_meanwhile(app, client, user, pohora):
     con, mine = entry(app, client, user)
     data, _ = made_photo(pohora)
@@ -255,6 +256,7 @@ def test_glare_over_some_controls_lands_over_most_it_does_not(app, client, user,
     assert j["status"] == "failed" and "odlesk nebo prst" in j["error"] and "usadit ručně" in j["error"]
 
 
+@pytest.mark.needs_data
 def test_photo_before_the_run_from_the_watch(app, client, user, pohora):
     con, mine = entry(app, client, user, run=False)
     data, _ = made_photo(pohora)
@@ -262,6 +264,7 @@ def test_photo_before_the_run_from_the_watch(app, client, user, pohora):
     assert not job(con)
 
 
+@pytest.mark.needs_data
 def test_photo_with_a_run_from_another_race(pohora):
     """The run paired with the race is from another day: at the official punch times there is no track."""
     from webapp import texts
