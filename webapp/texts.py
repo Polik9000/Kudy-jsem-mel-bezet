@@ -452,6 +452,9 @@ ANALYSIS_ERRORS = {
                 "tvé kategorie a že je na ní start vidět celý.",
     "no_finish": "Na mapě s tratí se nepodařilo najít cíl (dvojité kolečko). Zkontroluj, že je to mapa s tratí tvé "
                  "kategorie a že je na ní cíl vidět celý.",
+    "no_network": "Výškopis pro tuhle mapu se nepodařilo stáhnout. Stahuje se jednou pro každý závod (ČÚZK, u zahraničních "
+                  "závodů AWS), takže je potřeba internet. Zkontroluj připojení a pusť analýzu znovu; mapy, běhy "
+                  "a ostatní stránky fungují i bez něj.",
     "track_off_course": "Záznam z hodinek neprochází kontrolami této tratě: nejspíš je k závodu přiřazený jiný "
                         "běh, mapa jiné kategorie, nebo záznam nepokrývá čas závodu. Zkontroluj přiřazený běh a "
                         "mapu s tratí.",

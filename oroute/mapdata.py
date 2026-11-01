@@ -11,6 +11,7 @@ from scipy.ndimage import binary_dilation, distance_transform_edt
 
 from . import terrain as T
 from .dem import TerrariumDEM, load_dem
+from .errors import InputError
 
 OUTLINE_M = 2.5      # a black line this close to an out-of-bounds area is the outline of that area
 OUTLINE_WIDE_M = 4.0  # ... and so is the black joined to it up to this far on
@@ -216,6 +217,9 @@ def elevation(gm, cache_dir, source="aws", used=None):
     """The elevation model of the map, cached in cache_dir (see dem.load_dem for the sources).
     used: the source an earlier run with the same `source` ended up with ("aws" when ČÚZK did not answer
     then); given it, that run's elevation is taken again instead of asking ČÚZK once more."""
-    if source == "aws":
-        return TerrariumDEM(gm.n, gm.s, gm.e, gm.w, cache=os.path.join(cache_dir, "dem_cache.npz"))
-    return load_dem(*corner_box(gm), cache_dir, "aws" if used == "aws" else source)
+    try:
+        if source == "aws":
+            return TerrariumDEM(gm.n, gm.s, gm.e, gm.w, cache=os.path.join(cache_dir, "dem_cache.npz"))
+        return load_dem(*corner_box(gm), cache_dir, "aws" if used == "aws" else source)
+    except OSError as e:     # urllib's URLError and timeouts: nothing stored and no way to download it
+        raise InputError("no_network", f"the elevation could not be downloaded ({e})") from e

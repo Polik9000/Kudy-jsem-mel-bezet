@@ -21,7 +21,8 @@ Run the app on your own machine (`docker compose up --build`, then http://localh
 files you upload are kept in a local Docker volume and are never sent to anyone. The app itself only asks public
 services for what it cannot know: race details and split times from ORIS, elevation from ČÚZK or AWS Terrain Tiles,
 railways and roads from OpenStreetMap (Overpass). For elevation and OpenStreetMap it sends the area of the map, not
-your track.
+your track. The full list of what is requested and what goes out is in [`docs/soukromi.md`](docs/soukromi.md)
+(Czech); `tests/test_soukromi.py` keeps it complete.
 
 ## What is not in this repository
 
