@@ -16,6 +16,7 @@ from ..services import (
     accounts,
     barriers,
     jobs,
+    local_data,
     mapfix,
     matching,
     oris_class,
@@ -759,7 +760,41 @@ def profile():
         db.commit()
         flash("Uloženo.", "ok")
         return redirect(url_for("ob.profile"))
-    return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]))
+    return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]), releases=RELEASES,
+                           data_mb=local_data.folder_size(cfg().instance) / 1e6 if cfg().local else 0)
+
+
+RELEASES = "https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest"
+
+
+@bp.route("/data/slozka", methods=["POST"])
+@login_required
+def data_open():
+    """The app on one's own computer: show the data folder in the file manager."""
+    if not cfg().local:
+        abort(404)
+    if not local_data.open_folder(cfg().instance):
+        flash(f"Složku se nepodařilo otevřít. Najdeš ji tady: {cfg().instance}", "error")
+    return redirect(url_for("ob.profile") + "#data")
+
+
+@bp.route("/data/smazat", methods=["POST"])
+@login_required
+def data_wipe():
+    """The app on one's own computer: delete everything (races, runs, maps, analyses, models). Needs the word
+    SMAZAT typed."""
+    if not cfg().local:
+        abort(404)
+    if request.form.get("potvrzeni", "").strip() != local_data.CONFIRM:
+        flash(f"Nic se nesmazalo. Pro potvrzení napiš {local_data.CONFIRM}.", "error")
+        return redirect(url_for("ob.profile") + "#data")
+    try:
+        local_data.wipe(get_db(), cfg())
+    except local_data.Busy as err:
+        flash(str(err), "error")
+        return redirect(url_for("ob.profile") + "#data")
+    session.clear()
+    return redirect(url_for("ob.races"))
 
 
 @bp.route("/konec", methods=["POST"])
