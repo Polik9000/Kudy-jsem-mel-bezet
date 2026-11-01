@@ -20,7 +20,7 @@ from . import db as dbm
 from .config import Config
 
 try:
-    from ._build import BUILD     # written by the installer workflow: the commit the installer was built from
+    from ._build import BUILD  # written by the installer workflow: the commit the installer was built from
 except ImportError:
     BUILD = ""
 VERSION = "2026.10.21" + (f"+{BUILD}" if BUILD else "")

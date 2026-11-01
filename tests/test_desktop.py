@@ -190,3 +190,28 @@ def test_new_version_opens_the_database_of_an_old_one(tmp_path, monkeypatch):
     second = create_app(str(tmp_path / "data"))
     html = second.test_client().get("/").get_data(as_text=True)
     assert "Starý závod" in html
+
+
+def test_script_survives_a_closed_pipe_and_closing_the_app_ends_scripts():
+    """The app was closed while a calculation ran: its print into the lost pipe (OSError 22 on Windows) must not
+    end the calculation, and kill_all ends the scripts that are still running."""
+    import subprocess
+    import sys
+
+    from desktop import app as desktop_app
+    from webapp.services import runner
+
+    class Lost:
+        def write(self, text):
+            raise OSError(22, "Invalid argument")
+
+        def flush(self):
+            raise OSError(22, "Invalid argument")
+    t = desktop_app._Tolerant(Lost())
+    assert t.write("abc") == 3
+    t.flush()
+    p = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    runner._RUNNING.add(p)
+    runner.kill_all()
+    assert p.wait(10) != 0
+    runner._RUNNING.discard(p)
