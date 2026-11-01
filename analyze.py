@@ -99,7 +99,7 @@ def main():
             # lines and the track then only check the order (order_by_track below).
             fx, fy = px_xy(det["finish"])
             circles = [c for c in det["controls"] if np.hypot(px_xy(c)[0] - fx, px_xy(c)[1] - fy) >= 25.0]
-            idx, how = order_controls(tr, gm, [px_xy(c) for c in circles], json.load(open(args.official)))
+            idx, how = order_controls(tr, gm, [px_xy(c) for c in circles], json.load(open(args.official, encoding="utf-8")))
             if idx is None:
                 print(f"control order from the purple lines, not from the official times: {how['reason']}")
             else:
@@ -126,7 +126,7 @@ def main():
         pts.append((float(x), float(y)))
     punch, official = None, None
     if args.official:
-        tr, punch, official = apply_official(tr, gm, pts, json.load(open(args.official)))
+        tr, punch, official = apply_official(tr, gm, pts, json.load(open(args.official, encoding="utf-8")))
     x, y = track_xy(gm, tr)
     if punch is None:
         punch = find_punches(tr["t"], x, y, pts)
@@ -142,7 +142,7 @@ def main():
         print(f"no GPS data on {len(gone)} of {n} legs: " + ", ".join(leg_name(k, n) for k in sorted(gone)))
 
     # CSV
-    with open(os.path.join(args.out, "legs.csv"), "w", newline="") as f:
+    with open(os.path.join(args.out, "legs.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["leg", "split", "elapsed", "straight_m", "run_m", "route_ratio", "speed_kmh",
                     "climb_m", "time_last100m_s", "entries_100m", "stopped_s", "expected", "est_loss_s",
@@ -199,7 +199,7 @@ def main():
     if official is not None:
         lines += ["", "Punch times: official split times." if official["used"] else
                   f"Punch times: from GPS; the official times were not used ({official['reason']})."]
-    with open(os.path.join(args.out, "report.md"), "w") as f:
+    with open(os.path.join(args.out, "report.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     print("\n".join(lines))
 

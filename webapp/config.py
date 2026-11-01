@@ -70,7 +70,7 @@ class Config:
         except FileExistsError:
             pass
         for _ in range(50):  # another process may still be writing it
-            with open(f) as fh:
+            with open(f, encoding="utf-8") as fh:
                 key = fh.read().strip()
             if key:
                 return key

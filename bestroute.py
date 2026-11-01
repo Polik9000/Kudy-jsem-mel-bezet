@@ -290,7 +290,7 @@ def main():
         args.step = max(2, int(round(1.0 / gm.m_per_px_x)))
     print("reading terrain ...")
     cls = mapdata.terrain(gm, args.kmz, args.terrain_cache)
-    course = json.load(open(args.course))
+    course = json.load(open(args.course, encoding="utf-8"))
     pts_ll = [course["start"]] + course["controls"] + [course["finish"]]
     ctrl_px = [tuple(float(a) for a in gm.latlon_to_px(p["lat"], p["lon"])) for p in pts_ll]
     # what the map shows as impassable or hard to cross (fenced ground with a control in it can be entered)
@@ -317,7 +317,7 @@ def main():
     tr = load_track(args.fit)
     punch, official = None, None
     if args.official:
-        tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official)))
+        tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official, encoding="utf-8")))
     x, y = track_xy(gm, tr)
     if punch is None:
         punch = find_punches(tr["t"], x, y, pts_xy)
@@ -575,7 +575,7 @@ def main():
         full.save(os.path.join(args.out, "best_routes.jpg"), quality=88)
 
     # --- csv + report ----------------------------------------------------------
-    with open(os.path.join(args.out, "best_legs.csv"), "w", newline="") as fcsv:
+    with open(os.path.join(args.out, "best_legs.csv"), "w", newline="", encoding="utf-8") as fcsv:
         w = csv.writer(fcsv)
         w.writerow(["leg", "actual", "your_line_model", "best_model", "loss_total", "loss_route", "loss_execution",
                     "your_m", "best_m", "straight_m", "your_climb", "best_climb", "straight_climb",
@@ -699,7 +699,7 @@ def main():
         "race often matters more (a path detour can be the better choice even when it is a few seconds slower).",
         "- Differences under ~20 s per leg are within the noise of the model.",
     ]
-    with open(os.path.join(args.out, "best_routes.md"), "w") as fmd:
+    with open(os.path.join(args.out, "best_routes.md"), "w", encoding="utf-8") as fmd:
         fmd.write("\n".join(L) + "\n")
 
 

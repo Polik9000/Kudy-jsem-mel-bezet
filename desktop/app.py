@@ -97,6 +97,8 @@ def _certificates():
 
 def _environment(instance):
     _certificates()
+    # text files in UTF-8, not in the Windows code page (cp1252 has no Č); the child processes too
+    os.environ["PYTHONUTF8"] = "1"
     os.environ["OB_LOCAL"] = "1"
     os.environ["OB_INSTANCE"] = instance
     os.environ.setdefault("OB_URL_PREFIX", "")

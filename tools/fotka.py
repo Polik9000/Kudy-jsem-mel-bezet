@@ -440,7 +440,7 @@ def compare_analysis(name, out, p=ANALYSIS_PHOTO):
         s = oris.parse_splits(json.load(f)["Data"], "BFM0903")
     official = dict(start_utc=oris.start_utc(date, s["start_local"]).isoformat(), cumulative=s["cumulative"])
     os.makedirs(out, exist_ok=True)
-    with open(os.path.join(out, "official.json"), "w") as f:
+    with open(os.path.join(out, "official.json"), "w", encoding="utf-8") as f:
         json.dump(official, f)
     fit_file = os.path.join(os.path.dirname(src["kmz"]), "run.fit")
     run = lambda kmz, where, *more: subprocess.run(

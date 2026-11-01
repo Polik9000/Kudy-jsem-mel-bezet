@@ -129,7 +129,8 @@ def fit_slope(ctx, user_id, export):
             w.writerows([n] for n in names)
         cmd += ["--races", races_csv]
     try:
-        p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=runner.TIMEOUT)
+        p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=runner.TIMEOUT)
     except subprocess.TimeoutExpired:
         return "Model kopců se nestihl spočítat."
     if p.returncode != 0 or not os.path.exists(conf.path(rel)):
