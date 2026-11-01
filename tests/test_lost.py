@@ -1,15 +1,13 @@
 """oroute/lost.py: the advice for a runner lost at a control, on made-up scenes of 1 m cells with hand-worked numbers.
 Rows grow to the south, columns to the east; a bearing is clockwise from north (up)."""
 import math
-import os
 
 import numpy as np
 import pytest
+from races import inputs
 
 from oroute import lost
 from webapp import texts
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def scene(n=300, ctrl=(150.0, 150.0), prev=None, points=(), attack=None):
@@ -299,10 +297,9 @@ def test_looking_back_says_what_was_there():
 
 
 # ------------------------------------------------------------------------------------------ the map
-@pytest.mark.needs_data
 def test_the_cells_of_a_scene_follow_the_map():
     from oroute.kmzmap import GeoMap
-    gm = GeoMap.from_kmz(os.path.join(ROOT, "data", "pohora", "maponly.kmz"))
+    gm = GeoMap.from_kmz(inputs("pohora")[1])
     box, s = (400, 300, 900, 760), 3
     meta = lost.affine(gm, box, s)
     for u, v in ((410.0, 310.0), (650.5, 520.25), (880.0, 750.0)):

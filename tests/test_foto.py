@@ -73,7 +73,6 @@ def photo(m, **p):
             fotka.to_opened(ph.forward(m["corners_px"]), ph, o, *small, opened))
 
 
-@pytest.mark.needs_data
 def test_sheet_corners_are_found_on_the_table(pohora):
     im, _, corners = photo(pohora, tilt=20, rot=30, light=0.6)
     quad = georef.paper_quad(im)
@@ -85,7 +84,6 @@ def test_sheet_corners_are_found_on_the_table(pohora):
     assert georef.paper_quad(im.crop((200, 150, 900, 650))) is None
 
 
-@pytest.mark.needs_data
 def test_slanted_photo_in_a_shadow_lands_and_is_straightened(pohora):
     im, ctrl, corners = photo(pohora, tilt=25, rot=200, light=0.5, kelvin=5000, bg=0.25)
     gm, f = georef.place(im, pohora["controls"], pohora["lat0"], pohora["lon0"])

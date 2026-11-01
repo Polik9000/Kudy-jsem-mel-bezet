@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import pytest
-from races import ROOT
+from races import ROOT, inputs
 
 from oroute import dem, osm
 
@@ -85,7 +85,6 @@ def test_fetch_asks_the_second_server_when_the_first_is_busy(monkeypatch):
     assert {c[1] for c in calls} == {osm.AGENT}
 
 
-@pytest.mark.needs_data
 def test_user_is_told_plainly_when_openstreetmap_is_down(tmp_path):
     from types import SimpleNamespace
 
@@ -94,7 +93,7 @@ def test_user_is_told_plainly_when_openstreetmap_is_down(tmp_path):
     def down(*box):
         raise OSError("Overpass: HTTP Error 502: Bad Gateway")
     conf = SimpleNamespace(osm=True, osm_fetch=down, path=lambda *p: str(tmp_path.joinpath(*p)))
-    kmz = os.path.join(ROOT, "data", "petrvald", "maponly.kmz")
+    kmz = inputs("petrvald")[1]
     note = runner.fetch_osm(conf, 1, kmz)
     assert note == ("OpenStreetMap teď neodpovídá (přetížený server). Zakázané přechody se doplní při příštím "
                     "přepočtu.")

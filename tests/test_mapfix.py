@@ -5,7 +5,6 @@ import os
 import zipfile
 
 import numpy as np
-import pytest
 from conftest import csrf, post, register
 from PIL import Image
 from test_web_races import con_of
@@ -66,7 +65,6 @@ def _md5(path):
         return hashlib.md5(f.read()).hexdigest()
 
 
-@pytest.mark.needs_data
 def test_map_moved_by_hand_and_back(app, client, user):
     from webapp.views.photo import _ground, _where
 

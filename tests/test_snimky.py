@@ -27,7 +27,6 @@ def placed(pohora):
     return a, b, t, place(pohora, a, b)
 
 
-@pytest.mark.needs_data
 def test_the_screenshot_lands_and_only_the_map_is_kept(pohora, placed):
     a, b, t, r = placed
     assert r["reliable"] and r["notes"] == [] and not r["swapped"] and np.hypot(*r["shift"]) < 0.5
@@ -49,14 +48,12 @@ def test_the_screenshot_lands_and_only_the_map_is_kept(pohora, placed):
     assert 0.25 < r["accuracy"] / 10 < 6
 
 
-@pytest.mark.needs_data
 def test_a_map_moved_between_the_two_is_put_back(pohora):
     a, b, t = snimek.screens(pohora, 1.0, shift=(15, 8))
     r = place(pohora, a, b)
     assert "shifted" in r["notes"] and np.hypot(r["shift"][0] - 15, r["shift"][1] - 8) < 1
 
 
-@pytest.mark.needs_data
 def test_swapped_screenshots_are_swapped_back(pohora, placed):
     a, b, _, r0 = placed
     r = place(pohora, b, a)
@@ -66,7 +63,6 @@ def test_swapped_screenshots_are_swapped_back(pohora, placed):
 
 @pytest.mark.parametrize("kind, code", [("velikost", "size"), ("priblizeni", "zoom"), ("otoceni", "zoom"),
                                         ("trat-v-bez", "course_in_maponly"), ("postupy", "routes")])
-@pytest.mark.needs_data
 def test_pairs_that_cannot_be_used(pohora, kind, code):
     a, b, _ = snimek.bad_pair(kind, pohora)
     with pytest.raises(pair.PairError) as e:
@@ -74,7 +70,6 @@ def test_pairs_that_cannot_be_used(pohora, kind, code):
     assert e.value.code == code
 
 
-@pytest.mark.needs_data
 def test_the_map_without_course_of_another_race_does_not_belong(pohora):
     other = snimek.load(snimek.sources(["azymut-e5"])[0], np.random.default_rng(1))
     a, b, _ = snimek.bad_pair("jiny-zavod", pohora, other)
@@ -83,7 +78,6 @@ def test_the_map_without_course_of_another_race_does_not_belong(pohora):
     assert e.value.code == "unrelated"
 
 
-@pytest.mark.needs_data
 def test_a_coarse_screenshot_is_said_and_too_coarse_keeps_no_map(pohora):
     a, b, _ = snimek.bad_pair("malo-priblizeny", pohora)
     r = place(pohora, a, b)
@@ -93,7 +87,6 @@ def test_a_coarse_screenshot_is_said_and_too_coarse_keeps_no_map(pohora):
     assert "coarse_stop" in r["notes"] and r["maponly"] is None and r["course"] is not None
 
 
-@pytest.mark.needs_data
 def test_how_much_the_browser_zoomed_in(pohora):
     for z, lo, hi in ((1.0, 1.0, 1.25), (2.0, 1.7, 2.4)):
         _, b, t = snimek.screens(pohora, z)
@@ -102,7 +95,6 @@ def test_how_much_the_browser_zoomed_in(pohora):
         assert lo <= pair.zoom_of(b, box) <= hi
 
 
-@pytest.mark.needs_data
 def test_the_map_is_found_on_another_page_layout(pohora):
     a, _, t = snimek.screens(pohora, 1.0, ui="b")
     s, k = pair.small(a)
@@ -115,7 +107,6 @@ def test_the_map_is_found_on_another_page_layout(pohora):
     assert (x1 - x0) * (y1 - y0) > 0.6 * W * H
 
 
-@pytest.mark.needs_data
 @pytest.mark.parametrize("kind", ["slaba-trat", "polopruhledna-trat"])
 def test_a_course_left_half_see_through_is_taken_out_not_refused(pohora, placed, kind):
     a, b, _ = snimek.bad_pair(kind, pohora)
