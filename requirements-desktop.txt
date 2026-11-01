@@ -1,0 +1,5 @@
+# The app on one's own computer (desktop/app.py) and its installers (desktop/kudy.spec), on top of requirements.txt.
+waitress==3.0.2
+pywebview==6.1
+certifi==2026.10.23
+pyinstaller==6.22.3

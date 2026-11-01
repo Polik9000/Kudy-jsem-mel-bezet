@@ -18,3 +18,7 @@ data-extra/
 kontrola/
 # the backups of the cron service of docker-compose.yml (docs/provoz.md)
 zalohy/
+
+# PyInstaller (desktop/kudy.spec)
+build/
+dist/

@@ -80,7 +80,8 @@ def create_app(instance=None):
 
     @app.context_processor
     def _layout():
-        return dict(sprite=sprite, ikona=ikona, club=club, app_version=VERSION, dem_sources=conf.dem_sources)
+        return dict(sprite=sprite, ikona=ikona, club=club, app_version=VERSION, dem_sources=conf.dem_sources,
+                    local_app=conf.local, data_dir=conf.instance)
 
     @app.url_defaults
     def _static_version(endpoint, values):

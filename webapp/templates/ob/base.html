@@ -32,13 +32,19 @@
   {% endif %}
   {% endif %}
   <li><a href="{{ url_for('ob.help_page') }}"{% if request.endpoint == 'ob.help_page' %} aria-current="page"{% endif %}>{{ ikona('plan') }}Jak na to</a></li>
+  {% if club.ENABLED %}
   <li class="mn-sep" aria-hidden="true">{{ ikona('kontrola') }}<span class="mn-sep-cara"></span>{{ ikona('kontrola') }}</li>
   <li><a href="{{ club.home() }}">{{ ikona('live') }}Závodní centrum<span class="mn-pozn">klubový web</span></a></li>
   {% if user and user.oris_user_id %}
   <li><a href="{{ club.archive(user.oris_user_id) }}">{{ ikona('zebricek') }}Moje výsledky<span class="mn-pozn">klubový web</span></a></li>
   <li><a href="{{ club.member(user.oris_user_id) }}">{{ ikona('vlajka') }}Moje vizitka<span class="mn-pozn">klubový web</span></a></li>
   {% endif %}
-  {% if user %}
+  {% endif %}
+  {% if local_app %}
+  <li><form method="post" action="{{ url_for('ob.quit_app') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="ob-menu-tlacitko">{{ ikona('cil') }}Ukončit aplikaci</button></form></li>
+  {% elif user %}
   <li><form method="post" action="{{ url_for('auth.logout') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="ob-menu-tlacitko">{{ ikona('cil') }}Odhlásit</button></form></li>
@@ -61,7 +67,7 @@
             <button type="button" class="rezim-prepinac" id="rezim" hidden aria-label="Světlý nebo tmavý režim">◐</button>
             <span class="ted-cas" id="ted-cas"></span>
           </div>
-          <span class="headverze">{% if user %}{{ user.name or user.username }}{% else %}nepřihlášen{% endif %}</span>
+          <span class="headverze">{% if user %}{{ user.name or ('na tomhle počítači' if local_app else user.username) }}{% else %}nepřihlášen{% endif %}</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 """Settings, all from environment variables so the same code runs in Docker and on the club server.
 
+OB_LOCAL         1 = the app on one's own computer (desktop.py): one runner, no login, no registration
 OB_INSTANCE      folder for the database and everything uploaded or computed (default: ./instance)
 OB_SECRET_KEY    Flask session key (default: a random one, generated once and kept in the instance folder);
                  the registration codes are computed from it too (services/accounts.py)
@@ -39,6 +40,7 @@ class Config:
         self.osm = os.environ.get("OB_OSM", "1") != "0"
         self.osm_fences = os.environ.get("OB_OSM_FENCES", "0") == "1"
         self.club_prior = os.environ.get("OB_CLUB_PRIOR", "0") == "1"
+        self.local = os.environ.get("OB_LOCAL", "0") == "1"
         self.oris_client = None  # tests: an object with user/entries/event/splits answering from saved responses
         self.osm_fetch = None    # tests: function(south, west, north, east) instead of oroute.osm.for_box
         os.makedirs(self.instance, exist_ok=True)
