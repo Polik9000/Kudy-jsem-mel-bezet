@@ -23,7 +23,8 @@
   function mmss(s, sign) {
     if (s === null || s === undefined) { return ""; }
     var neg = s < 0, v = Math.round(Math.abs(s));
-    return (neg ? "-" : (sign && v ? "+" : "")) + Math.floor(v / 60) + ":" + ("0" + (v % 60)).slice(-2);
+    // a real minus sign, and no sign on a time that rounds to nothing
+    return (neg && v ? "\u2212" : (sign && v ? "+" : "")) + Math.floor(v / 60) + ":" + ("0" + (v % 60)).slice(-2);
   }
   function esc(t) {
     return String(t === null || t === undefined ? "" : t).replace(/[&<>"]/g, function (c) {

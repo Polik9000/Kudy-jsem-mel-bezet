@@ -8,7 +8,8 @@ def mmss(s, sign=False):
         return ""
     neg = s < 0
     s = int(round(abs(s)))
-    return ("-" if neg else "+" if sign and s else "") + f"{s // 60}:{s % 60:02d}"
+    # a real minus sign, and no sign on a time that rounds to nothing ("−0:00" reads like a mistake)
+    return ("\u2212" if neg and s else "+" if sign and s else "") + f"{s // 60}:{s % 60:02d}"
 
 
 def parse_time(text):
@@ -32,19 +33,19 @@ _NOTES = [
     (r"no activity that day", "ten den není žádná aktivita"),
     (r"only (\w+) that day", r"ten den je jen aktivita typu \1"),
     (r"(\d+) runs that day, picked the one closest to the race time",
-     r"ten den je \1 běhů, vybrán ten nejbližší oficiálnímu času"),
+     r"běhů ten den: \1, vybrán ten nejbližší oficiálnímu času"),
     (r"(\d+) runs that day, picked the one started at the official start time",
-     r"ten den je \1 běhů, vybrán ten odstartovaný v čase startu"),
-    (r"activity ([+-]\d+) min vs race time", r"aktivita je o \1 min jiná než oficiální čas"),
+     r"běhů ten den: \1, vybrán ten odstartovaný v čase startu"),
+    (r"activity [+-](\d+) min vs race time", r"běh se od oficiálního času liší o \1 min"),
     (r"no official time, matched by date only", "bez oficiálního času, spárováno jen podle data"),
     (r"activity has no GPS \(watch not started properly\?\)", "aktivita nemá GPS (hodinky nebyly správně spuštěné?)"),
     (r"only an activity without GPS that day",
      "ten den je jen aktivita bez GPS (hodinky bez signálu nebo spuštěné pozdě); nahraj jiný záznam"),
     (r"(\d+) activities that day, picked the one matching the race time",
-     r"ten den je \1 aktivit, vybrána ta odpovídající času závodu"),
+     r"záznamů ten den: \1, vybrán ten, který odpovídá času závodu"),
     (r"activity starts (\d+) km from the race", r"aktivita začíná \1 km od centra závodu"),
     (r"(\d+) activities that day, picked the one that starts at the race",
-     r"ten den je \1 aktivit, vybrána ta, která začíná u centra závodu"),
+     r"záznamů ten den: \1, vybrán ten, který začíná u centra závodu"),
 ]
 
 
@@ -86,13 +87,26 @@ def gps_trouble(g):
     return "GPS tu asi zlobí: " + " a ".join(why) + ". Když víš, kudy jsi běžel, oprav si stopu."
 
 
+def turns(deg):
+    """A total change of heading as one can picture it: 'otočil asi dvakrát dokola'."""
+    if deg is None:
+        return "točil"
+    k = deg / 360.0
+    if k < 1.25:
+        return "otočil asi jednou dokola"
+    if k < 1.75:
+        return "otočil asi jedenapůlkrát dokola"
+    n = int(round(k))
+    return f"otočil asi {({2: 'dvakrát', 3: 'třikrát', 4: 'čtyřikrát'}).get(n, f'{n}×')} dokola"
+
+
 def mistake(m, read=None, note=None):
     """The kind of mistake at a control (oroute.mistakes.classify) in Czech: dict(label, text, at) or None."""
     if not m or not m.get("type"):
         return None
     label, text = MISTAKES.get(m["type"], (m["type"], ""))
     try:
-        text = text.format(**m)
+        text = text.format(turns=turns(m.get("turn")), **m)
     except (KeyError, IndexError, ValueError):
         pass
     return dict(type=m["type"], label=label, text=text, at=m.get("at"))
@@ -267,6 +281,16 @@ def _ln(kind):
     return LOST_NAMES.get(kind, (kind, f"k {kind}", "něj", kind, False))
 
 
+NEUTER = {"junction"}  # "křížení cest"; the other names are masculine or feminine (LOST_NAMES[...][2])
+
+
+def _rod(kind, m, f, n):
+    """The word of the right gender for the feature: _rod(kind, "ten", "ta", "to")."""
+    if kind in NEUTER:
+        return n
+    return f if _ln(kind)[2] == "ní" else m
+
+
 def _seen(seen):
     """What is passed on the way: 'po 30 m bys přešel vodoteč, po 80 m minul křížení cest'."""
     out = []
@@ -321,27 +345,29 @@ def lost_advice(a):
         if h.get("seen"):
             way += ", " + _seen(h["seen"])
         if a.get("no_runner"):
-            first = (f"Když jsi nevěděl, kde u kontroly jsi: na {compass(h['az'])} byl{'a' if n[2] == 'ní' else ''} do "
-                     f"{about(h['dist'] + a['r'])} m {n[0]}" + (", ta se nedala minout." if h["sure"] and n[2] == "ní" else
-                                                               ", ten se nedal minout." if h["sure"] else "."))
+            k = h["kind"]
+            first = (f"Když jsi nevěděl, kde u kontroly jsi: na {compass(h['az'])} {_rod(k, 'byl', 'byla', 'bylo')} do "
+                     f"{about(h['dist'] + a['r'])} m {n[0]}"
+                     + (", " + _rod(k, "ten se nedal", "ta se nedala", "to se nedalo") + " minout." if h["sure"] else "."))
         elif h.get("inside"):
-            it = "ji" if n[2] == "ní" else "ho"
-            of_it = FEATURES.get(h["kind"], (None, None, "zdi" if h["kind"] == "wall" else n[0]))[2]
-            led = "vedla" if n[2] == "ní" else "vedl"
+            k = h["kind"]
+            it = _rod(k, "ho", "ji", "ho")
+            of_it = FEATURES.get(k, (None, None, "zdi" if k == "wall" else n[0]))[2]
+            led = _rod(k, "vedl", "vedla", "vedlo")
             first = (f"Do {about(a['r'])} m od tebe {led} {n[0]} (nejblíž na {compass(h['az'])}, asi {about(h['dist'])} m): "
                      f"měl jsi {it} najít." if h["dist"] >= 8 else
-                     f"Byl jsi u {of_it}, měl ses {'jí' if n[2] == 'ní' else 'ho'} držet.")
+                     f"Byl jsi u {of_it}, měl ses {_rod(k, 'ho', 'jí', 'ho')} držet.")
         elif not h["sure"]:
             first = (f"Nic se odtud nedalo chytit úplně jistě; nejlepší bylo jít na {compass(h['az'])} {n[1]} ({way}).")
         elif a.get("relocate_first"):
             go = "ses měl vrátit" if a.get("back") else "jsi měl dojít"
             first = (f"Neměl jsi hádat směr ke kontrole. Nejdřív {go} na {compass(h['az'])} {n[1]} ({way}), "
-                     f"{'ta se nedala' if n[2] == 'ní' else 'ten se nedal'} minout.")
+                     f"{_rod(h['kind'], 'ten se nedal', 'ta se nedala', 'to se nedalo')} minout.")
         else:
             first = f"Měl jsi jít na {compass(h['az'])} {n[1]} ({way})."
         out += [first, _from_line(h)]
         if not h["sure"] and t and t.get("to") and not a.get("no_runner"):
-            out[-1] += (f" Kdybys ho nenašel, měl ses vrátit na náběhový bod ({_ln(t['kind'])[0]}, {about(t['dist'])} m "
+            out[-1] += (f" Kdybys {_rod(h['kind'], 'ho', 'ji', 'ho')} nenašel, měl ses vrátit na náběhový bod ({_ln(t['kind'])[0]}, {about(t['dist'])} m "
                         f"na azimut {bearing(t['az'])}).")
     if a.get("desc"):
         out.append(f"Podle popisu jsi hledal: {a['desc']}.")
@@ -406,8 +432,7 @@ MISTAKES = {
                                   "kontrola byla dál ve směru postupu."),
     "drift": ("úhyb ze směru", "Většinu úseku jsi běžel vedle spojnice (až {dev:.0f} m stranou) a ke kontrole jsi "
                                "dobíhal skoro kolmo na směr postupu."),
-    "circling": ("hledání v kruhu", "V okruhu 100 m od kontroly jsi se otočil dohromady o {turn:.0f}° a strávil tam "
-                                    "{time:.0f} s."),
+    "circling": ("hledání v kruhu", "V okruhu 100 m od kontroly ses {turns} a strávil tam {time:.0f} s."),
     "relocation": ("zastavení a nové určení polohy", "Stál jsi {stop:.0f} s a potom jsi změnil směr o {turn:.0f}°: "
                                                     "určoval sis znovu polohu."),
     "slow": ("pomalu, bez chyby v mapě", "Stopa vede rozumně, jen pomaleji, než odpovídá terénu: spíš fyzička nebo "
@@ -575,7 +600,9 @@ def georef_reason(reason):
     """Why a picture could not be placed (oroute.georef.GeorefError), in Czech."""
     m = re.fullmatch(r"too few points: (\d+) circles in the picture, (\d+) controls with a punch time", reason)
     if m:
-        return f"v obrázku je vidět {m.group(1)} koleček kontrol a mezičas má {m.group(2)} kontrol; to je málo."
+        c = int(m.group(2))
+        return (f"v obrázku {kolecek(int(m.group(1)))} kontrol a mezičasy má {c} "
+                f"{'kontrola' if c == 1 else 'kontroly' if 2 <= c <= 4 else 'kontrol'}; to je málo.")
     m = re.fullmatch(r"the circles in the picture do not fit the track: (\d+) of (\d+) controls matched"
                      r"(?: \(\d+ circles\))?", reason)
     if m:

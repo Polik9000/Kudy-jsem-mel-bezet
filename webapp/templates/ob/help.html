@@ -2,7 +2,7 @@
 {% block title %}Jak na to{% endblock %}
 {% block content %}
 <h2 class="s-ikonou">{{ ikona('plan', 'ikona-nadpis') }}Jak na to</h2>
-<p class="evhead">Ke každému závodu appka potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě.
+<p class="evhead">Ke každému závodu aplikace potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě.
   Časy a mezičasy si načte z ORIS sama.</p>
 
 <div class="karta" id="garmin">
@@ -10,17 +10,19 @@
   <p><b>Jeden závod</b> z Garmin Connect (na webu):</p>
   <ol>
     <li>Otevři aktivitu a klikni na ozubené kolečko.</li>
-    <li>Vyber <b>Exportovat soubor</b> (ne „originál“). Stáhne se zip, uvnitř je soubor .fit.</li>
+    <li>Vyber <b>Exportovat soubor</b> (Export File). Stáhne se zip, uvnitř je soubor .fit.</li>
     <li>Zip nahraj v {% if user %}<a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>{% else %}Nahrát běhy{% endif %}, nebo v Podkladech závodu. Rozbalovat ho nemusíš.</li>
   </ol>
-  <p class="hint">Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.</p>
-  <p><b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):</p>
+  <p class="hint">Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: aplikace čte jen .fit.</p>
+  <p><b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code>
+    jako soubory .fit.</p>
+  <p><b>Celý export</b> (všechny běhy najednou, aplikace z nich spočítá i tvůj model kopců):</p>
   <ol>
     <li>Otevři <a href="https://www.garmin.com/en-US/account/datamanagement/" target="_blank" rel="noopener">správu
       dat účtu Garmin</a>.</li>
     <li>Klikni na <b>Export Your Data</b> a pak <b>Request Data Export</b>.</li>
     <li>Odkaz na zip přijde e-mailem, za 48 hodin až 30 dní.</li>
-    <li>Celý zip nahraj v {% if user %}<a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>{% else %}Nahrát běhy{% endif %}. Appka si nechá jen běhy ze závodů a zip smaže.</li>
+    <li>Celý zip nahraj v {% if user %}<a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>{% else %}Nahrát běhy{% endif %}. Aplikace si nechá jen běhy ze závodů a zip smaže.</li>
   </ol>
   <p class="hint">Běhy se se závody spárují samy podle dne, času startu a místa. Jiný běh jde vybrat v Podkladech
     závodu.</p>
@@ -29,25 +31,30 @@
 <div class="karta" id="livelox">
   <h3>Mapa z Livelox (KMZ)</h3>
   <ol>
-    <li>V Livelox vyber závod a svou kategorii. Odkaz na Livelox bývá u závodu v appce.</li>
+    <li>V Livelox vyber závod a svou kategorii. Odkaz na Livelox bývá u závodu v aplikaci.</li>
     <li>V zobrazení mapy klikni vpravo nahoře na <b>tři čárky</b> a vyber <b>Stáhnout mapu</b> (Download map).</li>
     <li>Stáhni dvakrát: <b>Mapa s tratí</b>, formát <b>KMZ</b>, a <b>Pouze mapa</b>, formát <b>KMZ</b>.</li>
     <li>V Podkladech závodu nahraj první jako mapu s tratí a druhou jako mapu bez tratě.</li>
   </ol>
-  <p class="hint">Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy. Mapu bez tratě
-    stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.</p>
+  <p class="hint">Z mapy s tratí aplikace čte kontroly, z mapy bez tratě terén pro nejlepší postupy.
+    {% if local_app %}Mapy zůstávají jen v tomhle počítači. Jsou dílem pořadatele: používej je jen pro vlastní rozbor.
+    {% else %}Mapu bez tratě stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z aplikace
+    nejdou stáhnout.{% endif %}</p>
 </div>
 
 <div class="karta" id="bez-livelox">
   <h3>Když Livelox stažení nedovolí</h3>
-  <p>Pořadatel může stahování map vypnout. Pak máš dvě cesty:</p>
-  <ul>
-    <li><b>Nejlíp fotka papírové mapy.</b> Vyfoť celou mapu shora, za světla a bez blesku. Mapu polož rovně a nic ať
-      nezakrývá kontroly. Nahraj ji v Podkladech jako fotku mapy. Na místo se usadí sama podle kontrol a tvé stopy
-      (potřebuje běh z hodinek a mezičasy z ORIS); když se neusadí, jde usadit ručně.</li>
-    <li><b>Jinak dva snímky obrazovky z Livelox</b> (níže). Jen pro vlastní rozbor: nesdílej je dál, pořadatel
-      stažení vypnul záměrně.</li>
-  </ul>
+  <p>Pořadatel může stahování map vypnout. Pak zkus náhrady v tomhle pořadí:</p>
+  <ol>
+    <li><b>KMZ z <a href="https://obpostupy.orientacnisporty.cz/" target="_blank" rel="noopener">OB postupů</a></b>,
+      když tam závod je. Nahrává se stejně jako KMZ z Livelox.</li>
+    <li><b>Dva snímky obrazovky z Livelox</b> (návod níže): s tratí a bez ní. Dají kontroly i terén, takže budou
+      i nejlepší postupy. Jen pro vlastní rozbor: nesdílej je dál, pořadatel stažení vypnul záměrně.</li>
+    <li><b>Fotka papírové mapy</b>, když nejde nic z toho. Vyfoť celou mapu shora, za světla a bez blesku. Mapu polož
+      rovně a nic ať nezakrývá kontroly. Nahraj ji v Podkladech jako fotku mapy. Na místo se usadí sama podle kontrol
+      a tvé stopy (potřebuje běh z hodinek a mezičasy z ORIS); když se neusadí, jde usadit ručně. Z fotky se čtou jen
+      kontroly, nejlepší postupy z ní nebudou.</li>
+  </ol>
 </div>
 
 <div class="karta" id="snimky">
@@ -64,7 +71,7 @@
     <li>Znovu tři tečky → <b>Capture full size screenshot</b>. To je <b>snímek bez tratě</b>.</li>
     <li>Oba snímky nahraj do polí „Snímek z Livelox s tratí“ a „Snímek z Livelox bez tratě“ v Podkladech závodu.</li>
   </ol>
-  <p class="hint">Proč neposouvat: appka usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá
+  <p class="hint">Proč neposouvat: aplikace usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá
     stejné místo. Snese posun o pár pixelů, ne jiné přiblížení nebo jinou velikost okna.</p>
   <p class="hint">Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek
     s tratí jde nahrát i tak, nejlepší postupy z něj ale nebudou.</p>
@@ -72,11 +79,11 @@
 
 <div class="karta" id="poznamky">
   <h3>Poznámky u úseku</h3>
-  <p>Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak appka čte ztrátu
+  <p>Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak aplikace čte ztrátu
     a z kterých úseků se učí tvůj model rychlosti.</p>
   <dl class="detaily">
     <dt>Schválná zastávka</dt>
-    <dd>Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to appka pozná sama.</dd>
+    <dd>Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to aplikace pozná sama.</dd>
     <dt>Ztráta kontaktu s mapou</dt>
     <dd>Celá ztráta úseku je chyba, ne volba postupu. Z úseku se model neučí.</dd>
     <dt>Zelená</dt>
@@ -87,14 +94,14 @@
     <dt>Poznámka</dt>
     <dd>Volný text pro tebe.</dd>
     <dt>Plánovaný postup</dt>
-    <dd>Nakresli, kudy jsi chtěl běžet. Appka ho ocení tvým modelem a porovná s nejlepším postupem.</dd>
+    <dd>Nakresli, kudy jsi chtěl běžet. Aplikace ho ocení tvým modelem a porovná s nejlepším postupem.</dd>
     <dt>Opravit moji stopu</dt>
-    <dd>Když GPS na úseku zlobí (město, vysoké domy; appka napíše „GPS tu asi zlobí“), nakresli, kudy jsi opravdu
+    <dd>Když GPS na úseku zlobí (město, vysoké domy; aplikace napíše „GPS tu asi zlobí“), nakresli, kudy jsi opravdu
       běžel. Čára nahradí stopu úseku, úsek se z modelu vyřadí. Tlačítko Vrátit GPS stopu ji vrátí.</dd>
   </dl>
   <p class="hint">Leží celá mapa vedle stopy (všechny kontroly posunuté stejně)? V Podkladech je „Usadit mapu ručně
     podle kontrol“. Jde vrátit.</p>
-  <p>Další věty u úseku píše appka sama:</p>
+  <p>Další věty u úseku píše aplikace sama:</p>
   <dl class="detaily">
     <dt>Nejlepší postup</dt>
     <dd>Modrá čára: nejrychlejší postup pro tebe podle tvého modelu rychlosti.</dd>
@@ -119,15 +126,15 @@
     <li>Bez běhu, nebo když stopa místo nechytila: <b>Kde jsem asi byl</b>. Ťukni do mapy, kde jsi asi byl, a vyber,
       o kolik si nejsi jistý (25, 50, 100 nebo 150 m; v lese je výchozí 50 m, na sprintu 25 m). Oranžový kruh je
       místo, kde jsi mohl být.</li>
-    <li>Appka napíše jednu až tři věty: kam jsi měl jít, podél čeho, kde byla kontrola. Modrá čára ukazuje cestu,
+    <li>Aplikace napíše jednu až tři věty: kam jsi měl jít, podél čeho, kde byla kontrola. Modrá čára ukazuje cestu,
       čísla jsou záchytné body.</li>
   </ol>
   <dl class="detaily">
     <dt>Nedalo se minout</dt>
     <dd>Dlouhá věc (cesta, vodoteč, plot, okraj zástavby nebo velké paseky), na kterou bys narazil odkudkoli z kruhu,
-      kdybys šel daným směrem. Appka vybere nejjistější, ne nejbližší.</dd>
+      kdybys šel daným směrem. Aplikace vybere nejjistější, ne nejbližší.</dd>
     <dt>Neměl jsi hádat směr ke kontrole</dt>
-    <dd>Když byla jistá věc dál, než je kruh nejistoty, appka radí, že jsi měl dojít (nebo se vrátit) nejdřív k ní
+    <dd>Když byla jistá věc dál, než je kruh nejistoty, aplikace radí, že jsi měl dojít (nebo se vrátit) nejdřív k ní
       a teprve odtud ke kontrole.</dd>
     <dt>Jen kontrola a okolí</dt>
     <dd>Když vůbec nevíš, kde jsi byl: co bylo kolem kontroly nejjistější.</dd>

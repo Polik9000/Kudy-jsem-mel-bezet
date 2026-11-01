@@ -3,9 +3,12 @@ ids we keep in events.oris_id and users.oris_user_id; the mapping is the table i
 import os
 from urllib.parse import urlencode
 
-BASE = os.environ.get("OB_CLUB_URL", "https://skobfm.vzdyonline.cz").rstrip("/")
-NAME = os.environ.get("OB_CLUB_NAME", "SKOB Frýdek-Místek")   # in the title and the header of every page
-LOGO = os.environ.get("OB_CLUB_LOGO", "skob-logo.svg")       # a file in webapp/static: header and icon
+# OB_LOCAL=1 (the app on one's own computer, also the default of docker-compose.yml): no club unless one is set
+_LOCAL = os.environ.get("OB_LOCAL", "0") == "1"
+BASE = os.environ.get("OB_CLUB_URL", "" if _LOCAL else "https://skobfm.vzdyonline.cz").rstrip("/")
+# in the title and the header of every page
+NAME = os.environ.get("OB_CLUB_NAME", "Kudy jsem měl běžet" if _LOCAL else "SKOB Frýdek-Místek")
+LOGO = os.environ.get("OB_CLUB_LOGO", "ob-logo.svg" if _LOCAL else "skob-logo.svg")  # in webapp/static: header, icon
 ENABLED = bool(BASE)  # OB_CLUB_URL="" (the app on one's own computer): no links to a club site at all
 
 

@@ -22,7 +22,7 @@
   --brand: #0E7A1C;
   --brand-ink: #ffffff;
   --accent: #C2185B;      /* fialovo-růžová jako značka kontroly */
-  --orange: #E8872A;
+  --orange: #A85A0C;      /* tmavší, ať má text kontrast aspoň 4,5 : 1 */
   --ink: #14181a;
   --ink-soft: #39423f;
   --muted: #5f6964;
@@ -88,7 +88,7 @@ html.en [lang="cs"] { display: none !important; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); text-decoration: none; }
 .logo svg { flex: none; }
-.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg-elev); }
+.lang { flex: none; display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg-elev); }
 .lang a { padding: 6px 12px; font-size: .9rem; text-decoration: none; color: var(--ink-soft); }
 html:not(.en) .lang a[data-l="cs"], html.en .lang a[data-l="en"] { background: var(--brand); color: var(--brand-ink); }
 
@@ -130,6 +130,7 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
   section.card { padding: 18px; }
   .btn { flex: 1 1 100%; justify-content: center; }
   .net th, .net td { padding: 6px 4px; }
+  .logo .muted { display: none; }
 }
 </style>
 <script>
@@ -209,13 +210,15 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
         <g font-size="13" font-family="system-ui, sans-serif">
           <rect x="16" y="14" width="150" height="50" rx="8" fill="var(--bg-elev)" opacity=".95"/>
           <line x1="28" y1="32" x2="52" y2="32" stroke="#d32f2f" stroke-width="5" stroke-linecap="round"/>
-          <text x="60" y="36" fill="var(--ink)">tvůj postup</text>
+          <text x="60" y="36" fill="var(--ink)" lang="cs">tvůj postup</text>
+          <text x="60" y="36" fill="var(--ink)" lang="en">your route</text>
           <line x1="28" y1="52" x2="52" y2="52" stroke="#1565c0" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 7"/>
-          <text x="60" y="56" fill="var(--ink)">nejlepší pro tebe</text>
+          <text x="60" y="56" fill="var(--ink)" lang="cs">nejlepší pro tebe</text>
+          <text x="60" y="56" fill="var(--ink)" lang="en">best for you</text>
         </g>
       </svg>
       <figcaption lang="cs">Ilustrace, ne skutečný závod. Snímky obrazovky přidáme, až budou s mapou, kterou smíme ukázat.</figcaption>
-      <figcaption lang="en">Illustration, not a real race (“tvůj postup” = your route, “nejlepší pro tebe” = best for you). Screenshots will follow once we have a map we may show.</figcaption>
+      <figcaption lang="en">Illustration, not a real race. Screenshots will follow once we have a map we may show.</figcaption>
     </figure>
   </div>
 
@@ -285,22 +288,22 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
         <li>Download it twice: <strong>map only</strong> (no course) and <strong>with course</strong> (with controls).</li>
         <li>Upload both files to the race in the program.</li>
       </ol>
-      <p class="muted" lang="cs">Když Livelox stažení nedovolí, zkus KMZ na OB postupech, nebo velký snímek obrazovky či fotku papírové mapy. Mapa patří pořadateli: používej ji jen pro sebe.</p>
-      <p class="muted" lang="en">If Livelox does not allow downloading, try the KMZ on OB postupy, or a large screenshot or a photo of the paper map. The map belongs to the organiser: use it for yourself only.</p>
+      <p class="muted" lang="cs">Když Livelox stažení nedovolí, máš tři náhrady v tomhle pořadí: KMZ z <a href="https://obpostupy.orientacnisporty.cz/">OB postupů</a>, dva velké snímky obrazovky z Livelox (s tratí a bez ní), nebo fotka papírové mapy. Návod je v programu v části Jak na to. Mapa patří pořadateli: používej ji jen pro sebe.</p>
+      <p class="muted" lang="en">If Livelox does not allow downloading, there are three substitutes, in this order: the KMZ from <a href="https://obpostupy.orientacnisporty.cz/">OB postupy</a>, two large screenshots from Livelox (with and without the course), or a photo of the paper map. The program explains how in its “Jak na to” page. The map belongs to the organiser: use it for yourself only.</p>
     </section>
 
     <section class="card" id="fit">
       <h2 lang="cs">Záznam z hodinek (.fit)</h2>
       <h2 lang="en">The watch recording (.fit)</h2>
       <ul lang="cs">
-        <li><strong>Garmin Connect</strong> (web): otevři aktivitu, ozubené kolo / tři tečky &rarr; <em>Exportovat originál</em>. Stáhne se .zip, uvnitř je .fit.</li>
+        <li><strong>Garmin Connect</strong> (web): otevři aktivitu, ozubené kolečko &rarr; <em>Exportovat soubor</em> (ne TCX, GPX ani jiný formát). Stáhne se .zip, uvnitř je .fit; nahraješ ho tak, jak je.</li>
         <li><strong>Přímo z hodinek</strong>: připoj je kabelem k počítači, soubory jsou ve složce <code>GARMIN/Activity</code>.</li>
-        <li><strong>Celý export</strong>: na garmin.com si můžeš vyžádat export všech dat (zip). Program z něj sám vybere závody podle data a místa.</li>
+        <li><strong>Celý export</strong>: ve <a href="https://www.garmin.com/account/datamanagement/">správě dat účtu Garmin</a> si vyžádáš export všech dat (Export Your Data). Odkaz na zip přijde e-mailem, za 48 hodin až 30 dní. Program z něj sám vybere závody podle data a místa a spočítá z něj i tvůj model kopců.</li>
       </ul>
       <ul lang="en">
-        <li><strong>Garmin Connect</strong> (web): open the activity, gear / three dots &rarr; <em>Export Original</em>. You get a .zip with the .fit inside.</li>
+        <li><strong>Garmin Connect</strong> (web): open the activity, gear icon &rarr; <em>Export File</em> (not TCX, GPX or another format). You get a .zip with the .fit inside; upload it as it is.</li>
         <li><strong>Straight from the watch</strong>: connect it to the computer with the cable, the files are in <code>GARMIN/Activity</code>.</li>
-        <li><strong>Full export</strong>: on garmin.com you can request an export of all your data (zip). The program picks the races by date and place.</li>
+        <li><strong>Full export</strong>: in the <a href="https://www.garmin.com/account/datamanagement/">Garmin account data management</a> request an export of all your data (Export Your Data). The link to the zip comes by e-mail, in 48 hours up to 30 days. The program picks the races by date and place and also fits your hill model from it.</li>
       </ul>
     </section>
   </div>
@@ -313,8 +316,8 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
 <pre><code>git clone https://github.com/Polik9000/Kudy-jsem-mel-bezet.git
 cd Kudy-jsem-mel-bezet
 docker compose up --build</code></pre>
-    <p lang="cs">Pak otevři <code>http://localhost:8000/ob/</code>. V repozitáři nejsou žádné mapy ani běhy, nahraješ si vlastní.</p>
-    <p lang="en">Then open <code>http://localhost:8000/ob/</code>. The repository has no maps or runs; you upload your own.</p>
+    <p lang="cs">Pak otevři <code>http://localhost:8000/ob/</code>. Běží to jako program pro jednoho člověka, bez účtu a bez přihlašování. V repozitáři nejsou žádné mapy ani běhy, nahraješ si vlastní.</p>
+    <p lang="en">Then open <code>http://localhost:8000/ob/</code>. It runs as a program for one person, with no account and no login. The repository has no maps or runs; you upload your own.</p>
     <p><a class="btn ghost" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet"><span lang="cs">Zdrojový kód na GitHubu</span><span lang="en">Source code on GitHub</span></a></p>
   </section>
 
@@ -342,12 +345,23 @@ docker compose up --build</code></pre>
 </footer>
 
 <script>
+  // the title and the marked language follow the switch (the rest of the page is shown or hidden by CSS)
+  function setLang(en) {
+    document.documentElement.classList.toggle("en", en);
+    document.documentElement.lang = en ? "en" : "cs";
+    document.title = en ? "Which way should I have run?"
+                        : "Kudy jsem měl běžet";
+    document.querySelectorAll(".lang a").forEach(function (a) {
+      if ((a.getAttribute("data-l") === "en") === en) { a.setAttribute("aria-current", "true"); }
+      else { a.removeAttribute("aria-current"); }
+    });
+  }
+  setLang(document.documentElement.classList.contains("en"));
   document.querySelectorAll(".lang a").forEach(function (a) {
     a.addEventListener("click", function (e) {
       e.preventDefault();
       var en = a.getAttribute("data-l") === "en";
-      document.documentElement.classList.toggle("en", en);
-      document.documentElement.lang = en ? "en" : "cs";
+      setLang(en);
       try { localStorage.setItem("lang", en ? "en" : "cs"); } catch (err) {}
     });
   });

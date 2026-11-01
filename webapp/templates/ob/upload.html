@@ -6,25 +6,29 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label class="ob-pole">Soubory .fit nebo .zip (jde vybrat víc najednou)
     <input type="file" name="files" multiple accept=".fit,.zip" required></label>
-  <p class="hint">Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect,
-    Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu.
-    Z celého exportu se navíc spočítá tvůj model kopců; nahraný zip se potom smaže a zůstanou jen běhy
-    spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže).
-    Před párováním se z ORIS načtou tvoje závody. Smazané běhy se vrátí jen opětovným nahráním exportu.
-    Velký export se nahrává i několik minut.</p>
+  <p class="hint">Jednotlivé soubory <b>.fit</b> z hodinek, zip z Garmin Connect, nebo celý <b>export účtu Garmin</b>.
+    Běhy se se závody spárují samy podle data, času startu a místa.</p>
+  <details class="hint">
+    <summary>Co se stane s celým exportem</summary>
+    <p>Z celého exportu se navíc spočítá tvůj model kopců. Nahraný zip se potom smaže. Zůstanou jen běhy spárované se
+      závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže).
+      {% if user.oris_regno %}Před párováním se z ORIS načtou tvoje závody.{% endif %}
+      Smazané běhy se vrátí jen opětovným nahráním exportu. Velký export se nahrává i několik minut.</p>
+  </details>
   <div class="controls">
     <button type="submit" class="btn btn-hlavni">Nahrát</button>
     <span class="hint ob-nahravani-stav" role="status"></span>
   </div>
 </form>
-<h2>Nahrané aktivity ({{ total }})</h2>
+<h2>Nahrané běhy ({{ total }})</h2>
 {% if acts %}
 <div class="tablewrap"><table>
   <thead><tr><th data-sort="text">Start</th><th data-sort="text">Sport</th><th class="num" data-sort="number">Čas</th>
       <th class="num" data-sort="number">km</th><th>GPS</th><th data-sort="text">Závod</th></tr></thead>
   <tbody>
   {% for a in acts %}
-  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ a.sport }}</td>
+  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ {'running': 'běh', 'walking': 'chůze', 'hiking': 'turistika', 'cycling': 'kolo', 'training': 'trénink',
+                  'generic': 'jiná aktivita', 'trail_running': 'běh v terénu'}.get(a.sport, a.sport) }}</td>
       <td class="num" data-value="{{ a.timer_s or 0 }}">{{ a.timer_s | mmss }}</td>
       <td class="num">{{ '%.2f' | format((a.dist_m or 0) / 1000) }}</td>
       <td>{{ 'ano' if a.has_gps else 'ne' }}</td>

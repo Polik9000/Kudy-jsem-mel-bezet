@@ -5,10 +5,12 @@
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label>Jméno <input name="name" value="{{ user.name or '' }}"></label>
-  {% if local_app and not user.oris_regno %}
-  <label>Registrační číslo ORIS (nepovinné, např. BFM0000)
-    <input name="oris_regno" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{4}"></label>
-  <p class="hint">Podle něj se z ORIS načtou tvoje závody a kategorie. Zadat ho jde jen jednou.</p>
+  {% if local_app %}
+  <label>Registrační číslo ORIS (nepovinné, např. ABC1234)
+    <input name="oris_regno" autocomplete="off" value="{{ user.oris_regno or '' }}"
+           pattern="\s*[A-Za-z]{3}\s*[0-9]{4}\s*" title="tři písmena oddílu a čtyři číslice, např. ABC1234"></label>
+  <p class="hint">Podle něj se z ORIS načtou tvoje závody a kategorie. Před uložením se ověří v ORIS a ukáže se
+    jméno, ke kterému patří. Jde ho později změnit; závody načtené podle starého čísla zůstanou.</p>
   {% endif %}
   <button type="submit" class="btn btn-hlavni">Uložit</button>
 </form>
@@ -20,7 +22,7 @@
     <dt>Závody z ORIS načteny</dt><dd>{{ (user.oris_synced_at | kdy) or 'zatím ne' }}</dd>
   </dl>
   <p class="hint">Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.
-    Účet k němu patří napořád, změnit ho nejde.</p>
+    {% if not local_app %}Účet k němu patří napořád, změnit ho nejde.{% endif %}</p>
   {% if user.oris_user_id and club.ENABLED %}
   <p class="controls zavododkazy ob-odkazy">
     <a class="btn btn-zdroj zdroj-start" href="{{ club.member(user.oris_user_id) }}">{{ ikona('start') }}Vizitka na klubovém webu</a>

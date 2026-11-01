@@ -65,9 +65,9 @@
         <div class="headtexty">
           <div class="headcas">
             <button type="button" class="rezim-prepinac" id="rezim" hidden aria-label="Světlý nebo tmavý režim">◐</button>
-            <span class="ted-cas" id="ted-cas"></span>
+            {% if not local_app %}<span class="ted-cas" id="ted-cas"></span>{% endif %}
           </div>
-          <span class="headverze">{% if user %}{{ user.name or ('na tomhle počítači' if local_app else user.username) }}{% else %}nepřihlášen{% endif %}</span>
+          <span class="headverze">{% if user %}{{ user.name or ('' if local_app else user.username) }}{% else %}nepřihlášen{% endif %}</span>
         </div>
       </div>
     </div>
@@ -79,16 +79,16 @@
   <div class="obsah">
     <main>
       {% for category, message in get_flashed_messages(with_categories=true) %}
-      <p class="{{ 'stalewarn' if category == 'error' else 'nota' }}" role="status">{{ message }}</p>
+      <p class="{{ 'stalewarn' if category == 'error' else 'nota' }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
       {% endfor %}
       {% block content %}{% endblock %}
     </main>
     <footer class="site">
       Rozbor postupů počítají skripty z tvé stopy, mapy a oficiálních časů; žádná umělá inteligence.
       Časy a mezičasy: <a href="https://oris.ceskyorientak.cz/">ORIS</a>.
-      Výškopis: Mapzen Terrain Tiles (AWS){% if 'cuzk' in dem_sources %}, DMR 5G © ČÚZK (CC BY 4.0){% endif %}.
+      Výškopis: AWS Terrain Tiles (Mapzen){% if 'cuzk' in dem_sources %}, DMR 5G © ČÚZK (CC BY 4.0){% endif %}.
       Překážky: © přispěvatelé <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL).
-      <p class="patverze">ob-tracker {{ app_version }}</p>
+      <p class="patverze">{{ 'Kudy jsem měl běžet' if local_app else 'ob-tracker' }} {{ app_version }}</p>
     </footer>
   </div>
 </div>

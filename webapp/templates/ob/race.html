@@ -223,8 +223,9 @@
   <label class="check"><input type="checkbox" id="c-prumer" checked> průměrný běžec</label>
   <label class="check"><input type="checkbox" id="c-zachyt"> záchytné body</label>
 </div>
-<p class="hint">Mapa závodu je dílo pořadatele a mapaře a je chráněná autorským právem. V aplikaci slouží jen
-  přihlášeným členům oddílu k rozboru vlastního běhu; nejde stáhnout a nesmí se šířit dál.</p>
+<p class="hint">Mapa závodu je dílo pořadatele a mapaře a je chráněná autorským právem. {% if local_app %}Zůstává jen
+  v tomhle počítači; používej ji jen pro rozbor vlastního běhu a nešiř ji dál.{% else %}V aplikaci slouží jen
+  přihlášeným členům oddílu k rozboru vlastního běhu; nejde stáhnout a nesmí se šířit dál.{% endif %}</p>
 
 <h2>Úseky</h2>
 <div class="tablewrap"><table id="legs"></table></div>
@@ -258,11 +259,15 @@
         z Garminu: <a href="{{ url_for('ob.upload') }}">Nahrát běhy</a>.</p>
     </div>
   </div>
-  <p class="ob-poradi"><b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b>. Když ho Livelox stáhnout nedovolí, <b>2. dva
-    snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>. <a href="{{ url_for('ob.help_page') }}#livelox">Jak na to</a></p>
+  <p class="ob-poradi"><b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b> (nebo z OB postupů), dva soubory: s tratí a bez
+    ní. Když ho Livelox stáhnout nedovolí, <b>2. dva snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>.
+    <a href="{{ url_for('ob.help_page') }}#livelox">Jak na to</a></p>
+  <p class="hint">{% if livelox %}<a href="{{ livelox }}" target="_blank" rel="noopener">Otevřít závod v Livelox</a>:
+    {% else %}V Livelox: {% endif %}vyber závod a kategorii, v zobrazení mapy vpravo nahoře tři čárky → Stáhnout mapu.
+    Dvakrát: Mapa s tratí (KMZ) a Pouze mapa (KMZ).</p>
   <div class="ob-radek">
     <div class="karta">
-      <h3>1. Mapa s tratí (KMZ) <span class="badge badge-tichy">kategorie {{ e.class_name }}</span></h3>
+      <h3>1a. Mapa s tratí (KMZ) <span class="badge badge-tichy">kategorie {{ e.class_name }}</span></h3>
       <p>{% if e.course_file %}<span class="stav ob-ok">nahraná</span>{% else %}<span class="stav">chybí</span>{% endif %}
         {% if course_acc %}<span class="badge">{{ {'image': 'z obrázku', 'photo': 'z fotky', 'manual': 'z fotky usazené ručně', 'screen': 'ze snímku Livelox'}[course_src] }},
           přesnost asi ±{{ course_acc }} m</span>{% endif %}
@@ -280,12 +285,12 @@
         kontrol</a>. Když zlobí GPS jen na pár úsecích, oprav si stopu u úseku.</p>{% endif %}
     </div>
     <div class="karta">
-      <h3>1. Mapa bez tratě (KMZ) <span class="badge badge-tichy">sdílená pro celý závod</span></h3>
+      <h3>1b. Mapa bez tratě (KMZ) <span class="badge badge-tichy">sdílená pro celý závod</span></h3>
       <p>{% if e.maponly_file %}<span class="stav ob-ok">nahraná</span>{% else %}<span class="stav">chybí</span>{% endif %}
         {% if maponly_acc %}<span class="badge">ze snímku Livelox, přesnost asi ±{{ maponly_acc }} m,
           {{ ('%.1f' | format(e.maponly_res_m)).replace('.', ',') }} m na pixel</span>
           {% if e.maponly_who %}<span class="hint">nahrál {{ e.maponly_who }}</span>{% endif %}{% endif %}
-        Z ní se čte terén pro nejlepší postupy. Stačí, když ji nahraje jeden člověk z oddílu.</p>
+        Z ní se čte terén pro nejlepší postupy.{% if not local_app %} Stačí, když ji nahraje jeden člověk z oddílu.{% endif %}</p>
       <label class="ob-pole">KMZ z Livelox: Pouze mapa <input type="file" name="maponly" accept=".kmz"></label>
       {% if maponly_acc %}<p class="hint">KMZ bez tratě nahradí mapu ze snímku a nejlepší postupy se přepočítají.</p>{% endif %}
     </div>
@@ -306,7 +311,7 @@
     <div class="karta">
       <h3>3. Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span></h3>
       <p>Z fotky se čtou jen kontroly; nejlepší postupy z ní nebudou (terén se z ní spolehlivě přečíst nedá).</p>
-      <label class="ob-pole">Fotka nebo obrázek mapy s tratí (jpg, png)
+      <label class="ob-pole">Fotka nebo obrázek mapy s tratí (jpg, png, heic)
         <input type="file" name="course_photo" accept=".jpg,.jpeg,.png,.heic,.heif"></label>
       <p class="hint">Celou mapu shora, za světla a bez blesku, mapu polož rovně a nic ať nezakrývá kontroly. Fotka se na
         místo usadí sama podle kontrol a tvé stopy v oficiálních časech ražení (potřebuje běh z hodinek a mezičasy
@@ -315,12 +320,9 @@
   </div>
   <div class="controls">
     <button type="submit" class="btn btn-hlavni">Nahrát vybrané soubory</button>
-    <span class="hint ob-nahravani-stav" role="status">Soubory jde do polí i přetáhnout myší. Analýza se po nahrání spustí sama.</span>
+    <span class="hint ob-nahravani-stav" role="status"><span class="ob-mys">Soubory jde do polí i přetáhnout myší. </span>Analýza se po nahrání spustí sama.</span>
   </div>
 </form>
-<p class="hint">{% if livelox %}<a href="{{ livelox }}" target="_blank" rel="noopener">Otevřít závod v Livelox</a>:
-  {% else %}V Livelox: {% endif %}vyber závod a kategorii, v zobrazení mapy vpravo nahoře tři čárky → Stáhnout mapu.
-  Dvakrát: Mapa s tratí (KMZ) a Pouze mapa (KMZ). Mapy vidí jen přihlášení členové a nejdou z aplikace stáhnout.</p>
 <div class="ob-radek">
   {% if day %}
   <form method="post" action="{{ url_for('ob.race_activity', entry_id=e.id) }}" class="karta">

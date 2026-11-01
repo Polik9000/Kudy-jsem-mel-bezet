@@ -6,7 +6,16 @@
   var root = document.documentElement;
 
   // light / dark: no value = follow the device
-  var btn = document.getElementById("rezim"), SIGN = { "": "◐", svetly: "☀", tmavy: "☾" };
+  // drawn icons, not the characters ◐ ☀ ☾: some systems have no font with them and show a dot
+  var SVG = function (body) {
+    return "<svg viewBox='0 0 16 16' width='14' height='14' aria-hidden='true' fill='none' stroke='currentColor' " +
+      "stroke-width='1.6' stroke-linecap='round'>" + body + "</svg>";
+  };
+  var btn = document.getElementById("rezim"), SIGN = {
+    "": SVG("<circle cx='8' cy='8' r='6'/><path d='M8 2a6 6 0 0 1 0 12z' fill='currentColor' stroke='none'/>"),
+    svetly: SVG("<circle cx='8' cy='8' r='3'/><path d='M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3'/>"),
+    tmavy: SVG("<path d='M13 10A6 6 0 0 1 6 3a6 6 0 1 0 7 7z' fill='currentColor' stroke='none'/>")
+  };
   var KEY = "ob-rezim", OLD_KEY = "skob-rezim";
   function mode() {
     try {
@@ -17,7 +26,7 @@
   }
   function show(m) {
     if (m) { root.setAttribute("data-theme", m); } else { root.removeAttribute("data-theme"); }
-    btn.textContent = SIGN[m] || SIGN[""];
+    btn.innerHTML = SIGN[m] || SIGN[""];
     btn.title = m === "svetly" ? "Světlý režim" : m === "tmavy" ? "Tmavý režim" : "Režim podle zařízení";
   }
   if (btn) {
@@ -177,6 +186,11 @@
     return isNaN(v) ? Infinity : v;
   }
   Array.prototype.forEach.call(document.querySelectorAll("th[data-sort]"), function (th) {
+    // also from the keyboard: Tab to the heading, Enter or Space sorts
+    th.tabIndex = 0;
+    th.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); th.click(); }
+    });
     th.addEventListener("click", function () {
       var table = th.closest("table"), body = table.tBodies[0], i = Array.prototype.indexOf.call(th.parentNode.children, th);
       var numeric = th.dataset.sort === "number", asc = th.getAttribute("aria-sort") !== "ascending";

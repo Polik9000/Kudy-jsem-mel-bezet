@@ -17,7 +17,7 @@ test on a clean computer: `docs/instalatory.md` (in Czech).
 
 ## Your data stays on your computer
 
-Run the app on your own machine (`docker compose up --build`, then http://localhost:8000/ob/). The maps and `.fit`
+Run the app on your own machine (`docker compose up --build`, then http://localhost:8000/ob/; no account, no login). The maps and `.fit`
 files you upload are kept in a local Docker volume and are never sent to anyone. The app itself only asks public
 services for what it cannot know: race details and split times from ORIS, elevation from ČÚZK or AWS Terrain Tiles,
 railways and roads from OpenStreetMap (Overpass). For elevation and OpenStreetMap it sends the area of the map, not
@@ -62,7 +62,10 @@ says what is being computed. The hardest of the four reference races (Petřvald)
 track is there after half a minute (`docs/validace.md`, part 11).
 
 What a runner does:
-1. **Account** from an ORIS registration number, the code of that number and a password at `/ob/register`. The
+1. **Account.** By default (`OB_LOCAL=1`, also in `docker-compose.yml`) the app is for one runner on their own
+   computer: no account, no login, the ORIS registration number is optional and set in Profile. A club server for
+   many runners runs with `OB_LOCAL=0`: an account from an ORIS registration number, the code of that number and a
+   password at `/ob/register`. The
    code comes from the administrator (`invite` below), so nobody makes an account on somebody else's number. The
    name and the ORIS id come from ORIS, the races load by themselves. One registration number has exactly one
    account and the number of an account cannot be changed. A login lasts 90 days.
