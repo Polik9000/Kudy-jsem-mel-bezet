@@ -42,6 +42,17 @@
     nejdou stáhnout.{% endif %}</p>
 </div>
 
+{% if local_app %}
+<div class="karta" id="soubor">
+  <h3>Poslat závod kamarádovi</h3>
+  <p>Na stránce závodu v Podkladech je <b>Uložit závod do souboru</b>. Vznikne soubor <b>.obzavod</b> s mapami, tratí,
+    oficiálními časy, občerstvením a zakázanými čárami. Kamarád ho v Moje závody otevře přes <b>Načíst závod ze
+    souboru</b> a nahraje k němu svůj běh z hodinek; rozbor se mu spočítá podle něj. Tvůj běh a tvoje poznámky
+    v souboru jsou, jen když je zaškrtneš (třeba při přenosu na jiný počítač).</p>
+  <p class="hint">Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu.</p>
+</div>
+{% endif %}
+
 <div class="karta" id="bez-livelox">
   <h3>Když Livelox stažení nedovolí</h3>
   <p>Pořadatel může stahování map vypnout. Pak zkus náhrady v tomhle pořadí:</p>

@@ -18,6 +18,13 @@ Aplikace ke stažení je stejná Flask aplikace jako v Dockeru, jen spuštěná 
 - **certifikáty**: na macOS zabalený Python nečte systémové certifikáty, proto se nastaví `SSL_CERT_FILE` na
   certifi (jinak by ORIS, ČÚZK i OpenStreetMap hlásily chybu certifikátu).
 
+- **závod do souboru** (místo sdílení přes server): na stránce závodu „Uložit závod do souboru“ dá `.obzavod`
+  (zip: `obzavod.json` s popisem závodu, kategorie, oficiálních časů kategorie, občerstvení a zakázaných čar,
+  `maponly.kmz`, `course.kmz`, případně `course.json` z usazené fotky; běh `run.fit`, vlastní výsledek, nastavení
+  a poznámky k úsekům jen po zaškrtnutí). „Načíst závod ze souboru“ v Moje závody ho přidá; co už v aplikaci je,
+  se nepřepisuje. Formát má číslo verze (`webapp/services/race_file.py`), novější soubor starší aplikace odmítne
+  česky. Jen v lokálním režimu.
+
 Balíček obsahuje jen kód (`desktop/kudy.spec`): `webapp/`, `oroute/` (včetně výchozího modelu rychlosti
 `personal_model.json` a `slope_prior.json`), `analyze.py`, `bestroute.py`, `LICENSE`. **Žádné mapy, běhy, závody
 ani `data/` a `tests/`.**
