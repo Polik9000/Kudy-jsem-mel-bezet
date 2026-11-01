@@ -40,6 +40,13 @@ def upsert_class(con, event_id, c):
     if row:
         con.execute("UPDATE classes SET name=?, distance_km=?, climb_m=?, controls=? WHERE id=?", (*vals, row["id"]))
         return row["id"]
+    # a class of this race made earlier without the ORIS id (a race added by hand, a demo or a shared file):
+    # take it over instead of adding a second one with the same name (UNIQUE event_id + name)
+    row = con.execute("SELECT id FROM classes WHERE event_id = ? AND name = ?", (event_id, c["name"])).fetchone()
+    if row:
+        con.execute("UPDATE classes SET oris_id=?, distance_km=COALESCE(?, distance_km), climb_m=COALESCE(?, climb_m),"
+                    " controls=COALESCE(?, controls) WHERE id=?", (c["oris_id"], *vals[1:], row["id"]))
+        return row["id"]
     return con.execute("INSERT INTO classes (name, distance_km, climb_m, controls, event_id, oris_id)"
                        " VALUES (?,?,?,?,?,?)", (*vals, event_id, c["oris_id"])).lastrowid
 
