@@ -92,7 +92,8 @@
     </footer>
   </div>
 </div>
-<script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }} };</script>
+<script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }},
+  external: {{ (url_for('ob.external_open') if local_app else '') | tojson }}, csrf: {{ csrf_token() | tojson }} };</script>
 <script src="{{ url_for('ob.static', filename='ob.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
