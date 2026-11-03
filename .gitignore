@@ -22,6 +22,3 @@ zalohy/
 # PyInstaller (desktop/kudy.spec)
 build/
 dist/
-
-# written by the installer build from the git tag
-webapp/_version.py
