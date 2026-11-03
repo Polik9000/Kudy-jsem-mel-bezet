@@ -347,3 +347,16 @@ def test_hatched_areas_are_kept_per_class_and_switched_per_event(app, client, us
     assert (row["own_hatch_mode"], row["own_osm_mode"]) == ("off", None)
     assert post(client, url, hatch_mode="penalty").status_code == 400      # an area cannot be "only slow"
     assert post(client, url).status_code == 400                             # nothing to set
+
+
+def test_own_look_sits_between_the_club_and_the_app_styles(client, monkeypatch):
+    """kudy.css (own palette and type) comes after the unchanged club sheet and before ob.css;
+    OB_THEME=skob leaves it out, so the app looks like the club site again."""
+    html = client.get("/login").get_data(as_text=True)
+    assert html.index("/skob.css") < html.index("/kudy.css") < html.index("/ob.css")
+    assert client.get("/ob-static/kudy.css").status_code == 200
+    for name in ("barlow-semi-condensed-600-latin.woff2", "barlow-semi-condensed-700-latin-ext.woff2", "OFL.txt"):
+        assert client.get("/ob-static/fonts/" + name).status_code == 200, name
+    monkeypatch.setattr(club, "THEME", "skob")
+    html = client.get("/login").get_data(as_text=True)
+    assert "kudy.css" not in html and 'content="#0E7A1C"' in html
