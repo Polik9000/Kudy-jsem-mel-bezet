@@ -210,7 +210,7 @@ EN = {
     "načítám výškopis":
         "loading the elevation",
     "Šrafování zakázaných prostorů se z mapy s tratí nepodařilo přečíst; postupy s ním nepočítají.":
-        "The hatching of forbidden areas could not be read from the map with course; the routes are computed without it.",
+        "The hatching of out-of-bounds areas could not be read from the map with course; the routes are computed without it.",
     "připravuji hledání postupů":
         "preparing the route search",
     "hledám nejlepší postupy: %(done)s z %(n_legs)s úseků":
@@ -496,9 +496,9 @@ EN = {
     "Překážky se stáhnou při příští analýze závodu.":
         "The obstacles are downloaded at the next analysis of the race.",
     "Zakázané prostory z mapy":
-        "Forbidden areas from the map",
+        "Out-of-bounds areas from the map",
     "Fialové šrafování (zakázaný prostor) se čte z mapy s tratí. Postup do něj nevede a v mapě je vybarvený. Prostory se čtou z mapy každé kategorie zvlášť.":
-        "Purple hatching (a forbidden area) is read from the map with course. Routes do not enter it and it is coloured on the map. The areas are read from the map of each class separately.",
+        "Purple hatching (a out-of-bounds area) is read from the map with course. Routes do not enter it and it is coloured on the map. The areas are read from the map of each class separately.",
     "postup se šrafovanému prostoru vyhne":
         "routes avoid the hatched area",
     "šrafování se v mém rozboru ignoruje (třeba když se přečetlo špatně)":
@@ -506,7 +506,7 @@ EN = {
     "Přečteno %(read)s z tvé mapy s tratí:":
         "Read %(read)s from your map with course:",
     "zakázaných prostorů %(n)s.":
-        "forbidden areas: %(n)s.",
+        "out-of-bounds areas: %(n)s.",
     "žádné šrafování na ní není.":
         "there is no hatching on it.",
     "Čte se křížové šrafování a šrafy ze svislých rovnoběžných čar; zakázanou hranici (jednu čáru) nakresli ručně.":
@@ -528,7 +528,7 @@ EN = {
     "Ruční zakázané čáry":
         "Forbidden lines drawn by hand",
     "Plot, zakázaný prostor nebo trať, kterou OpenStreetMap nezná: nakresli čáru do mapy. Postup ji nesmí překročit. Čára je sdílená pro všechny běžce závodu a přepočítá postupy všem; smazat ji může jen ten, kdo ji nakreslil.":
-        "A fence, a forbidden area or a line that OpenStreetMap does not know: draw a line on the map. Routes must not cross it. The line is shared by all runners of the race and recomputes the routes for all of them; only the one who drew it can delete it.",
+        "A fence, a out-of-bounds area or a line that OpenStreetMap does not know: draw a line on the map. Routes must not cross it. The line is shared by all runners of the race and recomputes the routes for all of them; only the one who drew it can delete it.",
     "Nakreslit zakázanou čáru":
         "Draw a forbidden line",
     "Nakreslit těžko překonatelnou čáru":
@@ -556,13 +556,13 @@ EN = {
     "„Zakázaná“ znamená zákaz (nekonečná cena, ISOM 708 a 709). „Těžko překonatelná“ není zákaz, jen velká ztráta času (nepřekonatelný sráz, hustý plot): postup ji překročí, jen když se to hodně vyplatí.":
         "“Forbidden” means a ban (infinite cost, ISOM 708 and 709). “Hardly passable” is not a ban, just a big loss of time (an impassable cliff, a thick fence): a route crosses it only when it pays off a lot.",
     "Občerstvovačka":
-        "Refreshment point",
+        "Refreshment control",
     "Zastávky do 30 m od značky se berou jako schválné automaticky, všem běžcům závodu. Smazat ji může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).":
         "Stops within 30 m of the mark count as deliberate automatically, for all runners of the race. Only the one who added it can delete it (by clicking the “O” mark on the map).",
     "Přidat občerstvovačku":
-        "Add a refreshment point",
+        "Add a refreshment control",
     "občerstvovačka %(n)s: přidal %(who)s":
-        "refreshment point %(n)s: added by %(who)s",
+        "refreshment control %(n)s: added by %(who)s",
     "Mezičasy kategorie":
         "Class splits",
     "Oficiální mezičasy %(n)s běžců kategorie %(cls)s z ORIS (%(ok)s klasifikovaných). Počítá se jen z časů, bez mapy a bez stopy z hodinek.":
@@ -690,7 +690,7 @@ EN = {
     "Skály, srázy a detaily na mapě z Livelox nepřečte.":
         "It cannot read cliffs, steep slopes and details on a map from Livelox.",
     "Sprintové mapy a zakázané prostory jsou jen částečně ověřené.":
-        "Sprint maps and forbidden areas are only partly verified.",
+        "Sprint maps and out-of-bounds areas are only partly verified.",
     "Neví, co se běžci honilo hlavou při chybách.":
         "It does not know what was going through the runner's head when making mistakes.",
     "Lokální zpracování · data zůstávají u tebe":
@@ -864,7 +864,7 @@ EN = {
     "Schválná zastávka":
         "Deliberate stop",
     "Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to appka pozná sama.":
-        "A stop does not count as a mistake (a drink, a shoelace, helping someone). At a refreshment point the app recognises it itself.",
+        "A stop does not count as a mistake (a drink, a shoelace, helping someone). At a refreshment control the app recognises it itself.",
     "Ztráta kontaktu s mapou":
         "Lost contact with the map",
     "Celá ztráta úseku je chyba, ne volba postupu. Z úseku se model neučí.":
@@ -940,7 +940,7 @@ EN = {
     "Nepovinný, napíšeš ho ručně (třeba „kupka, severní úpatí“). Ukáže se v radě, nic se z něj nepočítá.":
         "Optional, you write it by hand (e.g. “knoll, north foot”). It appears in the advice, nothing is computed from it.",
     "Rada je odhad z kresby mapy, bez vrstevnic a skal. Do oplocených a zakázaných míst nevede.":
-        "The advice is an estimate from the drawing of the map, without contours and cliffs. It does not lead into fenced and forbidden places.",
+        "The advice is an estimate from the drawing of the map, without contours and cliffs. It does not lead into fenced and out-of-bounds places.",
     "Úlohy na pozadí":
         "Background jobs",
     "Načítání z ORIS, zpracování nahraných souborů, analýzy a přepočty modelu běží na pozadí. Stránka se sama obnoví, až doběhnou.":
@@ -1184,7 +1184,7 @@ EN = {
     "Zrušení smaže účet a všechno, co patří jen tobě: závody v aplikaci (%(races)s), běhy z hodinek (%(activities)s), rozbory (%(analyses)s), poznámky a plánované postupy (%(notes)s), osobní modely (%(models)s) a závody, které jsi přidal ručně a nikdo jiný je nemá. Nejde to vrátit.":
         "Closing deletes the account and everything that belongs only to you: races in the app (%(races)s), runs from the watch (%(activities)s), analyses (%(analyses)s), notes and planned routes (%(notes)s), personal models (%(models)s) and races you added by hand that nobody else has. It cannot be undone.",
     "Zůstane, co je sdílené pro závod: mapa bez tratě, mapa s tratí kategorie, zakázané čáry a občerstvovačky (jen už u nich nebude tvoje jméno). Účet si můžeš později založit znovu.":
-        "What is shared for a race stays: the map without course, the map with course of the class, forbidden lines and refreshment points (only your name will no longer be on them). You can create the account again later.",
+        "What is shared for a race stays: the map without course, the map with course of the class, forbidden lines and refreshment controls (only your name will no longer be on them). You can create the account again later.",
     "Heslo pro potvrzení":
         "Password to confirm",
     "Zrušit účet a smazat moje data":
@@ -1194,7 +1194,7 @@ EN = {
     "Aplikace běží jen na tomhle počítači. Mapy, běhy z hodinek, poznámky a modely jsou ve složce <code>%(data_dir)s</code> a nikam se neposílají. Ven jdou jen dotazy na ORIS (závody, mezičasy) a na výškopis a OpenStreetMap (jen výřez mapy, ne tvoje stopa). Zálohu uděláš zkopírováním té složky.":
         "The app runs only on this computer. Maps, runs from the watch, notes and models are in the folder <code>%(data_dir)s</code> and are sent nowhere. Only requests to ORIS (races, splits) and for the elevation and OpenStreetMap (just a cut-out of the map, not your track) go out. You make a backup by copying that folder.",
     "Tvoje stopy z hodinek a poznámky vidíš jen ty. Mapa bez tratě, občerstvovačky a zakázané přechody jsou sdílené pro závod, takže poslouží i ostatním přihlášeným členům, kteří ho běželi. Celý export z Garminu se po zpracování z aplikace maže; zůstanou jen běhy spárované se závody a z ostatních jen odvozený model kopců.":
-        "Only you see your tracks from the watch and your notes. The map without course, refreshment points and forbidden crossings are shared for the race, so they also serve the other logged-in members who ran it. The whole Garmin export is deleted from the app after processing; only the runs matched with races stay, and from the others only the derived hill model.",
+        "Only you see your tracks from the watch and your notes. The map without course, refreshment controls and forbidden crossings are shared for the race, so they also serve the other logged-in members who ran it. The whole Garmin export is deleted from the app after processing; only the runs matched with races stay, and from the others only the derived hill model.",
     "Aplikace ukončena":
         "App closed",
     "Aplikace je ukončená":
@@ -1292,7 +1292,7 @@ EN = {
     "Zakázané přechody: %(forbidden)s zakázaných a %(hard)s těžko překonatelných čar, %(crossings)s průchodů":
         "Forbidden crossings: %(forbidden)s forbidden and %(hard)s hardly passable lines, %(crossings)s crossings",
     "%(areas)s zakázaných prostorů ze šrafování mapy":
-        "%(areas)s forbidden areas from the hatching of the map",
+        "%(areas)s out-of-bounds areas from the hatching of the map",
     "Postupy jsou spočítané se starším modelem rychlosti. Přepočítat všechno je přepočítá u všech závodů s jedním modelem.":
         "The routes are computed with an older speed model. Recompute everything recomputes them for all races with one model.",
     "Jen tenhle závod":
@@ -1686,7 +1686,7 @@ EN = {
     "(nepovinné, ručně, třeba „kupka, severní úpatí“)":
         "(optional, by hand, e.g. “knoll, north foot”)",
     "Rozbor po závodě: co bylo kolem kontroly a jak ses z místa, kde ses ztratil, měl vrátit. Rada je odhad z kresby mapy (cesty, vodoteče, ploty, okraje ploch, budovy), bez vrstevnic a skal. „Nedalo se minout“ znamená, že na tu věc bys narazil odkudkoli z kruhu nejistoty, kdybys šel daným směrem. Do oplocených a zakázaných míst rada nevede.":
-        "An analysis after the race: what was around the control and how you should have got back from the place where you got lost. The advice is an estimate from the drawing of the map (paths, streams, fences, edges of areas, buildings), without contours and cliffs. “Could not be missed” means that you would hit that feature from anywhere in the circle of uncertainty if you went in the given direction. The advice does not lead into fenced and forbidden places.",
+        "An analysis after the race: what was around the control and how you should have got back from the place where you got lost. The advice is an estimate from the drawing of the map (paths, streams, fences, edges of areas, buildings), without contours and cliffs. “Could not be missed” means that you would hit that feature from anywhere in the circle of uncertainty if you went in the given direction. The advice does not lead into fenced and out-of-bounds places.",
 }
 
 EN.update({
@@ -1737,7 +1737,7 @@ EN_JS = {
     "Těžko překonatelná čára: klikáním do mapy přidávej její body. Dvojklik nebo Hotovo uloží.":
         "Hardly passable line: add its points by clicking on the map. A double click or Done saves.",
     "Občerstvovačka: klikni do mapy na místo, kde stála.":
-        "Refreshment point: click on the map where it stood.",
+        "Refreshment control: click on the map where it stood.",
     "Oprava stopy: klikáním do mapy přidávej body, kudy jsi na úseku opravdu běžel (začátek a konec jsou kontroly). Dvojklik nebo Hotovo uloží.":
         "Correcting the track: add points by clicking on the map where you really ran on the leg (the start and the end are controls). A double click or Done saves.",
     "Načítám stopu a postupy…":
@@ -1769,7 +1769,7 @@ EN_JS = {
     "stání %(s)s s":
         "standing %(s)s s",
     "Občerstvovačka: zastávky do 30 m od ní jsou schválné.":
-        "Refreshment point: stops within 30 m of it are deliberate.",
+        "Refreshment control: stops within 30 m of it are deliberate.",
     "možnost %(n)s":
         "option %(n)s",
     "postup průměrného běžce: tobě by trval %(t)s":
@@ -1927,7 +1927,7 @@ EN_JS = {
     "Do 150 m od kontroly není na mapě nic, čeho by se dalo spolehlivě chytit (žádná cesta, voda, budova ani paseka).":
         "Within 150 m of the control there is nothing on the map you could reliably catch onto (no path, water, building or clearing).",
     "Azimuty jsou k severu mapy (magnetické poledníky), tedy rovnou pro buzolu. Body jsou čtené z kresby mapy bez tratě a pojmenované podle mapového klíče ISOM 2017-2: cesty a jejich konce a křížení, voda, budovy, oplocenky a samostatně stojící bodové značky (kupka, jáma, výrazný strom, posed a další). Plot, který nic neuzavírá, čte aplikace jako cestu. „Vrchol“ je z výškového modelu, ne z kresby. Na mapě je zapíná volba „záchytné body“.":
-        "Bearings are to the north of the map (magnetic meridians), so ready for the compass. The points are read from the drawing of the map without course and named by the ISOM 2017-2 map key: paths and their ends and junctions, water, buildings, fenced areas and separately standing point symbols (knoll, pit, distinct tree, high seat and others). A fence that does not enclose anything is read by the app as a path. “Hilltop” is from the elevation model, not from the drawing. It is switched on on the map by the option “catching features”.",
+        "Bearings are to the north of the map (magnetic meridians), so ready for the compass. The points are read from the drawing of the map without course and named by the ISOM 2017-2 map key: paths and their ends and junctions, water, buildings, fenced areas and separately standing point symbols (knoll, pit, prominent tree, hunting tower and others). A fence that does not enclose anything is read by the app as a path. “Hilltop” is from the elevation model, not from the drawing. It is switched on on the map by the option “catching features”.",
     "Popis kontroly:":
         "Control description:",
     "Ztratil jsem se tady: co dělat":
@@ -1947,7 +1947,7 @@ EN_JS = {
     "do 200 m za kontrolou není cesta, voda ani nic velkého, co by tě zastavilo":
         "within 200 m beyond the control there is no path, water or anything big that would stop you",
     "Zastávka u občerstvovačky (%(s)s s) se bere jako schválná automaticky.":
-        "A stop at a refreshment point (%(s)s s) counts as deliberate automatically.",
+        "A stop at a refreshment control (%(s)s s) counts as deliberate automatically.",
     "Schválná zastávka: %(s)s s se nepočítá jako chyba.":
         "Deliberate stop: %(s)s s do not count as a mistake.",
     "Na úseku není žádná zastávka delší než 6 s, takže se nic neodečítá.":

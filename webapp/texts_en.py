@@ -85,10 +85,10 @@ def mistake(m, read=None, note=None):
 FEATURES = {
     "junction": "path junction", "path_end": "end of a path", "path": "path", "stream_path": "path crossing a stream",
     "stream": "stream", "pond": "body of water", "building": "building", "enclosure": "fenced area", "fence": "fence",
-    "settlement": "edge of the forbidden area (built-up)", "clearing": "clearing", "open_edge": "edge of an open area",
+    "settlement": "edge of the out-of-bounds area (built-up)", "clearing": "clearing", "open_edge": "edge of an open area",
     "hilltop": "hilltop", "knoll": "knoll", "depression": "depression", "pit": "pit",
-    "landform": "distinct landform", "boulder": "boulder", "water_pit": "water pit", "well": "well or tank",
-    "tree": "distinct tree", "stand": "high seat", "object": "distinct man-made object",
+    "landform": "prominent landform", "boulder": "boulder", "water_pit": "waterhole", "well": "well or water reservoir",
+    "tree": "prominent tree", "stand": "hunting tower", "object": "prominent man-made object",
 }
 
 
@@ -174,14 +174,14 @@ def beyond(b):
 # kind -> (name, whether it is a line one crosses)
 LOST_NAMES = {
     "path": ("path", True), "stream": ("stream", True), "fence": ("fence", False),
-    "settlement": ("edge of the forbidden area", False), "open_edge": ("edge of an open area", True),
+    "settlement": ("edge of the out-of-bounds area", False), "open_edge": ("edge of an open area", True),
     "pond": ("body of water", False), "building": ("building", False), "wall": ("wall", False),
     "junction": ("path junction", False), "path_end": ("end of the path", False),
     "stream_path": ("path crossing a stream", False), "clearing": ("clearing", False), "hilltop": ("hilltop", False),
     "knoll": ("knoll", False), "depression": ("depression", False), "pit": ("pit", False),
-    "landform": ("distinct landform", False), "boulder": ("boulder", False), "water_pit": ("water pit", False),
-    "well": ("well or tank", False), "tree": ("distinct tree", False), "stand": ("high seat", False),
-    "object": ("distinct man-made object", False),
+    "landform": ("prominent landform", False), "boulder": ("boulder", False), "water_pit": ("waterhole", False),
+    "well": ("well or water reservoir", False), "tree": ("prominent tree", False), "stand": ("hunting tower", False),
+    "object": ("prominent man-made object", False),
 }
 COMPASS = ("north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west")
 LOST_WHY = {"mistake:overshoot": "overshot the control", "mistake:undershoot": "stopped short of the control",
@@ -277,7 +277,7 @@ def lost_advice(a):
 
 
 def lost_note(a):
-    return "Where you tapped is off limits (fenced area, forbidden area, water); I am taking the nearest place outside." \
+    return "Where you tapped is off limits (fenced area, out-of-bounds area, water); I am taking the nearest place outside." \
         if a and a.get("snapped") else None
 
 
@@ -299,8 +299,8 @@ CROSSED = {
                  "If crossing was allowed, switch “Railways and motorways” to “do not use” in the race settings."),
     "manual": ("crosses a forbidden line drawn by hand",
                "If the line should not be there, whoever drew it can delete it in the race settings."),
-    "area": ("goes through a forbidden area from the map hatching",
-             "If it was allowed there, switch “Forbidden areas from the map” to “do not use” in the race settings."),
+    "area": ("goes through a out-of-bounds area from the map hatching",
+             "If it was allowed there, switch “Out-of-bounds areas from the map” to “do not use” in the race settings."),
     "enclosure": ("goes across a fenced area",
                   "The app treats a fenced area as impassable; if there is no fence or it has a gate, take the "
                   "difference with a pinch of salt."),
