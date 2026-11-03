@@ -9,11 +9,11 @@
 <link rel="apple-touch-icon" href="ikona-180.png">
 <!--
   Statická stránka pro GitHub Pages (Settings -> Pages -> Deploy from a branch -> main, /docs).
-  Žádné externí skripty, fonty, cookies ani měření návštěvnosti.
+  Žádné externí skripty, fonty, cookies ani měření návštěvnosti. Jediný síťový dotaz: veřejné GitHub API
+  s vydáními (jen čtení, bez cookies), aby stránka ukazovala aktuální verzi.
 
-  STAHOVANI: tlačítka vedou na soubory vydání v0.1.0. To je zatím pre-release, a na pre-release
-  odkaz https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/... nefunguje (404). Po vydání bez příznaku pre-release
-  stačí v obou href nahradit "download/v0.1.0" za "latest/download"; pak už se nové verze měnit nemusí.
+  STAHOVANI: tlačítka vedou na releases/latest/download (záloha, funguje jen pro vydání bez příznaku pre-release);
+  skript dole je přepíše podle nejnovějšího vydání z GitHub API. Když dotaz selže, zůstane záloha.
 -->
 <style>
 :root {
@@ -199,14 +199,14 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
 
       <div class="dl">
         <!-- STAHOVANI Windows -->
-        <a class="btn" id="dl-win" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/download/v0.1.0/KudyJsemMelBezet-windows-setup.exe">
+        <a class="btn" id="dl-win" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/KudyJsemMelBezet-windows-setup.exe">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.5 4.4v7.1H3zm8.5-1.2L21 3v8.5h-9.5zM3 12.5h7.5v7.1L3 18.5zm8.5 0H21V21l-9.5-1.3z"/></svg>
           <span><span lang="cs">Stáhnout pro Windows</span><span lang="en">Download for Windows</span>
             <small lang="cs">Windows 10 a 11</small><small lang="en">Windows 10 and 11</small></span>
           <span class="sipka" aria-hidden="true">↓</span>
         </a>
         <!-- STAHOVANI macOS -->
-        <a class="btn" id="dl-mac" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/download/v0.1.0/KudyJsemMelBezet-macos.dmg">
+        <a class="btn" id="dl-mac" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/KudyJsemMelBezet-macos.dmg">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.7 1.3-2.8 0 0-2.4-1-2.4-4zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>
           <span><span lang="cs">Stáhnout pro Mac</span><span lang="en">Download for Mac</span>
             <small lang="cs">Mac s čipem M1 a novějším (ne Intel)</small><small lang="en">Mac with an M1 chip or later (not Intel)</small></span>
@@ -218,8 +218,8 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
         <p lang="en"><strong>The program is for a computer, not a phone.</strong> Send yourself the link and open it on your computer.</p>
         <button type="button" class="btn ghost" id="share-link"><span lang="cs">Poslat si odkaz na počítač</span><span lang="en">Send link to computer</span></button>
       </div>
-      <p class="muted" lang="cs">Verze 0.1.0, první zkušební. Může mít chyby, napiš mi o nich (<a href="#licence">kontakt</a>). Linux zatím instalátor nemá, viz <a href="#zdroj">spuštění přes Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Všechna vydání</a></p>
-      <p class="muted" lang="en">Version 0.1.0, the first trial release. It may have bugs, please tell me about them (<a href="#licence">contact</a>). No installer for Linux yet, see <a href="#zdroj">running with Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">All releases</a></p>
+      <p class="muted" lang="cs">Verze <span class="ver">0.2.0</span>. Může mít chyby, napiš mi o nich (<a href="#licence">kontakt</a>). Linux zatím instalátor nemá, viz <a href="#zdroj">spuštění přes Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Všechna vydání</a></p>
+      <p class="muted" lang="en">Version <span class="ver">0.2.0</span>. It may have bugs, please tell me about them (<a href="#licence">contact</a>). No installer for Linux yet, see <a href="#zdroj">running with Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">All releases</a></p>
     </div>
 
     <figure>
@@ -460,6 +460,23 @@ docker compose up --build</code></pre>
 </footer>
 
 <script>
+  /* Aktuální verze z GitHub Releases. Když načtení selže, zůstane statický text a odkazy "latest/download". */
+  (function () {
+    var API = "https://api.github.com/repos/Polik9000/Kudy-jsem-mel-bezet/releases?per_page=10";
+    fetch(API, { headers: { "Accept": "application/vnd.github+json" } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (list) {
+        var rel = list.filter(function (x) { return !x.draft && !x.prerelease; })[0] || list.filter(function (x) { return !x.draft; })[0];
+        if (!rel) return;
+        document.querySelectorAll(".ver").forEach(function (el) { el.textContent = rel.tag_name.replace(/^v/, ""); });
+        (rel.assets || []).forEach(function (a) {
+          var id = /setup\.exe$/i.test(a.name) ? "dl-win" : /\.dmg$/i.test(a.name) ? "dl-mac" : null;
+          var el = id && document.getElementById(id);
+          if (el) el.href = a.browser_download_url;
+        });
+      })
+      .catch(function () {});
+  })();
   document.querySelectorAll(".lang a").forEach(function (a) {
     a.addEventListener("click", function (e) {
       e.preventDefault();
