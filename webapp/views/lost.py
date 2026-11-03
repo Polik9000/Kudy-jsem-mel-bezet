@@ -18,6 +18,7 @@ from oroute import lost
 from .. import cfg, get_db, texts
 from ..auth import login_required
 from ..db import loads
+from ..i18n import _
 from ..services import jobs, runner
 from . import bp
 from .legs import DESC_MAX, save_control_desc
@@ -151,15 +152,16 @@ def lost_advice(entry_id):
 
 
 def _names(a):
-    """The Czech name of every helper, for the list under the advice."""
+    """The name of every helper, for the list under the advice."""
     out = []
     for h in a["helpers"]:
-        name = texts.LOST_NAMES.get(h["kind"], (h["kind"],))[0]
+        name = texts.lost_name(h["kind"])
         out.append(dict(name=name, sure=h["sure"],
-                        text=f"{name}: od tebe {texts.about(h['dist'])} m na azimut {texts.bearing(h['az'])}, "
-                             f"od kontroly {texts.about(h['cdist'])} m na azimut {texts.bearing(h['caz'])}"
-                             + (" (nešlo minout)" if h["sure"]
-                                else f" (trefil bys ji z {round(100 * h['share'])} % kruhu)")))
+                        text=_("%(name)s: od tebe %(dist)s m na azimut %(az)s, od kontroly %(cdist)s m na azimut %(caz)s",
+                               name=name, dist=texts.about(h["dist"]), az=texts.bearing(h["az"]),
+                               cdist=texts.about(h["cdist"]), caz=texts.bearing(h["caz"]))
+                        + (_(" (nešlo minout)") if h["sure"]
+                           else _(" (trefil bys ji z %(share)s %% kruhu)", share=round(100 * h["share"])))))
     return out
 
 

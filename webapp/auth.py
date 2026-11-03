@@ -13,6 +13,7 @@ from flask import Blueprint, abort, flash, g, redirect, render_template, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import cfg, get_db, oris
+from .i18n import _
 from .services import accounts, jobs
 
 bp = Blueprint("auth", __name__, template_folder="templates")
@@ -92,26 +93,26 @@ def register():
         password = request.form.get("password", "")
         db = get_db()
         if not re.fullmatch(accounts.REGNO, regno):
-            flash("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000.", "error")
+            flash(_("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000."), "error")
         elif len(password) < 8:
-            flash("Heslo musí mít aspoň 8 znaků.", "error")
+            flash(_("Heslo musí mít aspoň 8 znaků."), "error")
         elif password != request.form.get("password2", ""):
-            flash("Hesla se neshodují.", "error")
+            flash(_("Hesla se neshodují."), "error")
         elif not accounts.code_ok(cfg(), regno, request.form.get("code")):
             # before the check below: without the code nobody learns which numbers have an account
-            flash("Kód k tomuhle registračnímu číslu nesedí. Kód ti dá správce aplikace.", "error")
+            flash(_("Kód k tomuhle registračnímu číslu nesedí. Kód ti dá správce aplikace."), "error")
         elif db.execute("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE OR oris_regno = ?",
                         (regno, regno)).fetchone():
-            flash("Účet s tímhle registračním číslem už existuje. Přihlas se.", "error")
+            flash(_("Účet s tímhle registračním číslem už existuje. Přihlas se."), "error")
         else:
             person, note = None, None
             try:
                 person = oris.client(cfg()).user(regno)
                 if person is None:
-                    flash(f"Registrační číslo {regno} v ORIS není.", "error")
+                    flash(_("Registrační číslo %(regno)s v ORIS není.", regno=regno), "error")
                     return render_template("ob/register.html")
             except oris.OrisError:
-                note = "ORIS teď neodpovídá; jméno a závody se doplní, až se ozve."
+                note = _("ORIS teď neodpovídá; jméno a závody se doplní, až se ozve.")
             cur = db.execute("INSERT INTO users (username, password_hash, oris_regno, oris_user_id, name)"
                              " VALUES (?,?,?,?,?)",
                              (regno, generate_password_hash(password), regno,
@@ -119,7 +120,8 @@ def register():
             db.commit()
             _log_in(cur.lastrowid)
             jobs.enqueue(db, "sync_oris", user_id=cur.lastrowid)
-            flash(note or f"Vítej, {person['name']}. Účet je založený a tvoje závody se načítají z ORIS.", "ok")
+            flash(note or _("Vítej, %(name)s. Účet je založený a tvoje závody se načítají z ORIS.",
+                name=person['name']), "ok")
             return redirect(url_for("ob.races"))
     return render_template("ob/register.html")
 
@@ -140,7 +142,7 @@ def login():
             nxt = _safe_next()
             _log_in(row["id"])
             return redirect(nxt)
-        flash("Špatné jméno nebo heslo.", "error")
+        flash(_("Špatné jméno nebo heslo."), "error")
     return render_template("ob/login.html", registration_open=registration_open())
 
 
@@ -150,16 +152,16 @@ def password():
     """Change of the password from the profile page (the current one has to be given)."""
     new = request.form.get("password", "")
     if not check_password_hash(g.user["password_hash"], request.form.get("current", "")):
-        flash("Současné heslo nesedí.", "error")
+        flash(_("Současné heslo nesedí."), "error")
     elif len(new) < 8:
-        flash("Nové heslo musí mít aspoň 8 znaků.", "error")
+        flash(_("Nové heslo musí mít aspoň 8 znaků."), "error")
     elif new != request.form.get("password2", ""):
-        flash("Nová hesla se neshodují.", "error")
+        flash(_("Nová hesla se neshodují."), "error")
     else:
         db = get_db()
         db.execute("UPDATE users SET password_hash = ? WHERE id = ?", (generate_password_hash(new), g.user["id"]))
         db.commit()
-        flash("Heslo je změněné.", "ok")
+        flash(_("Heslo je změněné."), "ok")
     return redirect(url_for("ob.profile"))
 
 
@@ -171,15 +173,15 @@ def forgot():
         new = request.form.get("password", "")
         db = get_db()
         if len(new) < 8:
-            flash("Nové heslo musí mít aspoň 8 znaků.", "error")
+            flash(_("Nové heslo musí mít aspoň 8 znaků."), "error")
         elif new != request.form.get("password2", ""):
-            flash("Nová hesla se neshodují.", "error")
+            flash(_("Nová hesla se neshodují."), "error")
         elif not accounts.use_reset_code(db, request.form.get("oris_regno"), request.form.get("code"),
                                          generate_password_hash(new)):
             # one answer for a wrong code, an old one and a number without an account
-            flash("Kód k tomuhle registračnímu číslu nesedí nebo už neplatí. Nový ti dá správce aplikace.", "error")
+            flash(_("Kód k tomuhle registračnímu číslu nesedí nebo už neplatí. Nový ti dá správce aplikace."), "error")
         else:
-            flash("Heslo je změněné. Přihlas se novým heslem.", "ok")
+            flash(_("Heslo je změněné. Přihlas se novým heslem."), "ok")
             return redirect(url_for("auth.login"))
     return render_template("ob/forgot.html")
 
@@ -190,11 +192,11 @@ def account_delete():
     """The runner closes their own account from the profile page (the password confirms it): the same as the
     command delete-account. What is shared by a race stays (services/accounts.py)."""
     if not check_password_hash(g.user["password_hash"], request.form.get("password", "")):
-        flash("Heslo nesedí, účet zůstává.", "error")
+        flash(_("Heslo nesedí, účet zůstává."), "error")
         return redirect(url_for("ob.profile"))
     accounts.delete_user(get_db(), cfg(), g.user["id"])
     session.clear()
-    flash("Účet je zrušený a tvoje data jsou smazaná.", "ok")
+    flash(_("Účet je zrušený a tvoje data jsou smazaná."), "ok")
     return redirect(url_for("auth.login"))
 
 

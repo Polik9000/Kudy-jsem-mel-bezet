@@ -5,6 +5,7 @@
    Big buttons, no hover, one tap = one thing. */
 (function () {
   "use strict";
+  var t = window.obT;
   var Z = window.OBZ, map = null, layers = {}, overlays = {};
   var k = null, pos = null, r = Z.r0 || 50, around = false, mode = Z.back ? "po" : "misto", asked = 0;
   var $ = function (id) { return document.getElementById(id); };
@@ -37,7 +38,7 @@
   function init() {
     map = L.map("z-mapa", { zoomSnap: 0.25, minZoom: 11, maxZoom: 21, doubleClickZoom: false, attributionControl: true });
     map.attributionControl.setPrefix(false);
-    map.attributionControl.addAttribution("mapa © pořadatel závodu");
+    map.attributionControl.addAttribution(t("mapa © pořadatel závodu"));
     map.createPane("mapimg").style.zIndex = 200;
     ["maponly", "course"].forEach(function (kind) {
       var m = Z.maps[kind];
@@ -89,7 +90,7 @@
     $("z-popis").value = c.desc || "";
     $("z-popis-stav").textContent = "";
     clearAdvice();
-    $("z-pokyn").textContent = "Kontrola " + n + ": ťukni do mapy, kde jsi asi byl, když ses ztratil.";
+    $("z-pokyn").textContent = t("Kontrola %(n)s: ťukni do mapy, kde jsi asi byl, když ses ztratil.", { n: n });
     if (mode === "po") { loadBack(); }
   }
   function clearAdvice() {
@@ -101,18 +102,18 @@
 
   // ---- the advice
   function ask() {
-    if (k === null) { say("Nejdřív vyber kontrolu nahoře."); return; }
+    if (k === null) { say(t("Nejdřív vyber kontrolu nahoře.")); return; }
     var body = { k: k, r: r };
     if (pos && !around) { body.lat = pos[0]; body.lon = pos[1]; }
     var mine = ++asked;
-    say("Počítám…");
+    say(t("Počítám…"));
     api(Z.advice, "POST", body).then(function (a) {
       if (mine !== asked) { return; }
       say("");
       show(a, a.sentences, a.note, a.names);
     }, function (err) {
       if (mine !== asked) { return; }
-      say(err.message === "409" ? "Mapa závodu se mezitím změnila; obnov stránku." : "Radu se nepodařilo spočítat, zkus to znovu.");
+      say(err.message === "409" ? t("Mapa závodu se mezitím změnila; obnov stránku.") : t("Radu se nepodařilo spočítat, zkus to znovu."));
     });
   }
   function show(a, sentences, note, names) {
@@ -148,7 +149,7 @@
   // ---- after the race
   function loadBack() {
     clearAdvice();
-    $("z-mista").innerHTML = "<p class='hint'>Načítám…</p>";
+    $("z-mista").innerHTML = "<p class='hint'>" + t("Načítám…") + "</p>";
     fetch(Z.back + "?k=" + k).then(function (res) {
       if (!res.ok) { throw new Error(String(res.status)); }
       return res.json();
@@ -157,7 +158,7 @@
         L.polyline(d.track, { className: "ob-ztr-stopa", interactive: false }).addTo(layers.track);
       }
       if (!d.moments.length) {
-        $("z-mista").innerHTML = "<p>U téhle kontroly stopa nic takového neukazuje.</p>";
+        $("z-mista").innerHTML = "<p>" + t("U téhle kontroly stopa nic takového neukazuje.") + "</p>";
         return;
       }
       $("z-mista").innerHTML = "";
@@ -173,14 +174,14 @@
       });
       moment(d.moments[0], $("z-mista").firstChild);
     }, function () {
-      $("z-mista").innerHTML = "<p>Místa se nepodařilo načíst.</p>";
+      $("z-mista").innerHTML = "<p>" + t("Místa se nepodařilo načíst.") + "</p>";
     });
   }
   function moment(m, button) {
     Array.prototype.forEach.call(document.querySelectorAll(".ob-ztr-misto"), function (b) {
       b.setAttribute("aria-pressed", String(b === button));
     });
-    show(m.advice, [m.head, m.seen].concat(m.back.length ? ["Kudy zpět: " + m.back[0]].concat(m.back.slice(1)) : []),
+    show(m.advice, [m.head, m.seen].concat(m.back.length ? [t("Kudy zpět: %(way)s", { way: m.back[0] })].concat(m.back.slice(1)) : []),
       null, []);
   }
   function setMode(m) {
@@ -214,13 +215,13 @@
   }
   $("z-popis-ulozit").addEventListener("click", function () {
     if (k === null) { return; }
-    $("z-popis-stav").textContent = "Ukládám…";
+    $("z-popis-stav").textContent = t("Ukládám…");
     api(Z.desc, "POST", { k: k, text: $("z-popis").value }).then(function (d) {
       var c = control(d.k);
       if (c) { c.desc = d.desc; }
-      $("z-popis-stav").textContent = d.desc ? "Uloženo." : "Popis smazaný.";
+      $("z-popis-stav").textContent = d.desc ? t("Uloženo.") : t("Popis smazaný.");
       if (pos || around) { ask(); }
-    }, function () { $("z-popis-stav").textContent = "Nepodařilo se uložit."; });
+    }, function () { $("z-popis-stav").textContent = t("Nepodařilo se uložit."); });
   });
 
   init();

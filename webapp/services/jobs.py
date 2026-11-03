@@ -6,7 +6,9 @@ look at the mark: every progress() of the job and every second while a script of
 (services/runner._run kills the script)."""
 import sqlite3
 
+from .. import i18n
 from ..db import dumps, loads
+from ..i18n import _
 
 HANDLERS = {}  # job kind -> function(ctx, job) returning an optional message for the job list
 # the jobs that take minutes: the worker takes every other waiting job before them
@@ -15,7 +17,7 @@ HEAVY_SQL = "(kind IN ('analyse', 'recompute_all'))"
 
 class Refused(Exception):
     """A job that cannot be done because of what the user gave it (a photo that cannot be placed...): the message
-    is a Czech sentence for the job list, and nothing else is kept (no traceback under "Podrobnosti")."""
+    is a sentence for the job list, and nothing else is kept (no traceback under "Podrobnosti")."""
 
 
 class Stopped(Exception):
@@ -38,8 +40,8 @@ def enqueue(con, kind, user_id=None, entry_id=None, payload=None):
         (kind, user_id, entry_id, body)).fetchone()
     if row:
         return row["id"]
-    cur = con.execute("INSERT INTO jobs (kind, user_id, entry_id, payload) VALUES (?, ?, ?, ?)",
-                      (kind, user_id, entry_id, body))
+    cur = con.execute("INSERT INTO jobs (kind, user_id, entry_id, payload, lang) VALUES (?, ?, ?, ?, ?)",
+                      (kind, user_id, entry_id, body, i18n.lang()))
     con.commit()
     return cur.lastrowid
 
@@ -73,8 +75,8 @@ def stop(con, job_id, user_id):
     if row is None:
         return None
     if row["status"] == "queued":
-        con.execute("UPDATE jobs SET status = 'stopped', message = 'Zastaveno, než začala.', finished_at = datetime('now')"
-                    " WHERE id = ? AND status = 'queued'", (job_id,))
+        con.execute("UPDATE jobs SET status = 'stopped', message = ?, finished_at = datetime('now')"
+                    " WHERE id = ? AND status = 'queued'", (_("Zastaveno, než začala."), job_id))
     con.execute("UPDATE jobs SET stop_requested = 1 WHERE id = ?", (job_id,))
     con.commit()
     return "stopped" if row["status"] == "queued" else "stopping"
@@ -88,8 +90,8 @@ def stop_all(con, user_id):
 
 
 def stopped(con, job_id):
-    con.execute("UPDATE jobs SET status = 'stopped', message = 'Zastaveno. Hotové části zůstaly, rozpracované se zahodily.',"
-                " finished_at = datetime('now') WHERE id = ?", (job_id,))
+    con.execute("UPDATE jobs SET status = 'stopped', message = ?, finished_at = datetime('now') WHERE id = ?",
+                (_("Zastaveno. Hotové části zůstaly, rozpracované se zahodily."), job_id))
     con.commit()
 
 
@@ -137,8 +139,9 @@ def requeue_interrupted(con, older_than_min=0):
     older_than_min: leave younger ones alone (another cron run may still be working on them)."""
     since = (f"-{int(older_than_min)} minutes",)
     # ... unless the runner asked to stop them: those are stopped (nothing stays "running")
-    con.execute("UPDATE jobs SET status = 'stopped', message = 'Zastaveno.', finished_at = datetime('now')"
-                " WHERE status = 'running' AND stop_requested = 1 AND started_at <= datetime('now', ?)", since)
+    con.execute("UPDATE jobs SET status = 'stopped', message = ?, finished_at = datetime('now')"
+                " WHERE status = 'running' AND stop_requested = 1 AND started_at <= datetime('now', ?)",
+                (_("Zastaveno."), *since))
     con.execute("UPDATE jobs SET status = 'queued', started_at = NULL WHERE status = 'running' "
                 "AND started_at <= datetime('now', ?)", since)
     con.commit()

@@ -20,6 +20,7 @@ from oroute.kmzmap import GeoMap
 from .. import oris, texts
 from ..config import ROOT
 from ..db import loads
+from ..i18n import _
 from . import barriers, jobs, storage
 
 TIMEOUT = 45 * 60
@@ -73,11 +74,11 @@ def _run(*cmd, on_line=None):
     if halt.is_set():
         raise jobs.Stopped()
     if late.is_set():
-        raise AnalysisError(f"Výpočet ({name}) neskončil do {TIMEOUT // 60} minut.")
+        raise AnalysisError(_("Výpočet (%(name)s) neskončil do %(v)s minut.", name=name, v=TIMEOUT // 60))
     if p.returncode != 0:
         # an input the script could not analyse says so itself (oroute.errors); anything else is a bug
         known = errors.parse(tail)
-        first = texts.analysis_error(*known) if known else f"Výpočet selhal ({name}); podrobnosti jsou níže."
+        first = texts.analysis_error(*known) if known else _("Výpočet selhal (%(name)s); podrobnosti jsou níže.", name=name)
         raise AnalysisError(first + "\n\n" + "\n".join(tail))
 
 
@@ -92,14 +93,14 @@ def _stages(say, n_legs, from_grid=False):
     def on_line(line):
         nonlocal done
         if line.startswith("reading terrain") and not from_grid:
-            say("čtu terén z mapy")
+            say(_("čtu terén z mapy"))
         elif line.startswith("elevation ...") and not from_grid:
-            say("načítám výškopis")
+            say(_("načítám výškopis"))
         elif line.startswith("building grid"):
-            say("připravuji hledání postupů")
+            say(_("připravuji hledání postupů"))
         elif _LEG_DONE.match(line):
             done += 1
-            say(f"hledám nejlepší postupy: {done} z {n_legs} úseků")
+            say(_("hledám nejlepší postupy: %(done)s z %(n_legs)s úseků", done=done, n_legs=n_legs))
     return on_line
 
 
@@ -139,7 +140,8 @@ def fetch_osm(conf, event_id, maponly):
         data = (conf.osm_fetch or osm.for_box)(float(min(la)), float(min(lo)), float(max(la)), float(max(lo)))
     except OSError as e:
         print(f"event {event_id}: {e}", flush=True)             # the code of the error is for the log only
-        return "OpenStreetMap teď neodpovídá (přetížený server). Zakázané přechody se doplní při příštím přepočtu."
+        return _("OpenStreetMap teď neodpovídá (přetížený server). Zakázané přechody se doplní při příštím "
+                   "přepočtu.")
     barriers.save_osm(conf, event_id, data)
     return None
 
@@ -155,7 +157,8 @@ def read_hatching(conf, class_id, course):
             with open(tmp, encoding="utf-8") as f:
                 areas = json.load(f)["areas"]
         except (AnalysisError, OSError, ValueError, KeyError):
-            return [], "Šrafování zakázaných prostorů se z mapy s tratí nepodařilo přečíst; postupy s ním nepočítají."
+            return [], _("Šrafování zakázaných prostorů se z mapy s tratí nepodařilo přečíst; postupy s ním "
+                           "nepočítají.")
         finally:
             if os.path.exists(tmp):
                 os.remove(tmp)
@@ -343,7 +346,7 @@ def analyse_entry(con, conf, entry_id, routes_only=False, progress=None, after_c
     say = progress or (lambda text: None)
     info = entry_info(con, entry_id)
     if info is None or not info["fit_file"] or not info["course_file"]:
-        raise AnalysisError("K závodu chybí aktivita (.fit) nebo mapa s tratí.")
+        raise AnalysisError(_("K závodu chybí aktivita (.fit) nebo mapa s tratí."))
     rel = os.path.join("races", f"entry_{entry_id}")
     # the analysis shown until now stays valid until the new one is whole (a stopped or failed run leaves it)
     with _staged(conf, rel, _has_routes(con, entry_id)) as work:
@@ -360,7 +363,7 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
 
     extra = _official(info, out)
     if not (routes_only and os.path.exists(os.path.join(out, "course.json"))):
-        say("čtu trať z mapy a stopu z hodinek")
+        say(_("čtu trať z mapy a stopu z hodinek"))
         # a photo of the map: the course comes from its placing (the controls matched to the circles), not
         # from the purple of the photo, which is not the Livelox purple analyze.py reads
         given = []
@@ -379,7 +382,7 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
     if before_routes:
         _run(*script, "--samples-only", on_line=_stages(say, n_legs))
         _stamp_samples(conf, info, out)
-        say("přepočítávám osobní model")
+        say(_("přepočítávám osobní model"))
         before_routes(rel)
     if model is None:
         model = current_model(con, info["user_id"])
@@ -393,11 +396,11 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
         _share(os.path.join(best, name), path)
     # what is around every control to catch when contact with the map is lost, and where the track shows it
     # was (oroute/relocate.py). The routes are there already: without this the page only lacks that part.
-    say("hledám záchytné body u kontrol")
+    say(_("hledám záchytné body u kontrol"))
     try:
         run_relocate(conf, info, out)
     except (AnalysisError, OSError):
-        notes.append("Záchytné body u kontrol se nepodařilo spočítat.")
+        notes.append(_("Záchytné body u kontrol se nepodařilo spočítat."))
     return True, model["id"] if model else None, notes
 
 
@@ -445,7 +448,7 @@ def relocate_entry(con, conf, entry_id):
     info = entry_info(con, entry_id)
     a = con.execute("SELECT out_dir FROM analyses WHERE entry_id = ? AND has_routes = 1", (entry_id,)).fetchone()
     if info is None or a is None or not info["maponly_file"]:
-        raise AnalysisError("Závod nemá nejlepší postupy; záchytné body se počítají s nimi.")
+        raise AnalysisError(_("Závod nemá nejlepší postupy; záchytné body se počítají s nimi."))
     run_relocate(conf, info, conf.path(a["out_dir"]))
 
 
@@ -486,7 +489,7 @@ def run_lost(con, conf, entry_id):
     from the two maps alone (a race not run yet: training in the terrain). Raises AnalysisError."""
     info = entry_info(con, entry_id)
     if info is None or not info["maponly_file"] or not info["course_file"]:
-        raise AnalysisError("Nápověda „Ztratil jsem se“ potřebuje mapu bez tratě i mapu s tratí.")
+        raise AnalysisError(_("Nápověda „Ztratil jsem se“ potřebuje mapu bez tratě i mapu s tratí."))
     out = lost_dir(conf, entry_id)
     os.makedirs(out, exist_ok=True)
     args = [conf.path(info["maponly_file"]), out, "--dem", conf.dem,

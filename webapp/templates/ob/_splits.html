@@ -1,56 +1,56 @@
 {# Official split times of the whole class (ORIS getSplits), the WinSplits method. Needs no .fit and no map. #}
 <section class="tabpanel" id="mezicasy">
-<h3 class="tabnadpis">Mezičasy kategorie</h3>
-<p class="evhead">Oficiální mezičasy {{ sp.n_runners }} běžců kategorie {{ e.class_name }} z ORIS
-  ({{ sp.n_ok }} klasifikovaných). Počítá se jen z časů, bez mapy a bez stopy z hodinek.</p>
+<h3 class="tabnadpis">{{ _('Mezičasy kategorie') }}</h3>
+<p class="evhead">{% trans n=sp.n_runners, cls=e.class_name, ok=sp.n_ok %}Oficiální mezičasy {{ n }} běžců kategorie {{ cls }} z ORIS
+  ({{ ok }} klasifikovaných). Počítá se jen z časů, bez mapy a bez stopy z hodinek.{% endtrans %}</p>
 <div class="ob-radek">
   <div class="karta">
-    <h3>Tvůj výkon</h3>
+    <h3>{{ _('Tvůj výkon') }}</h3>
     {% if sp.me %}
     <dl class="detaily">
-      <dt>Čas</dt><dd><b>{{ sp.me.time_s | mmss if sp.me.time_s else 'neklasifikován' }}</b>{% if sp.me.place %} ({{ sp.me.place }}. místo){% endif %}</dd>
-      <dt>Normální výkon</dt><dd><b>{{ '%.0f' | format(sp.me.normal * 100) }} %</b> reference</dd>
-      <dt>Chyby</dt><dd><b>{{ sp.me.n_mistakes }}</b>{% if sp.me.n_mistakes %}, dohromady {{ sp.me.mistakes | mmss }}{% endif %}</dd>
-      <dt>Čas bez chyb</dt><dd>{{ sp.me.clean | mmss }}</dd>
-      {% if sp.winner %}<dt>Vítěz</dt><dd>{{ sp.winner | mmss }}</dd>{% endif %}
-      {% if sp.superman %}<dt>Součet nejlepších úseků</dt><dd>{{ sp.superman | mmss }}</dd>{% endif %}
+      <dt>{{ _('Čas') }}</dt><dd><b>{{ sp.me.time_s | mmss if sp.me.time_s else _('neklasifikován') }}</b>{% if sp.me.place %} ({% trans place=sp.me.place %}{{ place }}. místo{% endtrans %}){% endif %}</dd>
+      <dt>{{ _('Normální výkon') }}</dt><dd>{% trans pct='%.0f' | format(sp.me.normal * 100) %}<b>{{ pct }} %</b> reference{% endtrans %}</dd>
+      <dt>{{ _('Chyby') }}</dt><dd><b>{{ sp.me.n_mistakes }}</b>{% if sp.me.n_mistakes %}, {% trans total=sp.me.mistakes | mmss %}dohromady {{ total }}{% endtrans %}{% endif %}</dd>
+      <dt>{{ _('Čas bez chyb') }}</dt><dd>{{ sp.me.clean | mmss }}</dd>
+      {% if sp.winner %}<dt>{{ _('Vítěz') }}</dt><dd>{{ sp.winner | mmss }}</dd>{% endif %}
+      {% if sp.superman %}<dt>{{ _('Součet nejlepších úseků') }}</dt><dd>{{ sp.superman | mmss }}</dd>{% endif %}
     </dl>
     {% else %}
-    <p class="muted">V mezičasech kategorie tě ORIS pod tvým registračním číslem nemá (jiná kategorie, nebo závod bez čipu).</p>
+    <p class="muted">{% trans %}V mezičasech kategorie tě ORIS pod tvým registračním číslem nemá (jiná kategorie, nebo závod bez čipu).{% endtrans %}</p>
     {% endif %}
   </div>
   <div class="karta">
-    <h3>Jak to číst</h3>
-    <p class="hint"><b>Reference</b> úseku je průměr nejrychlejší čtvrtiny běžců na tom úseku. <b>Normální výkon</b>
-      je tvoje obvyklé tempo proti referenci (medián přes úseky, 100 % = jako reference).</p>
-    <p class="hint"><b>Jak se pozná chyba.</b> U ostatních běžců jen z mezičasů: chyba je úsek, kde byl běžec o víc
+    <h3>{{ _('Jak to číst') }}</h3>
+    <p class="hint">{% trans %}<b>Reference</b> úseku je průměr nejrychlejší čtvrtiny běžců na tom úseku. <b>Normální výkon</b>
+      je tvoje obvyklé tempo proti referenci (medián přes úseky, 100 % = jako reference).{% endtrans %}</p>
+    <p class="hint">{% trans %}<b>Jak se pozná chyba.</b> U ostatních běžců jen z mezičasů: chyba je úsek, kde byl běžec o víc
       než 30 s a zároveň o víc než 25 % pomalejší než jeho vlastní normál (metoda WinSplits). Pomalý běh celý závod
       tedy chybou není, jeden pomalý úsek být může. U tebe má appka i stopu z hodinek, a tak na záložce Mapa a úseky
       pozná i druh chyby (přeběhnutí, nedoběhnutí, úhyb ze směru, hledání v kruhu, zastavení a nové určení polohy).
-      Pozdější startovní čas pomáhá (vyšlapané stopy), takže malé rozdíly neznamenají chybu.</p>
+      Pozdější startovní čas pomáhá (vyšlapané stopy), takže malé rozdíly neznamenají chybu.{% endtrans %}</p>
   </div>
 </div>
 
 {% if sp.chart %}
-<h2>Graf mezičasů</h2>
-<p class="hint">Každá čára je jeden běžec. Zelená jsi ty. Vodorovně je postup tratí, svisle o kolik je běžec před
+<h2>{{ _('Graf mezičasů') }}</h2>
+<p class="hint">{% trans %}Každá čára je jeden běžec. Zelená jsi ty. Vodorovně je postup tratí, svisle o kolik je běžec před
   (nahoře) nebo za (dole) referencí. Klesá-li čára, běžec na úseku ztrácí; stoupá-li, je na úseku rychlejší než
   reference. Reference úseku je průměr nejrychlejší čtvrtiny běžců na tom úseku. Čísla nad grafem jsou kontroly,
-  červené body tvoje chyby. Najeď na čáru myší (na telefonu na ni ťukni): ukáže se jméno a ztráta v tom místě.</p>
+  červené body tvoje chyby. Najeď na čáru myší (na telefonu na ni ťukni): ukáže se jméno a ztráta v tom místě.{% endtrans %}</p>
 <div class="ob-graf-obal" data-mezicasy>{{ sp.chart }}<div class="ob-graf-tip" role="status" hidden></div></div>
 {% endif %}
 
 {% if sp.bars %}
-<h2>Ztráta po úsecích proti tvému normálu (čím menší, tím lepší)</h2>
+<h2>{{ _('Ztráta po úsecích proti tvému normálu (čím menší, tím lepší)') }}</h2>
 {{ sp.bars }}
 {% endif %}
 
-<h2>Úseky podle mezičasů</h2>
+<h2>{{ _('Úseky podle mezičasů') }}</h2>
 <div class="tablewrap"><table>
-  <thead><tr><th data-sort="number">Úsek</th><th>Kontrola</th><th class="num" data-sort="number">Tvůj čas</th>
-      <th class="num" data-sort="number">Pořadí</th><th class="num" data-sort="number" title="Reference úseku je průměr nejrychlejší čtvrtiny běžců na tom úseku.">Reference</th>
-      <th class="num" data-sort="number">Nejlepší</th><th class="num" data-sort="number">Výkon</th>
-      <th class="num" data-sort="number">Očekávaný čas</th><th class="num" data-sort="number">Ztráta</th><th>Chyba</th></tr></thead>
+  <thead><tr><th data-sort="number">{{ _('Úsek') }}</th><th>{{ _('Kontrola') }}</th><th class="num" data-sort="number">{{ _('Tvůj čas') }}</th>
+      <th class="num" data-sort="number">{{ _('Pořadí') }}</th><th class="num" data-sort="number" title="{{ _('Reference úseku je průměr nejrychlejší čtvrtiny běžců na tom úseku.') }}">{{ _('Reference') }}</th>
+      <th class="num" data-sort="number">{{ _('Nejlepší') }}</th><th class="num" data-sort="number">{{ _('Výkon') }}</th>
+      <th class="num" data-sort="number">{{ _('Očekávaný čas') }}</th><th class="num" data-sort="number">{{ _('Ztráta') }}</th><th>{{ _('Chyba') }}</th></tr></thead>
   <tbody>
   {% for l in sp.legs %}
   <tr><td data-value="{{ l.n }}">{% if analysis %}<a href="#usek-{{ l.n }}" data-usek="{{ l.n }}">{{ l.name }}</a>{% else %}{{ l.name }}{% endif %}</td>
@@ -62,22 +62,22 @@
       <td class="num" data-value="{{ l.index or '' }}">{% if l.index %}{{ '%.0f' | format(l.index * 100) }} %{% endif %}</td>
       <td class="num" data-value="{{ l.expected or '' }}">{{ l.expected | mmss }}</td>
       <td class="num" data-value="{{ l.loss if l.loss is not none else '' }}">{{ l.loss | mmss_sign }}</td>
-      <td>{% if l.mistake %}<span class="stav ob-bad">chyba</span>{% endif %}</td></tr>
+      <td>{% if l.mistake %}<span class="stav ob-bad">{{ _('chyba') }}</span>{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table></div>
 
 {% if sp.agreement %}
-<p class="hint">Jak dobře model rychlosti sedí s kategorií (kontrola modelu, ne rada pro běh) je na
-  <a href="{{ url_for('ob.model') }}#jak-sedi">stránce modelu</a>.</p>
+<p class="hint">{% trans url=url_for('ob.model') %}Jak dobře model rychlosti sedí s kategorií (kontrola modelu, ne rada pro běh) je na
+  <a href="{{ url }}#jak-sedi">stránce modelu</a>.{% endtrans %}</p>
 {% endif %}
 
-<h2>Běžci kategorie</h2>
+<h2>{{ _('Běžci kategorie') }}</h2>
 <div class="tablewrap"><table>
-  <thead><tr><th class="num" data-sort="number">Místo</th><th data-sort="text">Jméno</th><th data-sort="text">Oddíl</th>
-      <th class="num" data-sort="number">Čas</th><th class="num" data-sort="number">Ztráta</th>
-      <th class="num" data-sort="number">Normál</th><th class="num" data-sort="number">Chyb</th>
-      <th class="num" data-sort="number">Ztraceno chybami</th></tr></thead>
+  <thead><tr><th class="num" data-sort="number">{{ _('Místo') }}</th><th data-sort="text">{{ _('Jméno') }}</th><th data-sort="text">{{ _('Oddíl') }}</th>
+      <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">{{ _('Ztráta') }}</th>
+      <th class="num" data-sort="number">{{ _('Normál') }}</th><th class="num" data-sort="number">{{ _('Chyb') }}</th>
+      <th class="num" data-sort="number">{{ _('Ztraceno chybami') }}</th></tr></thead>
   <tbody>
   {% for r in sp.runners %}
   <tr{% if r.me %} class="ob-ja"{% endif %}>
@@ -91,7 +91,7 @@
   {% endfor %}
   </tbody>
 </table></div>
-<p class="hint">Sloupce Normál, Chyb a Ztraceno chybami se počítají pro každého běžce stejnou metodou z veřejných
+<p class="hint">{% trans %}Sloupce Normál, Chyb a Ztraceno chybami se počítají pro každého běžce stejnou metodou z veřejných
   mezičasů ORIS (proto je mají i ostatní). <b>Normál</b> je tvoje obvyklé tempo proti referenci, 100 % = jako reference.
-  Výsledky a mezičasy jsou veřejné údaje z ORIS. Stopy z hodinek ostatních běžců aplikace neukazuje.</p>
+  Výsledky a mezičasy jsou veřejné údaje z ORIS. Stopy z hodinek ostatních běžců aplikace neukazuje.{% endtrans %}</p>
 </section>

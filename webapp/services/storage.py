@@ -8,6 +8,8 @@ import secrets
 from oroute import garmin
 from oroute.kmzmap import GeoMap
 
+from ..i18n import N_, _
+
 # sports worth keeping from a whole Garmin export (an orienteering race is recorded as one of these)
 KEEP_SPORTS = {"running", "walking", "hiking", "generic", "None", "fitness_equipment", "training"}
 
@@ -85,17 +87,17 @@ def check_kmz(path):
     try:
         gm = GeoMap.from_kmz(path)
     except Exception as e:
-        raise ValueError("Soubor není KMZ s mapou (export z Livelox: Share → Export → Google Earth KMZ).") from e
+        raise ValueError(_("Soubor není KMZ s mapou (export z Livelox: Share → Export → Google Earth KMZ).")) from e
     if None in (gm.n, gm.s, gm.e, gm.w) or gm.W < 200 or gm.H < 200:
-        raise ValueError("V KMZ chybí umístění mapy (LatLonBox) nebo je obrázek příliš malý.")
+        raise ValueError(_("V KMZ chybí umístění mapy (LatLonBox) nebo je obrázek příliš malý."))
     return gm
 
 
 IMAGE_EXT = (".jpg", ".jpeg", ".png")
 # iPhone photos: Pillow cannot read them without another library; the form takes them only to say what to do
 HEIC_EXT = (".heic", ".heif")
-HEIC_TEXT = ("Fotka je ve formátu HEIC. Ulož ji jako JPEG (v iPhonu Nastavení → Fotoaparát → Formáty → "
-             "Nejkompatibilnější), nebo ji nahraj přes prohlížeč, který ji převede.")
+HEIC_TEXT = (N_("Fotka je ve formátu HEIC. Ulož ji jako JPEG (v iPhonu Nastavení → Fotoaparát → Formáty → "
+                 "Nejkompatibilnější), nebo ji nahraj přes prohlížeč, který ji převede."))
 
 
 def check_image(path):
@@ -104,19 +106,20 @@ def check_image(path):
     with open(path, "rb") as f:
         head = f.read(16)
     if head[4:8] == b"ftyp" and head[8:12] in (b"heic", b"heix", b"mif1", b"msf1", b"heim", b"heis", b"hevc"):
-        raise ValueError(HEIC_TEXT)          # a HEIC photo renamed to .jpg
+        raise ValueError(_(HEIC_TEXT))          # a HEIC photo renamed to .jpg
     try:
         with Image.open(path) as im:
             w, h = im.size
             im.verify()
     except Image.DecompressionBombError as e:
-        raise ValueError("Obrázek je příliš velký (nejvýš 120 megapixelů).") from e
+        raise ValueError(_("Obrázek je příliš velký (nejvýš 120 megapixelů).")) from e
     except Exception as e:
-        raise ValueError("Soubor není obrázek (jpg nebo png).") from e
+        raise ValueError(_("Soubor není obrázek (jpg nebo png).")) from e
     if min(w, h) < 400:
-        raise ValueError("Obrázek je příliš malý, kontroly by na něm nešly najít (aspoň 400 px na kratší straně).")
+        raise ValueError(_("Obrázek je příliš malý, kontroly by na něm nešly najít (aspoň 400 px na kratší "
+                             "straně)."))
     if w * h > 120_000_000:
-        raise ValueError("Obrázek je příliš velký (nejvýš 120 megapixelů).")
+        raise ValueError(_("Obrázek je příliš velký (nejvýš 120 megapixelů)."))
 
 
 def course_json(rel):

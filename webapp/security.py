@@ -9,12 +9,14 @@ import secrets
 
 from flask import abort, request, session
 
+from .i18n import _
+
 
 def check_csrf():
     if request.method in ("POST", "PUT", "PATCH", "DELETE"):
         sent = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token") or ""
         if not hmac.compare_digest(sent, session.get("csrf", "")) or not sent:
-            abort(400, "Neplatný formulář (CSRF), načti stránku znovu.")
+            abort(400, _("Neplatný formulář (CSRF), načti stránku znovu."))
 
 
 def csrf_token():

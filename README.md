@@ -9,6 +9,21 @@ tvého osobního modelu rychlosti a ukáže, kde jsi ztratil čas. Spouští se 
 zůstávají u tebe. Mapy ani záznamy běhů v tomto repozitáři nejsou, nahraješ si vlastní. Licence: PolyForm
 Noncommercial 1.0.0, tedy zdarma pro jakékoli nekomerční použití (sám, oddíl, škola); komerční jen se svolením autora.
 
+## Languages: Czech and English
+
+The web app and the desktop app come in Czech (the default) and English. The link **CZ | EN** at the end of the menu
+switches and remembers the choice (a cookie); `?lang=en` on any address works for one page. `OB_LANG=en` makes
+English the default for everyone who has not chosen (Docker: `environment:` in `docker-compose.yml`; desktop app:
+`python -m desktop.app --lang en`). The notes the analysis writes, the job list and the error messages follow the language too,
+and a background job writes its sentences in the language of the page that started it.
+
+How it is built: the Czech text is the message id (`_("...")` in Python, `{{ _('...') }}` and
+`{% trans %}...{% endtrans %}` in templates, `T("...")` in `webapp/static/*.js`) and `webapp/lang_en.py` holds the
+English text for each. The grammar-heavy sentences of the analysis (catching features, "I got lost" advice, mistake
+types) are written in English separately in `webapp/texts_en.py`. `python tools/i18n_extract.py` lists texts that have
+no English yet; `tests/test_i18n.py` fails when one is missing. The docs in `docs/` stay in Czech, the landing page
+`docs/index.html` has both languages.
+
 ## Download (Windows, macOS)
 
 Installers without Docker or Python: the GitHub Releases of this repository (Windows 10/11, macOS on Apple

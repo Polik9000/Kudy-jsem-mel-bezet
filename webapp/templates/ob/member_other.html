@@ -1,13 +1,13 @@
 {% extends "ob/base.html" %}
-{% block title %}Rozbory člena{% endblock %}
+{% block title %}{{ _('Rozbory člena') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}Rozbory člena</h2>
+<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}{{ _('Rozbory člena') }}</h2>
 <div class="karta">
-  <p>Rozbory postupů vidí jen ten, komu patří. Stopy z hodinek ostatních členů se v aplikaci neukazují.</p>
+  <p>{% trans %}Rozbory postupů vidí jen ten, komu patří. Stopy z hodinek ostatních členů se v aplikaci neukazují.{% endtrans %}</p>
   <div class="controls zavododkazy">
-    <a class="btn btn-hlavni" href="{{ url_for('ob.races') }}">Moje závody</a>
+    <a class="btn btn-hlavni" href="{{ url_for('ob.races') }}">{{ _('Moje závody') }}</a>
     {% if club.ENABLED %}
-    <a class="btn btn-zdroj zdroj-start" href="{{ club.member(oris_user_id) }}">{{ ikona('start') }}Vizitka na klubovém webu</a>
+    <a class="btn btn-zdroj zdroj-start" href="{{ club.member(oris_user_id) }}">{{ ikona('start') }}{{ _('Vizitka na klubovém webu') }}</a>
     {% endif %}
   </div>
 </div>

@@ -15,6 +15,7 @@ from flask.cli import with_appcontext
 
 from .. import oris
 from ..db import dumps
+from ..i18n import _
 from . import matching
 from . import splits as class_splits
 
@@ -52,11 +53,11 @@ def sync_user(con, conf, user_id, client=None, today=None, pause=PAUSE_S, lookup
     user = con.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     regno = user["oris_regno"]
     if not regno:
-        raise ValueError("V profilu chybí registrační číslo ORIS.")
+        raise ValueError(_("V profilu chybí registrační číslo ORIS."))
     if lookup or not user["oris_user_id"]:
         u = client.user(regno)
         if u is None:
-            raise ValueError(f"Registrační číslo {regno} v ORIS není.")
+            raise ValueError(_("Registrační číslo %(regno)s v ORIS není.", regno=regno))
         con.execute("UPDATE users SET oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
                     (u["oris_user_id"], u["name"], user_id))
     else:
@@ -118,8 +119,9 @@ def sync_user(con, conf, user_id, client=None, today=None, pause=PAUSE_S, lookup
     con.commit()
     matching.match_user(con, user_id)
     total = con.execute("SELECT COUNT(*) FROM entries WHERE user_id = ?", (user_id,)).fetchone()[0]
-    return (f"ORIS: {total} závodů ({new} nových), oficiální čas doplněn u {with_time}"
-            + (f", mezičasy kategorie načteny u {with_class}." if with_class else "."))
+    return (_("ORIS: %(total)s závodů (%(new)s nových), oficiální čas doplněn u %(with_time)s",
+        total=total, new=new, with_time=with_time)
+            + (_(", mezičasy kategorie načteny u %(with_class)s.", with_class=with_class) if with_class else "."))
 
 
 def sync_all(con, conf, client=None, pause=PAUSE_S, hours=SYNC_HOURS, now=None, log=print):
