@@ -62,7 +62,7 @@ EN = {
     "Model kopců spočítán z tvých běhů.":
         "Hill model computed from your runs.",
     "Záchytné a náběhové body u kontrol přepočítány.":
-        "Catching features and attack points of the controls recomputed.",
+        "Relocating features and attack points of the controls recomputed.",
     "Nápověda „Ztratil jsem se“ je připravená.":
         "The “I am lost” help is ready.",
     "Účet nemá registrační číslo, závody z ORIS se nenačítaly.":
@@ -188,7 +188,7 @@ EN = {
     "Oficiální čas a mezičasy jsou z ORIS.":
         "The official time and splits are from ORIS.",
     "hledám záchytné body u kontrol":
-        "looking for catching features around the controls",
+        "looking for relocating features around the controls",
     "Výpočet (%(name)s) neskončil do %(v)s minut.":
         "The computation (%(name)s) did not finish within %(v)s minutes.",
     "Výpočet selhal (%(name)s); podrobnosti jsou níže.":
@@ -200,13 +200,13 @@ EN = {
     "čtu trať z mapy a stopu z hodinek":
         "reading the course from the map and the track from the watch",
     "Závod nemá nejlepší postupy; záchytné body se počítají s nimi.":
-        "The race has no best routes; the catching features are computed together with them.",
+        "The race has no best routes; the relocating features are computed together with them.",
     "Nápověda „Ztratil jsem se“ potřebuje mapu bez tratě i mapu s tratí.":
         "The “I am lost” help needs a map without course and a map with course.",
     "čtu terén z mapy":
         "reading the terrain from the map",
     "Záchytné body u kontrol se nepodařilo spočítat.":
-        "The catching features of the controls could not be computed.",
+        "The relocating features of the controls could not be computed.",
     "načítám výškopis":
         "loading the elevation",
     "Šrafování zakázaných prostorů se z mapy s tratí nepodařilo přečíst; postupy s ním nepočítají.":
@@ -284,7 +284,7 @@ EN = {
     "Ocenění plánovaného postupu":
         "Pricing a planned route",
     "Záchytné body u kontrol":
-        "Catching features of the controls",
+        "Relocating features of the controls",
     "Přepočítat všechno":
         "Recompute everything",
     "Nápověda „Ztratil jsem se“":
@@ -414,9 +414,9 @@ EN = {
     "Vyber aspoň jeden soubor.":
         "Choose at least one file.",
     "Záchytné body se počítají až s nejlepšími postupy (chybí mapa bez tratě nebo analýza).":
-        "The catching features are computed only together with the best routes (the map without course or the analysis is missing).",
+        "The relocating features are computed only together with the best routes (the map without course or the analysis is missing).",
     "Záchytné body se přepočítávají, za chvíli se objeví.":
-        "The catching features are being recomputed, they will appear in a moment.",
+        "The relocating features are being recomputed, they will appear in a moment.",
     "K analýze chybí běh (.fit) nebo mapa s tratí.":
         "The analysis lacks the run (.fit) or the map with course.",
     "Analýza je zařazená do fronty.":
@@ -904,7 +904,7 @@ EN = {
     "Kdyby ses ztratil":
         "If you got lost",
     "Co je kolem kontroly: čeho se chytit, náběhový bod a zarážka za kontrolou.":
-        "What is around the control: what to catch onto, the attack point and the backstop beyond the control.",
+        "What is around the control: what to catch onto, the attack point and the catching feature beyond the control.",
     "Ztratil jsem se u kontroly":
         "I got lost at a control",
     "<b>Rozbor po závodě</b> pro chvíli „byl jsem u kontroly, neviděl jsem ji a nevěděl jsem přesně, kde jsem“: co tam bylo vidět a jak ses měl vrátit. Na závodě se mobil ani jiné pomůcky používat nesmějí, stránka je na doma. Otevřeš ji tlačítkem <b>Ztratil jsem se u kontroly</b> na stránce závodu (nebo u úseku v části Kdyby ses ztratil). Potřebuje mapu s tratí a mapu bez tratě; s během (.fit) ukáže i místa ze stopy.":
@@ -918,7 +918,7 @@ EN = {
     "Bez běhu, nebo když stopa místo nechytila: <b>Kde jsem asi byl</b>. Ťukni do mapy, kde jsi asi byl, a vyber, o kolik si nejsi jistý (25, 50, 100 nebo 150 m; v lese je výchozí 50 m, na sprintu 25 m). Oranžový kruh je místo, kde jsi mohl být.":
         "Without a run, or when the track did not catch the place: <b>Where I probably was</b>. Tap the map where you probably were and choose how unsure you are (25, 50, 100 or 150 m; in the forest the default is 50 m, in a sprint 25 m). The orange circle is where you could have been.",
     "Appka napíše jednu až tři věty: kam jsi měl jít, podél čeho, kde byla kontrola. Modrá čára ukazuje cestu, čísla jsou záchytné body.":
-        "The app writes one to three sentences: where you should have gone, along what, where the control was. The blue line shows the way, the numbers are catching features.",
+        "The app writes one to three sentences: where you should have gone, along what, where the control was. The blue line shows the way, the numbers are relocating features.",
     "Nedalo se minout":
         "Could not be missed",
     "Dlouhá věc (cesta, vodoteč, plot, okraj zástavby nebo velké paseky), na kterou bys narazil odkudkoli z kruhu, kdybys šel daným směrem. Appka vybere nejjistější, ne nejbližší.":
@@ -1298,15 +1298,15 @@ EN = {
     "Jen tenhle závod":
         "Only this race",
     "Nejlepší postupy jsou ze starší verze výpočtu (nová u každého úseku ukáže, kudy by běžel průměrný běžec a proč je pro tebe lepší jiný postup, na sprintových mapách nevede postupy domy ani přes zdi a tvoji stopu vedle cesty oceňuje jako cestu). Přepočet trvá pár minut a spočítá znovu i záchytné body.":
-        "The best routes are from an older version of the computation (the new one shows for each leg where the average runner would run and why a different route is better for you, on sprint maps it leads routes neither through houses nor across walls, and it prices your track beside a path as a path). The recomputation takes a few minutes and also recomputes the catching features.",
+        "The best routes are from an older version of the computation (the new one shows for each leg where the average runner would run and why a different route is better for you, on sprint maps it leads routes neither through houses nor across walls, and it prices your track beside a path as a path). The recomputation takes a few minutes and also recomputes the relocating features.",
     "Přepočítat postupy":
         "Recompute routes",
     "Záchytné a náběhové body u kontrol jsou ze starší verze výpočtu. Přepočet trvá do minuty a postupy nemění.":
-        "The catching features and attack points of the controls are from an older version of the computation. The recomputation takes up to a minute and does not change the routes.",
+        "The relocating features and attack points of the controls are from an older version of the computation. The recomputation takes up to a minute and does not change the routes.",
     "Záchytné a náběhové body u kontrol tenhle rozbor ještě nemá. Přepočet trvá do minuty a postupy nemění.":
-        "This analysis does not have the catching features and attack points of the controls yet. The recomputation takes up to a minute and does not change the routes.",
+        "This analysis does not have the relocating features and attack points of the controls yet. The recomputation takes up to a minute and does not change the routes.",
     "Přepočítat záchytné body":
-        "Recompute catching features",
+        "Recompute relocating features",
     "Předchozí úsek":
         "Previous leg",
     "Předchozí úsek (←)":
@@ -1328,7 +1328,7 @@ EN = {
     "Kontroly a stopa leží na mapě s touhle přesností":
         "The controls and the track lie on the map with this accuracy",
     "záchytné a náběhové body u kontrol ber s rezervou (terén je z mapy bez tratě, poloha kontroly z fotky)":
-        "treat the catching features and attack points of the controls with caution (the terrain is from the map without course, the position of the controls from a photo)",
+        "treat the relocating features and attack points of the controls with caution (the terrain is from the map without course, the position of the controls from a photo)",
     "<span class=\"badge\">Mapa bez tratě ze snímku Livelox, přesnost asi ±%(acc)s m</span> Z ní je přečtený terén pro nejlepší postupy. Až bude mapa bez tratě jako KMZ, nahraj ji a postupy se přepočítají.":
         "<span class=\"badge\">Map without course from a Livelox screenshot, accuracy about ±%(acc)s m</span> The terrain for the best routes is read from it. When the map without course is available as a KMZ, upload it and the routes will be recomputed.",
     "Vrstvy mapy":
@@ -1340,7 +1340,7 @@ EN = {
     "Další možnosti":
         "Other options",
     "Záchytné body":
-        "Catching features",
+        "Relocating features",
     "Načítám stopu a postupy…":
         "Loading the track and routes…",
     "Zpět o bod":
@@ -1404,7 +1404,7 @@ EN = {
     "zastávka":
         "stop",
     "záchytný bod":
-        "catching feature",
+        "relocating feature",
     "Mapa závodu je dílo pořadatele a mapaře a je chráněná autorským právem. V aplikaci slouží jen přihlášeným členům oddílu k rozboru vlastního běhu; nejde stáhnout a nesmí se šířit dál.":
         "The map of the race is the work of the organiser and the map-maker and is protected by copyright. In the app it serves only logged-in members of the club for analysing their own run; it cannot be downloaded and must not be shared further.",
     "<b>Nejlepší</b> je čas modelu pro nejrychlejší postup, <b>volba</b> je o kolik je tvůj postup pomalejší při stejném tempu, <b>provedení</b> je o kolik jsi byl pomalejší než tvoje tempo na postupu, který jsi běžel. Rozdíly do 20 s na úsek jsou v šumu modelu. ✓ ve sloupci model značí úseky, ze kterých se učí tvůj osobní model rychlosti.":
@@ -1682,7 +1682,7 @@ EN = {
     "Místa do 100 m od kontroly, kde jsi zpomalil, kroužil nebo se otočil:":
         "Places within 100 m of the control where you slowed down, circled or turned:",
     "Záchytné body kolem":
-        "Catching features around",
+        "Relocating features around",
     "(nepovinné, ručně, třeba „kupka, severní úpatí“)":
         "(optional, by hand, e.g. “knoll, north foot”)",
     "Rozbor po závodě: co bylo kolem kontroly a jak ses z místa, kde ses ztratil, měl vrátit. Rada je odhad z kresby mapy (cesty, vodoteče, ploty, okraje ploch, budovy), bez vrstevnic a skal. „Nedalo se minout“ znamená, že na tu věc bys narazil odkudkoli z kruhu nejistoty, kdybys šel daným směrem. Do oplocených a zakázaných míst rada nevede.":
@@ -1777,7 +1777,7 @@ EN_JS = {
     "náběhový bod před kontrolou (odhad z mapy): %(label)s":
         "attack point before the control (an estimate from the map): %(label)s",
     "zarážka za kontrolou (odhad z mapy): %(label)s":
-        "backstop beyond the control (an estimate from the map): %(label)s",
+        "catching feature beyond the control (an estimate from the map): %(label)s",
     "tudy vede tvoje stopa, nejlepší postup tudy nesmí":
         "your track goes here, the best route must not",
     "tudy vede tvůj plán, nejlepší postup tudy nesmí":
@@ -1785,7 +1785,7 @@ EN_JS = {
     "tady jsi opustil přímý směr ke kontrole":
         "here you left the direct line to the control",
     "nejbližší záchytný bod při bloudění":
-        "nearest catching feature when you were lost",
+        "nearest relocating feature when you were lost",
     "Celá trať":
         "Whole course",
     "Zrušit výběr úseku a ukázat celou trať (Esc)":
@@ -1927,7 +1927,7 @@ EN_JS = {
     "Do 150 m od kontroly není na mapě nic, čeho by se dalo spolehlivě chytit (žádná cesta, voda, budova ani paseka).":
         "Within 150 m of the control there is nothing on the map you could reliably catch onto (no path, water, building or clearing).",
     "Azimuty jsou k severu mapy (magnetické poledníky), tedy rovnou pro buzolu. Body jsou čtené z kresby mapy bez tratě a pojmenované podle mapového klíče ISOM 2017-2: cesty a jejich konce a křížení, voda, budovy, oplocenky a samostatně stojící bodové značky (kupka, jáma, výrazný strom, posed a další). Plot, který nic neuzavírá, čte aplikace jako cestu. „Vrchol“ je z výškového modelu, ne z kresby. Na mapě je zapíná volba „záchytné body“.":
-        "Bearings are to the north of the map (magnetic meridians), so ready for the compass. The points are read from the drawing of the map without course and named by the ISOM 2017-2 map key: paths and their ends and junctions, water, buildings, fenced areas and separately standing point symbols (knoll, pit, prominent tree, hunting tower and others). A fence that does not enclose anything is read by the app as a path. “Hilltop” is from the elevation model, not from the drawing. It is switched on on the map by the option “catching features”.",
+        "Bearings are to the north of the map (magnetic meridians), so ready for the compass. The points are read from the drawing of the map without course and named by the ISOM 2017-2 map key: paths and their ends and junctions, water, buildings, fenced areas and separately standing point symbols (knoll, pit, prominent tree, hunting tower and others). A fence that does not enclose anything is read by the app as a path. “Hilltop” is from the elevation model, not from the drawing. It is switched on on the map by the option “relocating features”.",
     "Popis kontroly:":
         "Control description:",
     "Ztratil jsem se tady: co dělat":
@@ -1943,7 +1943,7 @@ EN_JS = {
     "před kontrolou není nic, čeho se chytit":
         "there is nothing before the control to catch onto",
     "Zarážka (co potkáš, když kontrolu přeběhneš):":
-        "Backstop (what you meet if you run past the control):",
+        "Catching feature (what you meet if you run past the control):",
     "do 200 m za kontrolou není cesta, voda ani nic velkého, co by tě zastavilo":
         "within 200 m beyond the control there is no path, water or anything big that would stop you",
     "Zastávka u občerstvovačky (%(s)s s) se bere jako schválná automaticky.":

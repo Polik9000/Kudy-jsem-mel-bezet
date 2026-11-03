@@ -79,7 +79,7 @@ def mistake(m, read=None, note=None):
     return dict(type=m["type"], label=label, text=text, at=m.get("at"))
 
 
-# --- catching features, backstops, "I am lost at the control" ---------------------------------------------------
+# --- relocating features, catching features, "I am lost at the control" ---------------------------------------------------
 
 # kind -> name of the feature
 FEATURES = {
@@ -143,7 +143,7 @@ def relocate(r):
                          f"{bearing(near['back_az'])} leads to the control ({near['dist']:.0f} m, "
                          f"{slope(near['dh'], near['dist'])}).")
         else:
-            text += " You passed no catching feature closer than 120 m."
+            text += " You passed no relocating feature closer than 120 m."
         lost = dict(i=l["i"], at=[l["lat"], l["lon"]], text=text,
                     near=dict(lat=near["lat"], lon=near["lon"], i=near["i"], via=near.get("via")) if near else None)
     return dict(features=[feature(f) for f in r.get("features") or []], lost=lost)
