@@ -86,6 +86,7 @@
 {% if analysis %}
 <section class="tabpanel" id="mapa">
 <h3 class="tabnadpis">Mapa a úseky</h3>
+<details class="ob-info"{% if not analysis.has_routes %} open{% endif %}><summary>Jak je rozbor spočítaný (časy, výškopis, zakázané přechody)</summary>
 <p>Čas start–cíl <b>{{ analysis.total_time_s | mmss }}</b>.
   {% if official and official.used %}Časy na kontrolách jsou oficiální mezičasy z ORIS
     {%- if official.clock_shift_s %} (hodinky a časomíra se liší o {{ official.clock_shift_s | int }} s){% endif %}.
@@ -102,6 +103,7 @@
     {% if summary.barriers %}Zakázané přechody: {{ summary.barriers.forbidden }} zakázaných a {{ summary.barriers.hard }}
       těžko překonatelných čar, {{ summary.barriers.crossings }} průchodů
       {%- if summary.barriers.areas %}, {{ summary.barriers.areas }} zakázaných prostorů ze šrafování mapy{% endif %}.{% endif %}{% endif %}</p>
+</details>
 <p id="totals" class="ob-souhrn"></p>
 {% if model_stale %}
 <div class="nota controls" id="starsi-model">
@@ -150,6 +152,14 @@
 <div class="ob-mapa-obal">
   <div class="ob-mapa-ram">
     <div id="map"></div>
+    {# floating panel of the map layers (keys 1-3, M); the check boxes keep their ids, map.js listens to them #}
+    <div class="ob-vrstvy" id="vrstvy" role="group" aria-label="Vrstvy mapy">
+      <label class="check"><input type="checkbox" id="c-map" checked><span>Mapa</span><kbd>M</kbd></label>
+      <label class="check" id="l-course" hidden><input type="checkbox" id="c-course"><span>Mapa s tratí</span><kbd>T</kbd></label>
+      <label class="check"><input type="checkbox" id="c-alts" checked><i class="sw alt"></i><span>Další možnosti</span><kbd>1</kbd></label>
+      <label class="check"><input type="checkbox" id="c-prumer" checked><i class="sw prumer"></i><span>Průměrný běžec</span><kbd>2</kbd></label>
+      <label class="check"><input type="checkbox" id="c-zachyt"><i class="sw zachyt"></i><span>Záchytné body</span><kbd>3</kbd></label>
+    </div>
     <p id="map-stav" class="ob-mapa-stav" role="status">Načítám stopu a postupy…</p>
     {# what the next clicks into the map draw (planned route, forbidden line, refreshment point) #}
     <div id="kresleni" class="ob-kresleni" role="status" hidden>
@@ -160,13 +170,28 @@
         <button type="button" class="btn btn-maly" id="b-cancel">Zrušit</button>
       </span>
     </div>
+  <div id="graf-useky" class="ob-sloupce karta" hidden>
+    <h3>Minuty ztráty na úseku</h3>
+    <div id="graf-sloupce" class="ob-sloupce-telo" role="group" aria-label="Ztráta po úsecích"></div>
+  </div>
   </div>
   {# on a narrow screen the panel of the leg is far below the map: the gist of the leg right under it #}
   <p id="souhrn" class="ob-usek-souhrn" hidden></p>
   <aside id="panel" class="karta">
-    <div id="panel-empty" class="muted">Klikni na úsek v mapě nebo v tabulce. Otevře se tu jeho rozbor a poznámky.</div>
+    <div id="panel-empty">
+      <div id="o-metriky" class="ob-metriky"></div>
+      <p id="o-pozn" class="hint"></p>
+      <div id="o-ztraty"></div>
+      <h3>Přehled úseků</h3>
+      <p class="hint">Klikni na úsek (v mapě, v grafu nebo tady) a otevře se jeho rozbor a poznámky.</p>
+      <div id="o-useky" class="ob-mini"></div>
+    </div>
     <div id="panel-leg" hidden>
-      <h3 id="p-title"></h3>
+      <div class="ob-panel-hlava">
+        <button type="button" class="btn btn-maly" id="b-zpet" title="Celá trať (Esc)">← Celá trať</button>
+        <h3 id="p-title"></h3>
+      </div>
+      <div id="p-metriky" class="ob-metriky"></div>
       <p id="p-numbers"></p>
       <p id="p-mistake" class="ob-typ"></p>
       <p id="p-explain"></p>
@@ -216,12 +241,6 @@
   <span><i class="sw zakaz"></i> zakázaný přechod nebo prostor</span>
   <span><i class="sw dot"></i> zastávka</span>
   <span><i class="sw zachyt"></i> záchytný bod</span>
-  <span class="spacer"></span>
-  <label class="check"><input type="checkbox" id="c-map" checked> mapa</label>
-  <label class="check" id="l-course" hidden><input type="checkbox" id="c-course"> mapa s tratí</label>
-  <label class="check"><input type="checkbox" id="c-alts" checked> další možnosti</label>
-  <label class="check"><input type="checkbox" id="c-prumer" checked> průměrný běžec</label>
-  <label class="check"><input type="checkbox" id="c-zachyt"> záchytné body</label>
 </div>
 <p class="hint">Mapa závodu je dílo pořadatele a mapaře a je chráněná autorským právem. V aplikaci slouží jen
   přihlášeným členům oddílu k rozboru vlastního běhu; nejde stáhnout a nesmí se šířit dál.</p>

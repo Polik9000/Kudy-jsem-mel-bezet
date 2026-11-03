@@ -1,31 +1,39 @@
 # Vzhled aplikace „Kudy jsem měl běžet“
 
-Od 3. 11. 2026 má aplikace vlastní vzhled místo klubového (zelená hlavička a trikolóra SKOB). Tobias vybral ze tří návrhů paletu **C · Buzola**.
+Od 3. 11. 2026 platí vzhled **Lesní klid** podle návrhu z PDF „Kudy jsem měl běžet – Návrh uživatelského rozhraní“. Nahradil dřívější petrolejovou paletu Buzola (ta zůstává jako `OB_THEME=kudy`).
 
 ## Jak je to poskládané
 
-- `webapp/static/skob.css`: klubová kostra (rozložení, menu, tabulky). Zůstává beze změny, je to kopie z webu oddílu.
-- `webapp/static/kudy.css`: vlastní vzhled. Přepisuje barvy (proměnné `--c-*` a neutrály), písmo nadpisů, hlavičku a levé menu.
-- `webapp/static/ob.css`: prvky aplikace (mapa, úseky, formuláře). Barvy bere jen z proměnných.
-- `OB_THEME=skob` vypne `kudy.css`, takže aplikace vypadá zase přesně jako klubový web (pro nasazení u oddílu). Výchozí je `kudy`.
-- Jiný klub si může dát vlastní barvu přepsáním `--c-primary` atd. v dalším souboru za `kudy.css`.
+- `webapp/static/skob.css`: klubová kostra (rozložení, tabulky, menu). Beze změny, je to kopie z webu oddílu.
+- `webapp/static/ob.css`: prvky aplikace (mapa, úseky, formuláře). Barvy bere z proměnných.
+- `webapp/static/les.css`: vzhled Lesní klid. Načítá se **jako poslední** a přepíše proměnné (tmavé pozadí, fialový akcent), přidá levý panel 220 px, spodní lištu na telefonu a komponenty návrhu (metriky, pruhy rychlostí, graf ztrát, panel vrstev nad mapou, O aplikaci).
+- `webapp/static/kudy.css`: starší petrolejový vzhled (`OB_THEME=kudy`).
+- `OB_THEME=skob` vypne obě vlastní sady a aplikace vypadá jako klubový web. Výchozí je `les`.
+- Tmavý režim je výchozí. Tlačítko ◐ v hlavičce přepíná tmavý, světlý a podle zařízení (světlý se hodí venku na slunci).
 
-## Paleta
+## Tokeny (z PDF)
 
-| Role | Světlý | Tmavý | Kde |
-|---|---|---|---|
-| Značka (petrolejová) | `#0F5C6E` | text `#6CC4D6` | hlavička, hlavní tlačítko, aktivní položka |
-| Signál (žlutá) | `#F2C230` | `#F2C230` | linka pod hlavičkou, odznaky, vybraný řádek |
-| Text | `#16232A` | `#E4ECEE` | |
-| Podklad stránky | `#F3F6F7` | `#0E1619` | |
-| Karta | `#FFFFFF` | `#152024` | |
-| Linka | `#E0E7EA` | `#22313A` | |
-| V pořádku | `#2B8A3E` | `#69DB7C` | stav „hotovo“, „je“ |
+| Token | Hodnota | Použití |
+|---|---|---|
+| `--bg-app` | `#10251E` | pozadí okna |
+| `--bg-panel-primary` | `#19382C` | karty, levý panel, hlavička |
+| `--bg-panel-secondary` | `#214535` | vnořené karty, ovládací bloky |
+| `--bg-surface-elevated` | `#2A503E` | hover, vybraný řádek |
+| `--accent-iof-purple` | `#C9A6F3` | aktivní položka, hlavní tlačítko, vybraný úsek |
+| `--status-model-green` | `#B8D68C` | model, v pořádku |
+| `--status-loss-amber` | `#E5B86B` | ztráta, málo dat |
 
-Na mapě se barvy nemění: tvoje stopa červená, nejlepší postup modrý čárkovaný, trať fialová jako přetisk, plánovaný postup oranžový. Ztráta na úseku je semafor zelená, oranžová, červená (`--flag-a/b/c`).
+Písma: **Manrope** (text) a **JetBrains Mono** (čísla, časy), oba OFL, soubory i licence v `webapp/static/fonts/`, nic se nestahuje z internetu.
 
-## Písmo
+Na mapě se barvy nemění: stopa podle ztráty (zelená, oranžová, červená), nejlepší postup modrý čárkovaný, trať fialová. Čáry mají bílé lemování, ať je vidět na každé mapě.
 
-Nadpisy a hlavička: **Barlow Semi Condensed** 600/700 (OFL 1.1, soubory i licence ve `webapp/static/fonts/`, nic se nestahuje z internetu). Text a tabulky: systémové písmo, čísla zarovnaná pod sebe.
+## Odchylky od PDF (záměrné)
 
-Stránka ke stažení (`docs/index.html`) používá stejnou paletu.
+- PDF obsahuje ukázková data, položky bez zdroje v aplikaci (výběr modelu jiného běžce, „učebnicový model“, přepínač ČÚZK, rastr průchodnosti) a mapu se sloupcovým grafem přes mapu. Zobrazuje se jen to, co appka opravdu spočítá; graf ztrát je pod mapou, aby nezakrýval trať.
+- Světlý režim navíc (PDF je jen tmavé).
+- Zkratky vrstev mapy: M mapa, T mapa s tratí, 1 další možnosti, 2 průměrný běžec, 3 záchytné body. Šipky přepínají úseky.
+- Detail úseku je ve stejné stránce jako detail závodu (pravý panel), ne zvláštní obrazovka: tak zůstává mapa, poznámky i kreslení postupu beze změny.
+
+## Aplikace pro Windows a macOS
+
+Okno (`desktop/app.py`) zobrazuje stejné rozhraní. Minimální velikost okna je 960 × 600 (vejde se levý panel i mapa), pozadí okna má barvu aplikace, ať při startu neblikne bílá.

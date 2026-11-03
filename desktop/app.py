@@ -240,7 +240,8 @@ def main(argv=None):
             import webview
             webview.settings["ALLOW_DOWNLOADS"] = True
             webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
-            window = webview.create_window(APP_NAME, url, width=1360, height=900, min_size=(800, 560),
+            window = webview.create_window(APP_NAME, url, width=1360, height=900, min_size=(960, 600),
+                                           background_color="#10251E",  # the colour of the app, no white flash
                                            text_select=True)
             webview.start(private_mode=False, storage_path=os.path.join(instance, "okno"))
             server.close()
