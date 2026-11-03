@@ -246,13 +246,13 @@ EN = {
     "model řadí úseky jinak než kategorie, ber nejlepší postupy s rezervou":
         "the model orders the legs differently from the class, take the best routes with a pinch of salt",
     "kategorie tu potřebuje o %.0f %% víc času, než odpovídá modelu: model je optimistický (špatně přečtená mapa, zakázaný průchod, nebo těžká dohledávka)":
-        "the class needs %%.0f %% more time here than the model suggests: the model is optimistic (a wrongly read map, a out-of-bounds passage, or a hard search for the control)",
+        "the class needs %.0f %% more time here than the model suggests: the model is optimistic (a wrongly read map, an out-of-bounds passage, or a hard search for the control)",
     "ztráta proti tvému normálu":
         "loss against your normal",
     "Ztráta na úsecích proti tvému normálnímu výkonu":
         "Loss on the legs against your normal performance",
     "kategorie je tu o %.0f %% rychlejší, než odpovídá modelu: model je pesimistický (terén je průběžnější, než říká mapa, nebo vede lepší postup)":
-        "the class is %%.0f %% faster here than the model suggests: the model is pessimistic (the terrain is more runnable than the map says, or a better route exists)",
+        "the class is %.0f %% faster here than the model suggests: the model is pessimistic (the terrain is more runnable than the map says, or a better route exists)",
     "Fotka je ve formátu HEIC. Ulož ji jako JPEG (v iPhonu Nastavení → Fotoaparát → Formáty → Nejkompatibilnější), nebo ji nahraj přes prohlížeč, který ji převede.":
         "The photo is in HEIC format. Save it as JPEG (on an iPhone Settings → Camera → Formats → Most Compatible), or upload it through a browser that converts it.",
     "V KMZ chybí umístění mapy (LatLonBox) nebo je obrázek příliš malý.":
@@ -498,7 +498,7 @@ EN = {
     "Zakázané prostory z mapy":
         "Out-of-bounds areas from the map",
     "Fialové šrafování (zakázaný prostor) se čte z mapy s tratí. Postup do něj nevede a v mapě je vybarvený. Prostory se čtou z mapy každé kategorie zvlášť.":
-        "Purple hatching (a out-of-bounds area) is read from the map with course. Routes do not enter it and it is coloured on the map. The areas are read from the map of each class separately.",
+        "Purple hatching (an out-of-bounds area) is read from the map with course. Routes do not enter it and it is coloured on the map. The areas are read from the map of each class separately.",
     "postup se šrafovanému prostoru vyhne":
         "routes avoid the hatched area",
     "šrafování se v mém rozboru ignoruje (třeba když se přečetlo špatně)":
@@ -528,7 +528,7 @@ EN = {
     "Ruční zakázané čáry":
         "Impassable lines drawn by hand",
     "Plot, zakázaný prostor nebo trať, kterou OpenStreetMap nezná: nakresli čáru do mapy. Postup ji nesmí překročit. Čára je sdílená pro všechny běžce závodu a přepočítá postupy všem; smazat ji může jen ten, kdo ji nakreslil.":
-        "A fence, a out-of-bounds area or a line that OpenStreetMap does not know: draw a line on the map. Routes must not cross it. The line is shared by all runners of the race and recomputes the routes for all of them; only the one who drew it can delete it.",
+        "A fence, an out-of-bounds area or a line that OpenStreetMap does not know: draw a line on the map. Routes must not cross it. The line is shared by all runners of the race and recomputes the routes for all of them; only the one who drew it can delete it.",
     "Nakreslit zakázanou čáru":
         "Draw an impassable line",
     "Nakreslit těžko překonatelnou čáru":
@@ -685,8 +685,6 @@ EN = {
         "Caution",
     "Zná jen tebe a závody, které nahraješ (malý vzorek).":
         "It knows only you and the races you upload (a small sample).",
-    "Tmavě zelenou (hustník) skoro nemá změřenou.":
-        "It has hardly any measurements of dark green (thicket).",
     "Skály, srázy a detaily na mapě z Livelox nepřečte.":
         "It cannot read cliffs, steep slopes and details on a map from Livelox.",
     "Sprintové mapy a zakázané prostory jsou jen částečně ověřené.":
@@ -1106,7 +1104,7 @@ EN = {
     "Jak dobře model sedí":
         "How well the model fits",
     "Kontrola modelu, ne rada pro běh: řadí model úseky závodu stejně jako kategorie? Porovnává se čas nejlepšího postupu podle tvého modelu s referenčním časem kategorie (průměr nejrychlejší čtvrtiny běžců na úseku). Nemá sedět čas (ostatní běhají jinak rychle), ale pořadí a poměry úseků. Úsek, kde se model od kategorie liší o čtvrtinu a víc, ukazuje, kde mapa nebo model nesedí (špatně přečtený terén, zakázaný průchod, těžká dohledávka).":
-        "A check of the model, not advice for running: does the model order the legs of the race the same way as the class? The time of the best route by your model is compared with the reference time of the class (the average of the fastest quarter of runners on the leg). It is not the time that should fit (the others run at different speeds) but the order and the proportions of the legs. A leg where the model differs from the class by a quarter or more shows where the map or the model does not fit (a wrongly read terrain, a out-of-bounds passage, a hard search for the control).",
+        "A check of the model, not advice for running: does the model order the legs of the race the same way as the class? The time of the best route by your model is compared with the reference time of the class (the average of the fastest quarter of runners on the leg). It is not the time that should fit (the others run at different speeds) but the order and the proportions of the legs. A leg where the model differs from the class by a quarter or more shows where the map or the model does not fit (a wrongly read terrain, an out-of-bounds passage, a hard search for the control).",
     "Pořadová korelace":
         "Rank correlation",
     "Co to říká":

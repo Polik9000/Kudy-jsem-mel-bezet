@@ -147,3 +147,14 @@ def test_plural_and_numbers():
         assert i18n.plural(1, "a", "b", "c") == "a" and i18n.plural(3, "a", "b", "c") == "c"
         assert i18n.num(2.75, 1) in ("2.8", "2.7") and i18n._n(2, "x %(n)s", "y %(n)s", "z %(n)s") == "z 2"
     assert i18n.plural(3, "a", "b", "c") == "b" and i18n.num(2.5, 1) == "2,5"
+
+
+def test_texts_filled_in_by_the_code_keep_their_numbers():
+    """Messages the code formats with % itself (no named places) must keep their single %."""
+    from webapp.services import splits
+    for lang in ("cs", "en"):
+        with i18n.use(lang):
+            text = i18n.gettext("kategorie tu potřebuje o %.0f %% víc času, než odpovídá modelu: model je optimistický "
+                                "(špatně přečtená mapa, zakázaný průchod, nebo těžká dohledávka)") % 31.0
+            assert "31 %" in text, text
+    assert splits.__name__
