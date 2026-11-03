@@ -297,7 +297,7 @@ CROSSED = {
                 "If crossing was allowed, switch “Railways and motorways” to “do not use” in the race settings."),
     "motorway": ("crosses a motorway outside a crossing",
                  "If crossing was allowed, switch “Railways and motorways” to “do not use” in the race settings."),
-    "manual": ("crosses a impassable line drawn by hand",
+    "manual": ("crosses an impassable line drawn by hand",
                "If the line should not be there, whoever drew it can delete it in the race settings."),
     "area": ("goes through a out-of-bounds area from the map hatching",
              "If it was allowed there, switch “Out-of-bounds areas from the map” to “do not use” in the race settings."),

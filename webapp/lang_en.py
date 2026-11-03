@@ -510,7 +510,7 @@ EN = {
     "žádné šrafování na ní není.":
         "there is no hatching on it.",
     "Čte se křížové šrafování a šrafy ze svislých rovnoběžných čar; zakázanou hranici (jednu čáru) nakresli ručně.":
-        "Cross hatching and hatching of vertical parallel lines are read; draw a impassable boundary (a single line) by hand.",
+        "Cross hatching and hatching of vertical parallel lines are read; draw an impassable boundary (a single line) by hand.",
     "Šrafování se přečte z mapy s tratí, až ji někdo nahraje.":
         "The hatching is read from the map with course once somebody uploads it.",
     "Šrafování se přečte při první analýze s mapou bez tratě.":
@@ -530,7 +530,7 @@ EN = {
     "Plot, zakázaný prostor nebo trať, kterou OpenStreetMap nezná: nakresli čáru do mapy. Postup ji nesmí překročit. Čára je sdílená pro všechny běžce závodu a přepočítá postupy všem; smazat ji může jen ten, kdo ji nakreslil.":
         "A fence, a out-of-bounds area or a line that OpenStreetMap does not know: draw a line on the map. Routes must not cross it. The line is shared by all runners of the race and recomputes the routes for all of them; only the one who drew it can delete it.",
     "Nakreslit zakázanou čáru":
-        "Draw a impassable line",
+        "Draw an impassable line",
     "Nakreslit těžko překonatelnou čáru":
         "Draw a hardly passable line",
     "Kreslit jde, až bude závod analyzovaný (mapa s tratí a běh z hodinek).":
@@ -1289,8 +1289,8 @@ EN = {
         "DMR 5G (ČÚZK, laser scanning)",
     "AWS Terrain Tiles (zdroj kolem 30 m)":
         "AWS Terrain Tiles (source around 30 m)",
-    "Zakázané přechody: %(impassable)s zakázaných a %(hard)s těžko překonatelných čar, %(crossings)s průchodů":
-        "Impassable crossings: %(impassable)s impassable and %(hard)s hardly passable lines, %(crossings)s crossings",
+    "Zakázané přechody: %(forbidden)s zakázaných a %(hard)s těžko překonatelných čar, %(crossings)s průchodů":
+        "Impassable crossings: %(forbidden)s impassable and %(hard)s hardly passable lines, %(crossings)s crossings",
     "%(areas)s zakázaných prostorů ze šrafování mapy":
         "%(areas)s out-of-bounds areas from the hatching of the map",
     "Postupy jsou spočítané se starším modelem rychlosti. Přepočítat všechno je přepočítá u všech závodů s jedním modelem.":
