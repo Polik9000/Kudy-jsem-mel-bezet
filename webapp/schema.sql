@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS classes (
     course_file   TEXT,              -- map with the course printed: shared by the runners of this class
     course_by     INTEGER REFERENCES users(id),
     course_at     TEXT,
-    -- where the map with the course came from: kmz (Livelox, OB postupy) | image (a picture placed by the
+    -- where the map with the course came from: kmz (Livelox) | image (a picture placed by the
     -- circles) | photo (a photo placed by the circles) | manual (a photo placed by hand) | screen (a screenshot of
     -- Livelox, with one without the course: oroute/pair.py); NULL: from before
     course_source TEXT,

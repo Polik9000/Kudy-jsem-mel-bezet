@@ -26,7 +26,7 @@ your track.
 ## What is not in this repository
 
 This is a public copy of a private project. Left out on purpose:
-- **maps**: course and map-only KMZ from Livelox, ORIS or OB postupy belong to the race organisers and map authors;
+- **maps**: course and map-only KMZ from Livelox or ORIS belong to the race organisers and map authors;
   export your own from Livelox (KMZ, "map only" and "with course");
 - **runs**: no `.fit` files, no Garmin export, nothing derived from them, no demo races;
 - **screenshots** of the app and of maps from the development notes in `docs/`, so some notes link to pictures that
