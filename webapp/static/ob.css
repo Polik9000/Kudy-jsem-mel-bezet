@@ -309,8 +309,10 @@ path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fi
   .ob-ztr-mapa { height: 55vh; }
 }
 
-/* language switch (CZ | EN) at the end of the menu */
-.menuseznam .ob-jazyk { display: flex; gap: .4rem; padding: .5rem .8rem; }
-.menuseznam .ob-jazyk a { padding: .2rem .55rem; border: 1px solid currentColor; border-radius: 4px; font-size: .8rem;
-  opacity: .7; text-decoration: none; }
-.menuseznam .ob-jazyk a[aria-current] { opacity: 1; font-weight: 700; }
+/* language switch (CZ | EN) at the end of the menu: one pill, the chosen language filled */
+.menuseznam .ob-jazyk { display: flex; padding: .5rem .8rem; }
+.menuseznam .ob-jazyk a { padding: .25rem .8rem; border: 1px solid currentColor; font-size: .8rem; opacity: .7;
+  text-decoration: none; }
+.menuseznam .ob-jazyk a:first-child { border-radius: 999px 0 0 999px; }
+.menuseznam .ob-jazyk a:last-child { border-radius: 0 999px 999px 0; margin-left: -1px; }
+.menuseznam .ob-jazyk a[aria-current] { opacity: 1; font-weight: 700; background: rgba(255, 255, 255, .18); }
