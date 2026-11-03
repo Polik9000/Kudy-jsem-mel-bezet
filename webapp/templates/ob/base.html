@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0E7A1C">
+  <meta name="theme-color" content="{{ '#0F5C6E' if club.THEME == 'kudy' else '#0E7A1C' }}">
   <title>{% block title %}Rozbor postupů{% endblock %} · {{ club.NAME }}</title>
   {# the chosen light/dark mode goes on <html> before the styles load (key ob-rezim; without it the one the
      club site keeps, skob-rezim, see ob.js) #}
   <script>(function(){try{var r=localStorage.getItem("ob-rezim")||localStorage.getItem("skob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='skob.css') }}">
+  {# own look on top of the club layout (colours, type, header); OB_THEME=skob keeps the club site's look #}
+  {% if club.THEME == 'kudy' %}<link rel="stylesheet" href="{{ url_for('ob.static', filename='kudy.css') }}">{% endif %}
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='ob.css') }}">
   <link rel="icon" href="{{ url_for('ob.static', filename=club.LOGO) }}"{% if club.LOGO.endswith('.svg') %} type="image/svg+xml"{% endif %}>
   {% block head %}{% endblock %}
