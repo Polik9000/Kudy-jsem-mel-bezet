@@ -101,7 +101,8 @@ def create_app(instance=None):
         resp.headers.setdefault("Referrer-Policy", "same-origin")
         return resp
 
-    from . import security
+    from . import i18n, security
+    i18n.init_app(app)
     security.init_app(app)
     from .auth import bp as auth_bp
     from .views import bp as ob_bp

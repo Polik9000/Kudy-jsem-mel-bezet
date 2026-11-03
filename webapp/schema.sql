@@ -228,6 +228,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     payload     TEXT,                -- JSON
     status      TEXT NOT NULL DEFAULT 'queued',   -- queued | running | done | failed | stopped
     stop_requested INTEGER NOT NULL DEFAULT 0,   -- the runner asked to stop it (services/jobs.py)
+    lang        TEXT,                -- language of the page that started it (cs | en): the job's sentences use it
     message     TEXT,
     error       TEXT,
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),

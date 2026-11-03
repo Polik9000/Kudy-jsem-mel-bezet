@@ -1,20 +1,20 @@
 {% extends "ob/base.html" %}
-{% block title %}Závod {{ oris_id }}{% endblock %}
+{% block title %}{{ _('Závod') }} {{ oris_id }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ ev.name if ev else 'Závod ORIS ' ~ oris_id }}</h2>
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ ev.name if ev else _('Závod ORIS') ~ ' ' ~ oris_id }}</h2>
 <p class="evhead">{% if ev %}{{ ev.date | datum }}{% if ev.place %} · {{ ev.place }}{% endif %}{% endif %}</p>
 <div class="karta">
-  <p>Tenhle závod v seznamu svých závodů nemáš, takže k němu zatím není žádný rozbor.</p>
-  <p class="hint">Rozbor vznikne, když jsi závod běžel a je v ORIS pod tvým registračním číslem. Potom stačí nahrát běh
-    z hodinek (.fit) a mapu.</p>
+  <p>{% trans %}Tenhle závod v seznamu svých závodů nemáš, takže k němu zatím není žádný rozbor.{% endtrans %}</p>
+  <p class="hint">{% trans %}Rozbor vznikne, když jsi závod běžel a je v ORIS pod tvým registračním číslem. Potom stačí nahrát běh
+    z hodinek (.fit) a mapu.{% endtrans %}</p>
   <div class="controls zavododkazy">
     <form method="post" action="{{ url_for('ob.sync') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" class="btn btn-hlavni">Načíst moje závody z ORIS</button>
+      <button type="submit" class="btn btn-hlavni">{{ _('Načíst moje závody z ORIS') }}</button>
     </form>
-    <a class="btn btn-zdroj zdroj-prostor" href="{{ oris_url }}" rel="noopener">{{ ikona('prostor') }}Závod v ORIS</a>
+    <a class="btn btn-zdroj zdroj-prostor" href="{{ oris_url }}" rel="noopener">{{ ikona('prostor') }}{{ _('Závod v ORIS') }}</a>
     {% if club.ENABLED %}
-    <a class="btn btn-zdroj zdroj-start" href="{{ club.event(oris_id) }}">{{ ikona('start') }}Závod na klubovém webu</a>
+    <a class="btn btn-zdroj zdroj-start" href="{{ club.event(oris_id) }}">{{ ikona('start') }}{{ _('Závod na klubovém webu') }}</a>
     {% endif %}
   </div>
 </div>

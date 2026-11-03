@@ -1,5 +1,9 @@
-"""Czech wording for the numbers and English notes the analysis produces."""
+"""Czech wording for the numbers and English notes the analysis produces. In an English page the same functions
+answer from webapp/texts_en.py (see the end of this file)."""
+import functools
 import re
+
+from . import i18n
 
 
 def mmss(s, sign=False):
@@ -27,6 +31,24 @@ def parse_time(text):
 
 CONFIDENCE = {"high": ("jistá", "ob-ok"), "medium": ("pravděpodobná", "ob-warn"), "low": ("nejistá", "ob-bad"),
               "manual": ("ruční", "ob-ok"), "none": ("žádná", ""), None: ("žádná", "")}
+
+
+def confidence():
+    """CONFIDENCE in the language of the page: {key: (label, css class)}."""
+    from . import texts_en
+    return texts_en.CONFIDENCE if i18n.lang() == "en" else CONFIDENCE
+
+
+def screen_crop():
+    """The hint to crop a screenshot by hand."""
+    from . import texts_en
+    return texts_en.SCREEN_CROP if i18n.lang() == "en" else SCREEN_CROP
+
+
+def lost_name(kind):
+    """What the "I am lost" page calls a catching feature (in the list under the advice)."""
+    from . import texts_en
+    return texts_en.lost_name(kind) if i18n.lang() == "en" else LOST_NAMES.get(kind, (kind,))[0]
 
 _NOTES = [
     (r"no activity that day", "ten den není žádná aktivita"),
@@ -602,3 +624,23 @@ def official_reason(reason):
     if reason == "no official finish time":
         return "v ORIS chybí čas v cíli"
     return reason or ""
+
+
+# --- English: the same functions, answered by texts_en.py when the page is English ------------------------------------
+
+def _in_language(name):
+    cs = globals()[name]
+
+    @functools.wraps(cs)
+    def wrapper(*a, **kw):
+        if i18n.lang() == "en":
+            from . import texts_en
+            return getattr(texts_en, name)(*a, **kw)
+        return cs(*a, **kw)
+    globals()[name] = wrapper
+
+
+for _name in ("match_note", "flags", "gps_trouble", "mistake", "attack", "feature", "relocate", "beyond", "lost_advice",
+              "lost_note", "lost_moment", "crossed", "analysis_error", "photo_problem", "photo_failed", "screen_failed",
+              "screen_note", "georef_reason", "official_reason"):
+    _in_language(_name)

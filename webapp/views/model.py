@@ -8,32 +8,34 @@ from oroute import generic
 from oroute import terrain as T
 from oroute.speedmodel import PRIOR_SIGMA, SpeedModel
 
-from .. import cfg, get_db
+from .. import cfg, get_db, i18n
 from ..auth import login_required
 from ..db import loads
+from ..i18n import N_, _
 from ..services import charts, jobs, personal
 from ..services import splits as class_splits
 from . import bp
 
 TERRAIN_CS = {
-    "path/road": "cesta, silnice", "open land": "louka", "rough open": "hrubá louka",
-    "forest (runnable)": "les (dobře průběžný)", "undergrowth (stripes)": "podrost (zelené šrafy)",
-    "light green (slow run)": "světle zelená (pomalý běh)", "marsh": "bažina", "green (walk)": "zelená (chůze)",
-    "dark green (fight)": "tmavě zelená (prodírání)"}
+    "path/road": N_("cesta, silnice"), "open land": N_("louka"), "rough open": N_("hrubá louka"),
+    "forest (runnable)": N_("les (dobře průběžný)"), "undergrowth (stripes)": N_("podrost (zelené šrafy)"),
+    "light green (slow run)": N_("světle zelená (pomalý běh)"), "marsh": N_("bažina"),
+    "green (walk)": N_("zelená (chůze)"), "dark green (fight)": N_("tmavě zelená (prodírání)")}
 GRADES = [-30, -20, -15, -10, -5, 0, 5, 10, 15, 20, 30]
 TOP_LEGS = 3   # legs shown under the summary of the average runner
 
 
 def reason_label(kind, cls, pct, sprint=False):
-    """The reason of oroute.generic.compare in a few Czech words ("do kopce jsi rychlejší než průměr"; on a
+    """The reason of oroute.generic.compare in a few words ("do kopce jsi rychlejší než průměr"; on a
     sprint map in its words: "na otevřené ploše", not "na louce")."""
-    better = "rychlejší" if pct > 0 else "pomalejší"
+    better = _("rychlejší") if pct > 0 else _("pomalejší")
     if kind == "up":
-        return f"do kopce jsi {better} než průměr"
+        return _("do kopce jsi %(better)s než průměr", better=better)
     if kind == "down":
-        return f"z kopce jsi {better} než průměr"
+        return _("z kopce jsi %(better)s než průměr", better=better)
     c = T.NAMES.index(cls) if cls in T.NAMES else None
-    return f"{generic.words('cs', bool(sprint))[2].get(c, 'v terénu')} jsi {better} než průměr"
+    where = generic.words(i18n.lang(), bool(sprint))[2].get(c, _("v terénu"))
+    return _("%(where)s jsi %(better)s než průměr", where=where, better=better)
 
 
 def average_summary(db, user_id):
@@ -43,7 +45,8 @@ def average_summary(db, user_id):
         "SELECT l.n, l.name, e.id AS entry_id, ev.name AS event_name,"
         " json_extract(l.data, '$.generic.differs') AS differs, json_extract(l.data, '$.generic.gain') AS gain,"
         " json_extract(l.data, '$.generic.reason.kind') AS kind, json_extract(l.data, '$.generic.reason.cls') AS cls,"
-        " json_extract(l.data, '$.generic.reason.pct') AS pct, json_extract(l.data, '$.generic.text_cs') AS text,"
+        " json_extract(l.data, '$.generic.reason.pct') AS pct, json_extract(l.data, '$.generic.text_cs') AS text_cs,"
+        " json_extract(l.data, '$.generic.text_en') AS text_en,"
         " json_extract(l.data, '$.generic.sprint') AS sprint"
         " FROM legs l JOIN analyses a ON a.id = l.analysis_id JOIN entries e ON e.id = a.entry_id"
         " JOIN classes c ON c.id = e.class_id JOIN events ev ON ev.id = c.event_id"
@@ -58,7 +61,7 @@ def average_summary(db, user_id):
     return dict(legs=len(rows), races=len({r["entry_id"] for r in rows}), differ=len(differ), yours=len(yours),
                 level=len(differ) - len(yours), reasons=reasons.most_common(3),
                 top=[dict(entry_id=r["entry_id"], n=r["n"], name=r["name"], event=r["event_name"], gain=r["gain"],
-                          text=r["text"]) for r in top])
+                          text=(r["text_en"] or r["text_cs"]) if i18n.lang() == "en" else r["text_cs"]) for r in top])
 
 
 def tables(model):
@@ -73,9 +76,9 @@ def tables(model):
         v = model.v_flat * f
         # without own data the factor is the ISOM value, known only as well as that prior
         se = o.get("rel_se", PRIOR_SIGMA)
-        terrain.append(dict(name=cs, kmh=v * 3.6, pace=1000 / v, factor=f, seconds=o.get("seconds", 0),
+        terrain.append(dict(name=_(cs), kmh=v * 3.6, pace=1000 / v, factor=f, seconds=o.get("seconds", 0),
                             implied=o.get("implied"), prior=o.get("prior"), se=se, kmh_pm=v * 3.6 * se,
-                            trust="dobrá" if se < 0.08 else "střední" if se < 0.16 else "malá"))
+                            trust="good" if se < 0.08 else "medium" if se < 0.16 else "low"))
     terrain.sort(key=lambda r: -r["kmh"])
     forest = model.factors.get(T.FOREST, 0.75)
     hills = []
@@ -137,7 +140,7 @@ def model():
 def recompute_all():
     """Samples of every race, one model, then the routes of every race with it (handlers._recompute_all)."""
     jobs.enqueue(get_db(), "recompute_all", user_id=g.user["id"])
-    flash("Přepočítat všechno je ve frontě: postup uvidíš v seznamu úloh.", "ok")
+    flash(_("Přepočítat všechno je ve frontě: postup uvidíš v seznamu úloh."), "ok")
     back = request.form.get("zpet")
     return redirect(back if back and back.startswith("/") and not back.startswith("//") else url_for("ob.model"))
 
@@ -146,5 +149,5 @@ def recompute_all():
 @login_required
 def model_refit():
     jobs.enqueue(get_db(), "refit_model", user_id=g.user["id"])
-    flash("Přepočet osobního modelu je ve frontě.", "ok")
+    flash(_("Přepočet osobního modelu je ve frontě."), "ok")
     return redirect(url_for("ob.model"))

@@ -1,17 +1,17 @@
 {% extends "ob/base.html" %}
-{% block title %}Nový závod{% endblock %}
+{% block title %}{{ _('Nový závod') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}Přidat závod ručně</h2>
-<p class="evhead">Pro závody, které nejsou v ORIS (zahraničí, tréninky). České závody se načtou z ORIS samy; závod z ORIS,
-  na který nejsi přihlášený pod svou registračkou, přidáš <a href="{{ url_for('ob.race_oris') }}">z ORIS podle čísla</a>.</p>
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Přidat závod ručně') }}</h2>
+<p class="evhead">{% trans url=url_for('ob.race_oris') %}Pro závody, které nejsou v ORIS (zahraničí, tréninky). České závody se načtou z ORIS samy; závod z ORIS,
+  na který nejsi přihlášený pod svou registračkou, přidáš <a href="{{ url }}">z ORIS podle čísla</a>.{% endtrans %}</p>
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Název <input name="name" required value="{{ request.form.get('name', '') }}"></label>
-  <label>Datum <input name="date" type="date" required value="{{ request.form.get('date', '') }}"></label>
-  <label>Místo <input name="place" value="{{ request.form.get('place', '') }}"></label>
-  <label>Kategorie <input name="class_name" value="{{ request.form.get('class_name', '') }}" placeholder="H18"></label>
-  <label>Oficiální čas <input name="time" value="{{ request.form.get('time', '') }}" placeholder="55:07"></label>
-  <p class="hint">Čas slouží ke spárování s během z hodinek. Mezičasy se u ručního závodu berou z GPS.</p>
-  <button type="submit" class="btn btn-hlavni">Přidat</button>
+  <label>{{ _('Název') }} <input name="name" required value="{{ request.form.get('name', '') }}"></label>
+  <label>{{ _('Datum') }} <input name="date" type="date" required value="{{ request.form.get('date', '') }}"></label>
+  <label>{{ _('Místo') }} <input name="place" value="{{ request.form.get('place', '') }}"></label>
+  <label>{{ _('Kategorie') }} <input name="class_name" value="{{ request.form.get('class_name', '') }}" placeholder="H18"></label>
+  <label>{{ _('Oficiální čas') }} <input name="time" value="{{ request.form.get('time', '') }}" placeholder="55:07"></label>
+  <p class="hint">{% trans %}Čas slouží ke spárování s během z hodinek. Mezičasy se u ručního závodu berou z GPS.{% endtrans %}</p>
+  <button type="submit" class="btn btn-hlavni">{{ _('Přidat') }}</button>
 </form>
 {% endblock %}

@@ -36,6 +36,7 @@ ADDED_COLUMNS = [
     ("events", "maponly_res_m", "REAL"),
     ("events", "maponly_acc_m", "REAL"),
     ("jobs", "stop_requested", "INTEGER NOT NULL DEFAULT 0"),
+    ("jobs", "lang", "TEXT"),
     ("leg_notes", "corrected", "TEXT"),
     ("leg_notes", "control_desc", "TEXT"),
 ]

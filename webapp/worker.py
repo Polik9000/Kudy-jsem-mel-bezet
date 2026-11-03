@@ -8,6 +8,7 @@ import time
 import traceback
 
 from . import db as dbm
+from . import i18n
 from .config import Config
 from .services import jobs
 
@@ -38,7 +39,8 @@ def run_once(conf):
             fn = jobs.HANDLERS.get(job["kind"])
             if fn is None:
                 raise RuntimeError(f"unknown job kind {job['kind']!r}")
-            jobs.finish(ctx.con, job["id"], fn(ctx, job))
+            with i18n.use(job["lang"]):   # the sentences it stores are in the language of the page that started it
+                jobs.finish(ctx.con, job["id"], fn(ctx, job))
         except jobs.Stopped:             # the runner stopped it: what was half done is gone (services/runner.py)
             ctx.con.rollback()
             jobs.stopped(ctx.con, job["id"])
@@ -48,7 +50,7 @@ def run_once(conf):
         except Exception as e:  # a failed job must not stop the queue
             ctx.con.rollback()
             # the first line is what the page shows; the rest (cut from the front) goes under "Podrobnosti"
-            first, _, rest = f"{e}\n\n{traceback.format_exc()}".partition("\n")
+            first, _nl, rest = f"{e}\n\n{traceback.format_exc()}".partition("\n")
             jobs.fail(ctx.con, job["id"], first + "\n" + rest[-4000:])
             print(f"job {job['id']} ({job['kind']}) failed: {e}", flush=True)
         finally:

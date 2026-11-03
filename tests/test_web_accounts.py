@@ -170,7 +170,8 @@ def test_runner_closes_their_own_account_from_the_profile(app, client, user):
     post(client, "/logout")                                                 # scene() ends logged in as the clubmate
     assert post(client, "/login", username="BFM0903", password="tajneheslo").status_code == 302
     html = client.get("/profile").get_data(as_text=True)
-    assert "Zrušení účtu" in html and "závody v aplikaci (3)" in html and "běhy z hodinek\n    (1)" in html
+    flat = " ".join(html.split())          # the page wraps its lines where the template does
+    assert "Zrušení účtu" in html and "závody v aplikaci (3)" in flat and "běhy z hodinek (1)" in flat
     # the password confirms it
     r = client.post("/account/delete", data=dict(csrf_token=csrf(client), password="spatneheslo"), follow_redirects=True)
     assert "Heslo nesedí, účet zůstává." in r.get_data(as_text=True) and count("SELECT COUNT(*) FROM users") == 2

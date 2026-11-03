@@ -6,6 +6,7 @@ import re
 
 from .. import oris
 from ..db import dumps
+from ..i18n import _
 from . import matching
 from . import splits as class_splits
 from .sync_oris import upsert_class, upsert_event
@@ -36,9 +37,9 @@ def load_event(con, conf, oris_id, client=None):
     try:
         ev = (client or oris.client(conf)).event(oris_id)
     except (oris.OrisError, KeyError, TypeError, ValueError) as e:
-        raise Refused(f"Závod {oris_id} se z ORIS načíst nepodařilo. Je číslo závodu správně?") from e
+        raise Refused(_("Závod %(oris_id)s se z ORIS načíst nepodařilo. Je číslo závodu správně?", oris_id=oris_id)) from e
     if ev["cancelled"]:
-        raise Refused(f"Závod {ev['name']} je v ORIS zrušený.")
+        raise Refused(_("Závod %(name)s je v ORIS zrušený.", name=ev['name']))
     event_id = upsert_event(con, ev)
     for c in ev["classes"]:
         upsert_class(con, event_id, c)
@@ -86,13 +87,13 @@ def change_class(con, conf, user, entry_id, class_id, client=None):
                     " WHERE e.id = ? AND e.user_id = ?", (entry_id, user["id"])).fetchone()
     cls = con.execute("SELECT * FROM classes WHERE id = ?", (class_id,)).fetchone()
     if e is None or cls is None or cls["event_id"] != e["event_id"] or cls["oris_id"] is None:
-        raise Refused("Taková kategorie u závodu není.")
+        raise Refused(_("Taková kategorie u závodu není."))
     if cls["id"] == e["cid"]:
         con.execute("UPDATE entries SET class_chosen = 1 WHERE id = ?", (entry_id,))
         con.commit()
-        return f"Kategorie {cls['name']} zůstává."
+        return _("Kategorie %(name)s zůstává.", name=cls['name'])
     if con.execute("SELECT 1 FROM entries WHERE user_id = ? AND class_id = ?", (user["id"], cls["id"])).fetchone():
-        raise Refused(f"Závod v kategorii {cls['name']} už mezi svými závody máš.")
+        raise Refused(_("Závod v kategorii %(name)s už mezi svými závody máš.", name=cls['name']))
     t = runner_times(con, conf, cls, user["oris_regno"], client)
     con.execute("UPDATE entries SET class_id = ?, class_chosen = 1 WHERE id = ?", (cls["id"], entry_id))
     _put_times(con, entry_id, cls, t)
@@ -100,9 +101,9 @@ def change_class(con, conf, user, entry_id, class_id, client=None):
     con.execute("DELETE FROM leg_notes WHERE entry_id = ?", (entry_id,))
     con.commit()
     matching.queue_analysis(con, entry_id)
-    return (f"Kategorie změněna na {cls['name']}. "
-            + ("Oficiální čas a mezičasy jsou z jejích výsledků." if t and t["time_s"] is not None
-               else "Ve výsledcích této kategorie v ORIS nejsi, mezičasy se vezmou z GPS."))
+    return (_("Kategorie změněna na %(name)s. ", name=cls['name'])
+            + (_("Oficiální čas a mezičasy jsou z jejích výsledků.") if t and t["time_s"] is not None
+               else _("Ve výsledcích této kategorie v ORIS nejsi, mezičasy se vezmou z GPS.")))
 
 
 def add_race(con, conf, user, class_id, client=None):
@@ -110,18 +111,18 @@ def add_race(con, conf, user, class_id, client=None):
     (entry id, Czech message); a race the runner already has gives that entry."""
     cls = con.execute("SELECT * FROM classes WHERE id = ? AND oris_id IS NOT NULL", (class_id,)).fetchone()
     if cls is None:
-        raise Refused("Taková kategorie u závodu není.")
+        raise Refused(_("Taková kategorie u závodu není."))
     have = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id"
                        " WHERE e.user_id = ? AND c.event_id = ? ORDER BY e.id LIMIT 1",
                        (user["id"], cls["event_id"])).fetchone()
     if have:
-        return have["id"], "Tenhle závod už mezi svými závody máš; kategorii změníš na jeho stránce."
+        return have["id"], _("Tenhle závod už mezi svými závody máš; kategorii změníš na jeho stránce.")
     t = runner_times(con, conf, cls, user["oris_regno"], client)
     entry_id = con.execute("INSERT INTO entries (user_id, class_id, class_chosen) VALUES (?, ?, 1)",
                            (user["id"], cls["id"])).lastrowid
     _put_times(con, entry_id, cls, t)
     con.commit()
     matching.match_user(con, user["id"])
-    return entry_id, (f"Závod přidán v kategorii {cls['name']}. "
-                      + ("Oficiální čas a mezičasy jsou z ORIS." if t and t["time_s"] is not None
-                         else "Ve výsledcích této kategorie v ORIS nejsi, mezičasy se vezmou z GPS."))
+    return entry_id, (_("Závod přidán v kategorii %(name)s. ", name=cls['name'])
+                      + (_("Oficiální čas a mezičasy jsou z ORIS.") if t and t["time_s"] is not None
+                         else _("Ve výsledcích této kategorie v ORIS nejsi, mezičasy se vezmou z GPS.")))

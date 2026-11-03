@@ -1,5 +1,5 @@
 """What the race page shows: the stored analysis read through the runner's notes (oroute.annotations)."""
-from .. import texts
+from .. import i18n, texts
 from ..db import loads
 from . import personal
 
@@ -53,7 +53,8 @@ def legs_view(con, entry, analysis, event_id, ws=None, geometry=True):
             parts=rd["parts"], deliberate_s=rd["deliberate_s"], refreshment_s=rd["refreshment_s"],
             in_model=rd["in_model"], loss=rd["parts"]["route"] + rd["parts"]["mistake"] + rd["parts"]["fatigue"],
             flags=texts.flags(d, summary.get("vref") or 0.0, rd["deliberate_s"]),
-            explain=r["explain_cs"], best_route=loads(r["best_route"]), note=note_dict(notes.get(r["n"])),
+            explain=(r["explain_en"] or r["explain_cs"]) if i18n.lang() == "en" else r["explain_cs"],
+            best_route=loads(r["best_route"]), note=note_dict(notes.get(r["n"])),
             ws=ws.get(r["n"]) if len(ws) and len(reads) == ws_legs else None,
             alts=d.get("alts") or [], balanced=bool(d.get("balanced")), crossed=texts.crossed(d.get("crossed")),
             # a leg drawn by hand: the shape of its GPS track says nothing, so no kind of mistake from it

@@ -308,3 +308,9 @@ path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fi
   .ob-ztr-telo { grid-template-columns: 1fr; }
   .ob-ztr-mapa { height: 55vh; }
 }
+
+/* language switch (CZ | EN) at the end of the menu */
+.menuseznam .ob-jazyk { display: flex; gap: .4rem; padding: .5rem .8rem; }
+.menuseznam .ob-jazyk a { padding: .2rem .55rem; border: 1px solid currentColor; border-radius: 4px; font-size: .8rem;
+  opacity: .7; text-decoration: none; }
+.menuseznam .ob-jazyk a[aria-current] { opacity: 1; font-weight: 700; }

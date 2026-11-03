@@ -13,6 +13,7 @@ import tempfile
 
 from .. import texts
 from ..db import loads
+from ..i18n import _
 from . import jobs, matching, runner, storage
 
 PHOTO_SOURCES = ("image", "photo", "manual")
@@ -111,7 +112,7 @@ def place(ctx, job, p):
         else:                                  # of another view
             maponly_p = conf.path(kept["maponly_file"]) if kept and kept["maponly_file"] else None
         if course_p is None or not os.path.exists(course_p) or (maponly_p and not os.path.exists(maponly_p)):
-            raise jobs.Refused("Snímek s tratí už tu není; nahraj znovu oba snímky.")
+            raise jobs.Refused(_("Snímek s tratí už tu není; nahraj znovu oba snímky."))
         crop = p.get("crop")
         if crop is None and kept and "course" not in new:
             crop = loads(kept["crop"])         # the same view as before: the map cut out by hand still holds
@@ -119,7 +120,7 @@ def place(ctx, job, p):
             course = _open(course_p)
             maponly = _open(maponly_p) if maponly_p else None
         except (OSError, ValueError, Image.DecompressionBombError) as e:
-            raise jobs.Refused("Snímek se nepodařilo otevřít jako obrázek (png nebo jpg).") from e
+            raise jobs.Refused(_("Snímek se nepodařilo otevřít jako obrázek (png nebo jpg).")) from e
         lat0, lon0 = georef.track_frame(track)
         ground = georef.ground_course(track, georef.local_frame(lat0, lon0), start_s, cumulative)
         try:
@@ -131,7 +132,7 @@ def place(ctx, job, p):
                 _store(con, conf, cid, uid, course_p, maponly_p, kept, course.size, crop,
                        dict(box=[0, 0, course.size[0], course.size[1]], reliable=False, notes=[], res=None))
                 con.commit()
-                text += " " + texts.SCREEN_CROP
+                text += " " + texts.screen_crop()
             raise jobs.Refused(text) from e
         if r["swapped"]:
             course_p, maponly_p = maponly_p, course_p
@@ -142,8 +143,8 @@ def place(ctx, job, p):
         before = storage.course_source(conf, cls)
         class_changed = event_changed = False
         if before == "kmz":
-            said.append(f"Snímek s tratí usazen podle {f['n']} z {f['controls']} kontrol (odchylka {f['rms']:.0f} m); "
-                        "mapa s tratí z KMZ zůstává, je přesnější.")
+            said.append(_("Snímek s tratí usazen podle %(n)s z %(controls)s kontrol (odchylka %(rms).0f m); "
+                            "mapa s tratí z KMZ zůstává, je přesnější.", n=f['n'], controls=f['controls'], rms=f['rms']))
         else:
             gm, img = r["course"]
             fd, tmp = tempfile.mkstemp(suffix=".kmz", dir=conf.path("incoming"))
@@ -154,31 +155,33 @@ def place(ctx, job, p):
                         " course_source = 'screen', course_rms = ?, course_n = ?, course_edge_m = ? WHERE id = ?",
                         (rel, uid, round(f["rms"], 1), f["n"], round(r["edge_m"], 1), cid))
             class_changed = True
-            replaced = {"image": " Nahradil mapu z obrázku.", "photo": " Nahradil mapu z fotky.",
-                        "manual": " Nahradil mapu z fotky.", "screen": " Nahradil předchozí snímek."}.get(before, "")
-            said.append(f"Snímek s tratí usazen podle {f['n']} z {f['controls']} kontrol, odchylka {f['rms']:.0f} m."
+            replaced = {"image": _(" Nahradil mapu z obrázku."), "photo": " Nahradil mapu z fotky.",
+                        "manual": " Nahradil mapu z fotky.", "screen": _(" Nahradil předchozí snímek.")}.get(before, "")
+            said.append(_("Snímek s tratí usazen podle %(n)s z %(controls)s kontrol, odchylka %(rms).0f m.",
+                n=f['n'], controls=f['controls'], rms=f['rms'])
                         + replaced)
         if maponly is not None:
             ev = con.execute("SELECT maponly_file, maponly_source FROM events WHERE id = ?", (eid,)).fetchone()
             if ev["maponly_file"] and (ev["maponly_source"] or "kmz") == "kmz":
-                said.append("Pro závod už je mapa bez tratě z KMZ, která je přesnější; snímek bez tratě se nepoužil.")
+                said.append(_("Pro závod už je mapa bez tratě z KMZ, která je přesnější; snímek bez tratě se "
+                                "nepoužil."))
             elif r["maponly"] is not None:
                 gm, img = r["maponly"]
                 fd, tmp = tempfile.mkstemp(suffix=".kmz", dir=conf.path("incoming"))
                 os.close(fd)
-                georef.write_kmz(tmp, img, gm, name=name + " bez tratě", png=True)
+                georef.write_kmz(tmp, img, gm, name=name + _(" bez tratě"), png=True)
                 rel = storage.save_map(conf, tmp, eid)
                 con.execute("UPDATE events SET maponly_file = ?, maponly_by = ?, maponly_at = datetime('now'),"
                             " maponly_source = 'snimek', maponly_res_m = ?, maponly_acc_m = ? WHERE id = ?",
                             (rel, uid, round(r["out_res"], 2), round(r["accuracy"]), eid))
                 event_changed = True
                 res = f"{r['out_res']:.1f}".replace(".", ",")
-                said.append(f"Mapa bez tratě uložena pro celý závod ({res} m na pixel, přesnost asi "
-                            f"±{r['accuracy']:.0f} m)."
-                            + (" Nahradila předchozí snímek." if ev["maponly_source"] == "snimek" else ""))
+                said.append(_("Mapa bez tratě uložena pro celý závod (%(res)s m na pixel, přesnost asi "
+                                "±%(accuracy).0f m).", res=res, accuracy=r['accuracy'])
+                            + (_(" Nahradila předchozí snímek.") if ev["maponly_source"] == "snimek" else ""))
         if "shifted" in r["notes"] and r["shift"]:
-            said.append(f"Mapa se mezi snímky posunula o {max(1, round(abs(complex(*r['shift']))))} px, vyrovnal "
-                        "jsem to.")
+            said.append(_("Mapa se mezi snímky posunula o %(max)s px, vyrovnal jsem to.",
+                max=max(1, round(abs(complex(*r['shift']))))))
         for code in r["notes"]:
             t = texts.screen_note(code, r["res"])
             if t:
@@ -197,7 +200,7 @@ def place(ctx, job, p):
             who = []
         queued = [matching.queue_analysis(con, w["id"]) for w in who]
         if any(q is not None for q in queued):
-            said.append("Analýza je ve frontě.")
+            said.append(_("Analýza je ve frontě."))
         return " ".join(said)
     finally:
         for path in new.values():

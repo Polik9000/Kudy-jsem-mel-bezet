@@ -4,6 +4,7 @@ from oroute import splits as S
 
 from .. import oris
 from ..db import dumps, loads
+from ..i18n import _
 from . import charts
 
 
@@ -58,16 +59,16 @@ def agreement(t, model_times):
     a = S.rank_agreement(model_times, t["ref"], leg_names(t["n_legs"]))
     if a is None or a["rho"] is None:
         return None
-    a["verdict"] = ("model řadí úseky stejně jako kategorie" if a["rho"] >= 0.9 else
-                    "model řadí úseky podobně jako kategorie" if a["rho"] >= 0.75 else
-                    "model řadí úseky jinak než kategorie, ber nejlepší postupy s rezervou")
+    a["verdict"] = (_("model řadí úseky stejně jako kategorie") if a["rho"] >= 0.9 else
+                    _("model řadí úseky podobně jako kategorie") if a["rho"] >= 0.75 else
+                    _("model řadí úseky jinak než kategorie, ber nejlepší postupy s rezervou"))
     for l in a["legs"]:
         pct = (l["dev"] - 1) * 100
         l["pct"] = pct
-        l["text"] = ("kategorie tu potřebuje o %.0f %% víc času, než odpovídá modelu: model je optimistický "
-                     "(špatně přečtená mapa, zakázaný průchod, nebo těžká dohledávka)" % pct if pct >= 25 else
-                     "kategorie je tu o %.0f %% rychlejší, než odpovídá modelu: model je pesimistický "
-                     "(terén je průběžnější, než říká mapa, nebo vede lepší postup)" % -pct if pct <= -20 else "")
+        l["text"] = (_("kategorie tu potřebuje o %.0f %% víc času, než odpovídá modelu: model je optimistický "
+                         "(špatně přečtená mapa, zakázaný průchod, nebo těžká dohledávka)") % pct if pct >= 25 else
+                     _("kategorie je tu o %.0f %% rychlejší, než odpovídá modelu: model je pesimistický (terén "
+                         "je průběžnější, než říká mapa, nebo vede lepší postup)") % -pct if pct <= -20 else "")
     a["outliers"] = [l for l in a["legs"] if l["text"]][:5]
     return a
 
@@ -101,8 +102,8 @@ def view(con, entry, regno, model_times=None):
                                     best=t["best"][k], rank=t["ranks"][k], index=l["index"],
                                     expected=l["expected"], loss=l["loss"], mistake=l["mistake"]))
         out["bars"] = charts.bars_chart([l["loss"] for l in a["legs"]], names, set(m - 1 for m in mistakes),
-                                        ylabel="ztráta proti tvému normálu",
-                                        title="Ztráta na úsecích proti tvému normálnímu výkonu")
+                                        ylabel=_("ztráta proti tvému normálu"),
+                                        title=_("Ztráta na úsecích proti tvému normálnímu výkonu"))
     else:
         for k in range(n):
             out["legs"].append(dict(n=k + 1, name=names[k], code=codes[k], time=None, ref=t["ref"][k],

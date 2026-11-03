@@ -1,120 +1,120 @@
 {% extends "ob/base.html" %}
-{% block title %}Můj model rychlosti{% endblock %}
+{% block title %}{{ _('Můj model rychlosti') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('graf', 'ikona-nadpis') }}Profil rychlostního modelu</h2>
+<h2 class="s-ikonou">{{ ikona('graf', 'ikona-nadpis') }}{{ _('Profil rychlostního modelu') }}</h2>
 {% if not model %}
-<div class="prazdno empty">{{ ikona('graf', 'ikona-velka') }}Model se spočítá sám po první analýze závodu, ke kterému je
-  mapa s tratí, mapa bez tratě a běh z hodinek.</div>
+<div class="prazdno empty">{{ ikona('graf', 'ikona-velka') }}{% trans %}Model se spočítá sám po první analýze závodu, ke kterému je
+  mapa s tratí, mapa bez tratě a běh z hodinek.{% endtrans %}</div>
 {% else %}
-<p class="evhead">Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech. Nový závod
-  nebo poznámka ho změní; postupy ostatních závodů se přepočítají tlačítkem Přepočítat všechno.</p>
+<p class="evhead">{% trans %}Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech. Nový závod
+  nebo poznámka ho změní; postupy ostatních závodů se přepočítají tlačítkem Přepočítat všechno.{% endtrans %}</p>
 <div class="ob-karty3">
-  <div class="karta"><b>Terén</b><span>{{ personal.races | length }} {{ 'závod' if personal.races | length == 1 else 'závody' if personal.races | length < 5 else 'závodů' }}</span></div>
-  <div class="karta"><b>Kopce</b><span>{% if slope_own %}{{ slope.activities }} běhů z Garminu{% else %}výchozí tvar (bez exportu z Garminu){% endif %}</span></div>
-  <div class="karta"><b>Vliv stoupání</b><span>1 m nahoru = <b class="ob-cislo">{{ '%.1f' | format(model.up_k) | replace('.', ',') }}</b> m po rovině</span></div>
+  <div class="karta"><b>{{ _('Terén') }}</b><span>{{ personal.races | length }} {{ plural(personal.races | length, _('závod'), _('závody'), _('závodů')) }}</span></div>
+  <div class="karta"><b>{{ _('Kopce') }}</b><span>{% if slope_own %}{% trans n=slope.activities %}{{ n }} běhů z Garminu{% endtrans %}{% else %}{% trans %}výchozí tvar (bez exportu z Garminu){% endtrans %}{% endif %}</span></div>
+  <div class="karta"><b>{{ _('Vliv stoupání') }}</b><span>{% trans k=num(model.up_k, 1) %}1 m nahoru = <b class="ob-cislo">{{ k }}</b> m po rovině{% endtrans %}</span></div>
 </div>
 <div class="karta ob-pruhy-karta">
-  <h3>Moje rychlost po rovině (km/h)</h3>
+  <h3>{{ _('Moje rychlost po rovině (km/h)') }}</h3>
   {% set vmax = (terrain | map(attribute='kmh') | max) or 1 %}
   <div class="ob-pruhy">
     {% for r in terrain | sort(attribute='kmh', reverse=True) %}
-    <div class="ob-pruh{{ ' malo' if r.trust == 'malá' }}"><span class="jmeno">{{ r.name }}{{ ' *' if r.trust == 'malá' }}</span>
+    <div class="ob-pruh{{ ' malo' if r.trust == 'low' }}"><span class="jmeno">{{ r.name }}{{ ' *' if r.trust == 'low' }}</span>
       <span class="pruh"><i style="width: {{ '%.1f' | format(100 * r.kmh / vmax) }}%"></i></span>
-      <span class="ob-cislo">{{ '%.1f' | format(r.kmh) | replace('.', ',') }} km/h</span>
-      {% if r.trust == 'malá' %}<span class="stav ob-warn">málo dat, převážně odhad</span>{% endif %}</div>
+      <span class="ob-cislo">{{ num(r.kmh, 1) }} km/h</span>
+      {% if r.trust == 'low' %}<span class="stav ob-warn">{{ _('málo dat, převážně odhad') }}</span>{% endif %}</div>
     {% endfor %}
   </div>
 </div>
 <div class="karta">
   <dl class="detaily">
-    <dt>Rychlost na rovné cestě</dt>
-    <dd><b>{{ '%.1f' | format(model.v_flat * 3.6) }} km/h</b> ({{ (1000 / model.v_flat) | mmss }} min/km)</dd>
-    <dt>Z čeho</dt>
-    <dd>čisté úseky (bez chyb) z {{ personal.races | length }} závodů; novější mají vyšší váhu
-      (poločas {{ personal.half_life_days | int }} dní)</dd>
-    <dt>Spočítáno</dt><dd>{{ fitted_at | kdy }}</dd>
+    <dt>{{ _('Rychlost na rovné cestě') }}</dt>
+    <dd><b>{{ num(model.v_flat * 3.6, 1) }} km/h</b> ({{ (1000 / model.v_flat) | mmss }} min/km)</dd>
+    <dt>{{ _('Z čeho') }}</dt>
+    <dd>{% trans races=personal.races | length, days=personal.half_life_days | int %}čisté úseky (bez chyb) z {{ races }} závodů; novější mají vyšší váhu
+      (poločas {{ days }} dní){% endtrans %}</dd>
+    <dt>{{ _('Spočítáno') }}</dt><dd>{{ fitted_at | kdy }}</dd>
   </dl>
   <form method="post" action="{{ url_for('ob.model_refit') }}" class="controls ob-odkazy">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn">Přepočítat teď</button>
+    <button type="submit" class="btn">{{ _('Přepočítat teď') }}</button>
   </form>
   {% include "ob/_recompute.html" %}
 </div>
 
-<h2>Proti průměrnému běžci</h2>
+<h2>{{ _('Proti průměrnému běžci') }}</h2>
 {% if average %}
-<p>Na <b>{{ average.yours }}</b> z {{ average.legs }} úseků ({{ '%.0f' | format(100 * average.yours / average.legs) }} %,
-  {{ average.races }} {{ 'závod' if average.races == 1 else 'závody' if average.races < 5 else 'závodů' }})
-  je tvůj nejlepší postup jiný a rychlejší než postup běžce s průměrným modelem.
-  {% if average.level %}Na dalších {{ average.level }} by průměrný běžec běžel jinudy, ale tobě by to trvalo skoro stejně.{% endif %}
-  {% if average.reasons %}Nejčastěji proto, že {% for text, k in average.reasons %}{{ text }} ({{ k }}×){{ ', ' if not loop.last else '.' }}{% endfor %}{% endif %}</p>
+<p>{% trans yours=average.yours, legs=average.legs, pct='%.0f' | format(100 * average.yours / average.legs), races=average.races, race_word=plural(average.races, _('závod'), _('závody'), _('závodů')) %}Na <b>{{ yours }}</b> z {{ legs }} úseků ({{ pct }} %,
+  {{ races }} {{ race_word }})
+  je tvůj nejlepší postup jiný a rychlejší než postup běžce s průměrným modelem.{% endtrans %}
+  {% if average.level %}{% trans n=average.level %}Na dalších {{ n }} by průměrný běžec běžel jinudy, ale tobě by to trvalo skoro stejně.{% endtrans %}{% endif %}
+  {% if average.reasons %}{{ _('Nejčastěji proto, že') }} {% for text, k in average.reasons %}{{ text }} ({{ k }}×){{ ', ' if not loop.last else '.' }}{% endfor %}{% endif %}</p>
 {% if average.top %}
 <ul class="ob-pro-tebe-seznam">
   {% for t in average.top %}
-  <li><a href="{{ url_for('ob.race', entry_id=t.entry_id) }}#usek-{{ t.n }}">{{ t.event }}, úsek {{ t.name }}</a>
-    (o {{ t.gain | mmss }} rychlejší): {{ t.text }}</li>
+  <li><a href="{{ url_for('ob.race', entry_id=t.entry_id) }}#usek-{{ t.n }}">{% trans event=t.event, leg=t.name %}{{ event }}, úsek {{ leg }}{% endtrans %}</a>
+    ({% trans gain=t.gain | mmss %}o {{ gain }} rychlejší{% endtrans %}): {{ t.text }}</li>
   {% endfor %}
 </ul>
 {% endif %}
-<p class="hint">Průměrný běžec tu je model z učebnice: sklon podle učebnicového pravidla, terény podle normy ISOM a tvoje
-  rychlost po rovné cestě. Porovnává se tedy tvar tvého modelu, ne kondice.{% if not slope_own %} Bez tvého exportu
-  z Garminu nemáš vlastní model kopců, proto se porovnávají jen terény.{% endif %}</p>
+<p class="hint">{% trans %}Průměrný běžec tu je model z učebnice: sklon podle učebnicového pravidla, terény podle normy ISOM a tvoje
+  rychlost po rovné cestě. Porovnává se tedy tvar tvého modelu, ne kondice.{% endtrans %}{% if not slope_own %} {% trans %}Bez tvého exportu
+  z Garminu nemáš vlastní model kopců, proto se porovnávají jen terény.{% endtrans %}{% endif %}</p>
 {% else %}
-<p class="hint">Spočítá se po přepočtu nejlepších postupů (u závodu „Přepočítat postupy“).</p>
+<p class="hint">{% trans %}Spočítá se po přepočtu nejlepších postupů (u závodu „Přepočítat postupy“).{% endtrans %}</p>
 {% endif %}
 
-<h2>Terény</h2>
+<h2>{{ _('Terény') }}</h2>
 <div class="tablewrap"><table>
-  <thead><tr><th data-sort="text">Terén</th><th class="num" data-sort="number">km/h</th><th class="num">min/km</th>
-      <th class="num" data-sort="number">vůči cestě</th><th class="num" data-sort="number">kolik dat (s)</th>
-      <th class="num">data říkají</th><th class="num">výchozí (ISOM)</th><th class="num" data-sort="number">nejistota</th>
-      <th>spolehlivost</th></tr></thead>
+  <thead><tr><th data-sort="text">{{ _('Terén') }}</th><th class="num" data-sort="number">km/h</th><th class="num">min/km</th>
+      <th class="num" data-sort="number">{{ _('vůči cestě') }}</th><th class="num" data-sort="number">{{ _('kolik dat (s)') }}</th>
+      <th class="num">{{ _('data říkají') }}</th><th class="num">{{ _('výchozí (ISOM)') }}</th><th class="num" data-sort="number">{{ _('nejistota') }}</th>
+      <th>{{ _('spolehlivost') }}</th></tr></thead>
   <tbody>
   {% for r in terrain %}
-  <tr><td>{{ r.name }}</td><td class="num"><b>{{ '%.1f' | format(r.kmh) }}</b></td><td class="num">{{ r.pace | mmss }}</td>
+  <tr><td>{{ r.name }}</td><td class="num"><b>{{ num(r.kmh, 1) }}</b></td><td class="num">{{ r.pace | mmss }}</td>
       <td class="num" data-value="{{ r.factor }}">{{ '%.0f' | format(r.factor * 100) }} %</td>
       <td class="num">{{ r.seconds }}</td>
       <td class="num">{% if r.implied is not none %}{{ '%.0f' | format(r.implied * 100) }} %{% endif %}</td>
       <td class="num">{% if r.prior is not none %}{{ '%.0f' | format(r.prior * 100) }} %{% endif %}</td>
-      <td class="num" data-value="{{ r.se }}">± {{ '%.1f' | format(r.kmh_pm) }} km/h ({{ '%.0f' | format(r.se * 100) }} %)</td>
-      <td><span class="stav {{ 'ob-ok' if r.trust == 'dobrá' else 'ob-warn' if r.trust == 'střední' else '' }}">{{ r.trust }}</span></td></tr>
+      <td class="num" data-value="{{ r.se }}">± {{ num(r.kmh_pm, 1) }} km/h ({{ '%.0f' | format(r.se * 100) }} %)</td>
+      <td><span class="stav {{ 'ob-ok' if r.trust == 'good' else 'ob-warn' if r.trust == 'medium' else '' }}">{{ {'good': _('dobrá'), 'medium': _('střední'), 'low': _('malá')}[r.trust] }}</span></td></tr>
   {% endfor %}
   </tbody>
 </table></div>
-<p class="hint">Rychlosti platí na rovině. „Výchozí“ je hodnota podle mapového klíče ISOM; čím víc sekund v terénu máš,
+<p class="hint">{% trans %}Rychlosti platí na rovině. „Výchozí“ je hodnota podle mapového klíče ISOM; čím víc sekund v terénu máš,
   tím víc se použitá hodnota posune k tomu, co říkají tvoje data. Nejistota je odhad jedné směrodatné odchylky:
   vychází z rozptylu tvých rychlostí v terénu a z toho, kolik nezávislých měření to je (15 s běhu = jedno);
-  terén bez dat má nejistotu výchozí hodnoty (asi 25 %).</p>
+  terén bez dat má nejistotu výchozí hodnoty (asi 25 %).{% endtrans %}</p>
 
-<h2>Kopce</h2>
+<h2>{{ _('Kopce') }}</h2>
 <div class="ob-radek">
   <div>
     {{ slope_chart }}
-    <p class="hint">Čára je model, tečky jsou naměřené hodnoty z běhů po 30 s. Nad čárkovanou jedničkou je to pomalejší
-      než po rovině. 1 m stoupání stojí jako {{ '%.1f' | format(model.up_k) }} m běhu po rovině.
-      {% if slope_own %}Tvar kopců je spočítaný z tvých běhů v Garmin exportu ({{ slope.activities }} běhů).
-      {% else %}Tvar kopců je zatím výchozí (z běhů autora aplikace). Vlastní se spočítá, když nahraješ celý export z Garminu.{% endif %}</p>
+    <p class="hint">{% trans k=num(model.up_k, 1) %}Čára je model, tečky jsou naměřené hodnoty z běhů po 30 s. Nad čárkovanou jedničkou je to pomalejší
+      než po rovině. 1 m stoupání stojí jako {{ k }} m běhu po rovině.{% endtrans %}
+      {% if slope_own %}{% trans n=slope.activities %}Tvar kopců je spočítaný z tvých běhů v Garmin exportu ({{ n }} běhů).{% endtrans %}
+      {% else %}{% trans %}Tvar kopců je zatím výchozí (z běhů autora aplikace). Vlastní se spočítá, když nahraješ celý export z Garminu.{% endtrans %}{% endif %}</p>
   </div>
   <div class="tablewrap"><table>
-    <thead><tr><th class="num">Sklon</th><th class="num">čas ×</th><th class="num">cesta km/h</th>
-        <th class="num">cesta min/km</th><th class="num">les km/h</th></tr></thead>
+    <thead><tr><th class="num">{{ _('Sklon') }}</th><th class="num">{{ _('čas ×') }}</th><th class="num">{{ _('cesta km/h') }}</th>
+        <th class="num">{{ _('cesta min/km') }}</th><th class="num">{{ _('les km/h') }}</th></tr></thead>
     <tbody>
     {% for h in hills %}
-    <tr><td class="num">{{ '%+d' | format(h.grade) }} %</td><td class="num">{{ '%.2f' | format(h.mult) }}</td>
-        <td class="num"><b>{{ '%.1f' | format(h.path_kmh) }}</b></td><td class="num">{{ h.path_pace | mmss }}</td>
-        <td class="num">{{ '%.1f' | format(h.forest_kmh) }}</td></tr>
+    <tr><td class="num">{{ '%+d' | format(h.grade) }} %</td><td class="num">{{ num(h.mult, 2) }}</td>
+        <td class="num"><b>{{ num(h.path_kmh, 1) }}</b></td><td class="num">{{ h.path_pace | mmss }}</td>
+        <td class="num">{{ num(h.forest_kmh, 1) }}</td></tr>
     {% endfor %}
     </tbody>
   </table></div>
 </div>
 
-<h2>Závody v modelu</h2>
+<h2>{{ _('Závody v modelu') }}</h2>
 <div class="tablewrap"><table>
-  <thead><tr><th>Závod</th><th class="num">Datum</th><th class="num">Váha</th><th class="num">Čisté sekundy</th>
-      {% if check %}<th class="num">předpověď z ostatních závodů</th><th class="num">chyba po úsecích</th>{% endif %}</tr></thead>
+  <thead><tr><th>{{ _('Závod') }}</th><th class="num">{{ _('Datum') }}</th><th class="num">{{ _('Váha') }}</th><th class="num">{{ _('Čisté sekundy') }}</th>
+      {% if check %}<th class="num">{{ _('předpověď z ostatních závodů') }}</th><th class="num">{{ _('chyba po úsecích') }}</th>{% endif %}</tr></thead>
   <tbody>
   {% for r in personal.races %}
-  <tr><td>{{ r.title }}</td><td class="num">{{ r.date | datum }}</td><td class="num">{{ '%.2f' | format(r.weight) }}</td>
+  <tr><td>{{ r.title }}</td><td class="num">{{ r.date | datum }}</td><td class="num">{{ num(r.weight, 2) }}</td>
       <td class="num">{{ r.clean_seconds }}</td>
       {% if check %}{% set c = check.get(r.title) %}
       <td class="num">{% if c %}{{ '%+.1f' | format(c.total_err) }} %{% endif %}</td>
@@ -123,37 +123,37 @@
   </tbody>
 </table></div>
 {% if check %}
-<p class="hint">„Předpověď z ostatních závodů“ je zkouška modelu: závod se vynechá, model se spočítá ze zbylých a jeho
-  čas na čistých úsecích vynechaného závodu se porovná se skutečným. Kladné číslo znamená, že model čekal delší čas.</p>
+<p class="hint">{% trans %}„Předpověď z ostatních závodů“ je zkouška modelu: závod se vynechá, model se spočítá ze zbylých a jeho
+  čas na čistých úsecích vynechaného závodu se porovná se skutečným. Kladné číslo znamená, že model čekal delší čas.{% endtrans %}</p>
 {% endif %}
 
 {% if fit %}
-<h2 id="jak-sedi">Jak dobře model sedí</h2>
-<p class="hint">Kontrola modelu, ne rada pro běh: řadí model úseky závodu stejně jako kategorie? Porovnává se čas
+<h2 id="jak-sedi">{{ _('Jak dobře model sedí') }}</h2>
+<p class="hint">{% trans %}Kontrola modelu, ne rada pro běh: řadí model úseky závodu stejně jako kategorie? Porovnává se čas
   nejlepšího postupu podle tvého modelu s referenčním časem kategorie (průměr nejrychlejší čtvrtiny běžců na úseku).
   Nemá sedět čas (ostatní běhají jinak rychle), ale pořadí a poměry úseků. Úsek, kde se model od kategorie liší o
-  čtvrtinu a víc, ukazuje, kde mapa nebo model nesedí (špatně přečtený terén, zakázaný průchod, těžká dohledávka).</p>
+  čtvrtinu a víc, ukazuje, kde mapa nebo model nesedí (špatně přečtený terén, zakázaný průchod, těžká dohledávka).{% endtrans %}</p>
 <div class="tablewrap"><table>
-  <thead><tr><th>Závod</th><th class="num">Datum</th><th class="num">Pořadová korelace</th><th>Co to říká</th>
-      <th>Úseky, kde se liší</th></tr></thead>
+  <thead><tr><th>{{ _('Závod') }}</th><th class="num">{{ _('Datum') }}</th><th class="num">{{ _('Pořadová korelace') }}</th><th>{{ _('Co to říká') }}</th>
+      <th>{{ _('Úseky, kde se liší') }}</th></tr></thead>
   <tbody>
   {% for f in fit %}{% set a = f.agreement %}
   <tr><td><a href="{{ url_for('ob.race', entry_id=f.entry_id) }}">{{ f.name }}</a></td><td class="num">{{ f.date | datum }}</td>
-      <td class="num">{{ '%.2f' | format(a.rho) }} ({{ a.n }} úseků)</td><td class="ob-wrap">{{ a.verdict }}</td>
+      <td class="num">{{ num(a.rho, 2) }} ({% trans n=a.n %}{{ n }} úseků{% endtrans %})</td><td class="ob-wrap">{{ a.verdict }}</td>
       <td class="ob-wrap">{% if a.outliers %}<details><summary>{{ a.outliers | length }}</summary><ul>
-        {% for l in a.outliers %}<li><b>{{ l.name }}</b> model {{ l.model | mmss }}, reference {{ l.ref | mmss }}
-          ({{ '%+.0f' | format(l.pct) }} %): {{ l.text }}</li>{% endfor %}</ul></details>{% else %}žádné{% endif %}</td></tr>
+        {% for l in a.outliers %}<li>{% trans name=l.name, model=l.model | mmss, ref=l.ref | mmss, pct='%+.0f' | format(l.pct), text=l.text %}<b>{{ name }}</b> model {{ model }}, reference {{ ref }}
+          ({{ pct }} %): {{ text }}{% endtrans %}</li>{% endfor %}</ul></details>{% else %}{{ _('žádné') }}{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table></div>
 {% endif %}
 
-<h2>Historie modelu</h2>
+<h2>{{ _('Historie modelu') }}</h2>
 <div class="tablewrap"><table>
-  <thead><tr><th>Spočítáno</th><th class="num">Závodů</th><th class="num">Rovná cesta km/h</th></tr></thead>
+  <thead><tr><th>{{ _('Spočítáno') }}</th><th class="num">{{ _('Závodů') }}</th><th class="num">{{ _('Rovná cesta km/h') }}</th></tr></thead>
   <tbody>
   {% for h in history %}
-  <tr><td>{{ h.fitted_at | kdy }}</td><td class="num">{{ h.races }}</td><td class="num">{{ '%.1f' | format(h.v_flat) }}</td></tr>
+  <tr><td>{{ h.fitted_at | kdy }}</td><td class="num">{{ h.races }}</td><td class="num">{{ num(h.v_flat, 1) }}</td></tr>
   {% endfor %}
   </tbody>
 </table></div>

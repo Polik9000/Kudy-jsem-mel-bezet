@@ -5,6 +5,8 @@ import math
 
 from markupsafe import Markup, escape
 
+from ..i18n import _
+
 
 def ticks(lo, hi, n=6):
     """About n round values covering lo..hi."""
@@ -87,14 +89,15 @@ def slope_chart(model, curve=(), lo=-30, hi=30):
     curve = [c for c in curve if lo <= c["grade"] * 100 <= hi]
     top = max(float(mult.max()), max((c["pace_mult"] for c in curve), default=0)) * 1.05
     fr = Frame((lo, hi), (0, top), height=300)
-    parts = fr.axes(ticks(lo, hi, 12), ticks(0, top, 6), "sklon ve směru běhu (%)", "čas × proti rovině",
+    parts = fr.axes(ticks(lo, hi, 12), ticks(0, top, 6), _("sklon ve směru běhu (%)"), _("čas × proti rovině"),
                     xfmt=lambda v: f"{v:+g}" if v else "0", yfmt=lambda v: f"{v:g}×")
     parts.append(f'<path class="ref" d="M{fr.l} {fr.y(1):.1f}H{fr.w - fr.r}"/>')
     parts.append(f'<path class="ja" d="{fr.path(list(zip(g.tolist(), mult.tolist())))}"/>')
     for c in curve:
+        runs = _("%(n)s úseků po 30 s", n=c["n"])
         parts.append(f'<circle class="bod" cx="{fr.x(c["grade"] * 100):.1f}" cy="{fr.y(c["pace_mult"]):.1f}" r="3">'
-                     f'<title>{c["grade"] * 100:+.1f} %: {c["pace_mult"]:.2f}× ({c["n"]} úseků po 30 s)</title></circle>')
-    return fr.svg(parts, "Křivka sklonu: kolikrát déle trvá metr běhu podle sklonu")
+                     f'<title>{c["grade"] * 100:+.1f} %: {c["pace_mult"]:.2f}× ({runs})</title></circle>')
+    return fr.svg(parts, _("Křivka sklonu: kolikrát déle trvá metr běhu podle sklonu"))
 
 
 SPLITS_TOP = 42      # room above the plot of the split-time graph for the numbers of the controls (px), two rows
@@ -122,8 +125,8 @@ def splits_chart(runners, ref_cum, me=None, mistakes=(), max_others=60):
     step = 300 if ref_cum[-1] <= 3600 else 600
     xt = [v for v in range(0, int(ref_cum[-1]) + 1, step)]
     parts = fr.axes(xt, [v for v in ticks(ymin, ymax, 8) if v >= ymin],
-                    "referenční čas (průměr nejlepší čtvrtiny na úseku)", "ztráta na referenci", xfmt=mmss, yfmt=mmss)
-    parts.append(f'<text x="{fr.l - 6}" y="{fr.t - 8}" text-anchor="end">kontrola</text>')
+                    _("referenční čas (průměr nejlepší čtvrtiny na úseku)"), _("ztráta na referenci"), xfmt=mmss, yfmt=mmss)
+    parts.append(f'<text x="{fr.l - 6}" y="{fr.t - 8}" text-anchor="end">{_("kontrola")}</text>')
     last = [-1e9, -1e9]          # x of the last number in the lower and the upper row: close ones go to the other
     for k, c in enumerate(ref_cum[:-1]):
         x = fr.x(c)
@@ -149,9 +152,10 @@ def splits_chart(runners, ref_cum, me=None, mistakes=(), max_others=60):
         for n in mistakes:
             c = r["cum"][n - 1]
             if c is not None:
+                wrong = _("chyba na úseku %(n)s", n=n)
                 parts.append(f'<circle class="chyba" cx="{fr.x(ref_cum[n - 1]):.1f}" cy="{fr.y(c - ref_cum[n - 1]):.1f}" '
-                             f'r="4.5"><title>chyba na úseku {n}</title></circle>')
-    return fr.svg(parts, "Graf mezičasů kategorie")
+                             f'r="4.5"><title>{wrong}</title></circle>')
+    return fr.svg(parts, _("Graf mezičasů kategorie"))
 
 
 def bars_chart(values, labels, flagged=(), ylabel="", title="", yfmt=mmss):

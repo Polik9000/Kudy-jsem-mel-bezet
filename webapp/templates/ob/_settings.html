@@ -3,122 +3,124 @@
    and refreshment points are shared by everyone who ran the event; each says who added it. #}
 <form method="post" action="{{ url_for('ob.race_settings', entry_id=e.id) }}" id="nastaveni-zavodu" class="controls">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button type="submit" class="btn btn-hlavni">Uložit moje nastavení a přepočítat postupy</button>
-  <span class="hint">Platí jen pro tvůj rozbor: ostatním, kdo závod běželi, se nic nepřepočítá.</span>
+  <button type="submit" class="btn btn-hlavni">{{ _('Uložit moje nastavení a přepočítat postupy') }}</button>
+  <span class="hint">{% trans %}Platí jen pro tvůj rozbor: ostatním, kdo závod běželi, se nic nepřepočítá.{% endtrans %}</span>
 </form>
 <div class="ob-radek">
   <div class="karta">
-    <h3>Železnice a dálnice</h3>
-    <p class="hint">Trať železnice, dálnice a silnice pro motorová vozidla se berou z OpenStreetMap. Přejezdy, mosty
-      a podchody zůstávají průchozí.</p>
+    <h3>{{ _('Železnice a dálnice') }}</h3>
+    <p class="hint">{% trans %}Trať železnice, dálnice a silnice pro motorová vozidla se berou z OpenStreetMap. Přejezdy, mosty
+      a podchody zůstávají průchozí.{% endtrans %}</p>
     {# both switches belong to one form (id nastaveni-zavodu, above the cards): one save, one recalculation #}
     {% for value, label, hint in [
-      ('', 'jako závod', 'výchozí nastavení závodu, teď „' ~ mode_names[e.event_osm_mode] ~ '“'),
-      ('forbid', 'zakázáno', 'postup přes ně nikdy nevede (jen přejezdem, mostem nebo podchodem)'),
-      ('penalty', 'jen znevýhodněno', 'jde je překonat kdekoli, ale stojí to hodně času'),
-      ('off', 'nepoužívat', 'překážky z OpenStreetMap se v mém rozboru ignorují')] %}
+      ('', _('jako závod'), _('výchozí nastavení závodu, teď „%(mode)s“', mode=mode_names[e.event_osm_mode])),
+      ('forbid', _('zakázáno'), _('postup přes ně nikdy nevede (jen přejezdem, mostem nebo podchodem)')),
+      ('penalty', _('jen znevýhodněno'), _('jde je překonat kdekoli, ale stojí to hodně času')),
+      ('off', _('nepoužívat'), _('překážky z OpenStreetMap se v mém rozboru ignorují'))] %}
     <label class="check"><input type="radio" name="osm_mode" form="nastaveni-zavodu" value="{{ value }}"{% if (e.own_osm_mode or '') == value %} checked{% endif %}>
       <span><b>{{ label }}</b>: {{ hint }}</span></label>
     {% endfor %}
     {% if osm_info %}
-    <p class="hint">Staženo {{ osm_info.fetched | datum }}: {{ osm_info.lines }} úseků překážek,
-      {{ osm_info.crossings }} přechodů. Zdroj: © přispěvatelé OpenStreetMap, licence ODbL.</p>
+    <p class="hint">{% trans fetched=osm_info.fetched | datum, lines=osm_info.lines, crossings=osm_info.crossings %}Staženo {{ fetched }}: {{ lines }} úseků překážek,
+      {{ crossings }} přechodů. Zdroj: © přispěvatelé OpenStreetMap, licence ODbL.{% endtrans %}</p>
     {% elif not osm_enabled %}
-    <p class="hint">Stahování z OpenStreetMap je v této instalaci vypnuté (<code>OB_OSM=0</code>).</p>
+    <p class="hint">{% trans %}Stahování z OpenStreetMap je v této instalaci vypnuté (<code>OB_OSM=0</code>).{% endtrans %}</p>
     {% elif not e.maponly_file %}
-    <p class="hint">Překážky se stáhnou při první analýze s mapou bez tratě.</p>
+    <p class="hint">{% trans %}Překážky se stáhnou při první analýze s mapou bez tratě.{% endtrans %}</p>
     {% else %}
-    <p class="hint">Překážky se stáhnou při příští analýze závodu.</p>
+    <p class="hint">{% trans %}Překážky se stáhnou při příští analýze závodu.{% endtrans %}</p>
     {% endif %}
   </div>
   <div class="karta">
-    <h3>Zakázané prostory z mapy</h3>
-    <p class="hint">Fialové šrafování (zakázaný prostor) se čte z mapy s tratí. Postup do něj nevede a v mapě
-      je vybarvený. Prostory se čtou z mapy každé kategorie zvlášť.</p>
+    <h3>{{ _('Zakázané prostory z mapy') }}</h3>
+    <p class="hint">{% trans %}Fialové šrafování (zakázaný prostor) se čte z mapy s tratí. Postup do něj nevede a v mapě
+      je vybarvený. Prostory se čtou z mapy každé kategorie zvlášť.{% endtrans %}</p>
     {% for value, label, hint in [
-      ('', 'jako závod', 'výchozí nastavení závodu, teď „' ~ mode_names[e.event_hatch_mode] ~ '“'),
-      ('forbid', 'zakázáno', 'postup se šrafovanému prostoru vyhne'),
-      ('off', 'nepoužívat', 'šrafování se v mém rozboru ignoruje (třeba když se přečetlo špatně)')] %}
+      ('', _('jako závod'), _('výchozí nastavení závodu, teď „%(mode)s“', mode=mode_names[e.event_hatch_mode])),
+      ('forbid', _('zakázáno'), _('postup se šrafovanému prostoru vyhne')),
+      ('off', _('nepoužívat'), _('šrafování se v mém rozboru ignoruje (třeba když se přečetlo špatně)'))] %}
     <label class="check"><input type="radio" name="hatch_mode" form="nastaveni-zavodu" value="{{ value }}"{% if (e.own_hatch_mode or '') == value %} checked{% endif %}>
       <span><b>{{ label }}</b>: {{ hint }}</span></label>
     {% endfor %}
     {% if hatch_info %}
-    <p class="hint">Přečteno {{ hatch_info.read | datum }} z tvé mapy s tratí:
-      {% if hatch_info.areas %}zakázaných prostorů {{ hatch_info.areas | length }}.{% else %}žádné šrafování na ní není.{% endif %}
-      Čte se křížové šrafování a šrafy ze svislých rovnoběžných čar; zakázanou hranici (jednu čáru) nakresli ručně.</p>
+    <p class="hint">{% trans read=hatch_info.read | datum %}Přečteno {{ read }} z tvé mapy s tratí:{% endtrans %}
+      {% if hatch_info.areas %}{% trans n=hatch_info.areas | length %}zakázaných prostorů {{ n }}.{% endtrans %}{% else %}{% trans %}žádné šrafování na ní není.{% endtrans %}{% endif %}
+      {% trans %}Čte se křížové šrafování a šrafy ze svislých rovnoběžných čar; zakázanou hranici (jednu čáru) nakresli ručně.{% endtrans %}</p>
     {% elif not e.course_file %}
-    <p class="hint">Šrafování se přečte z mapy s tratí, až ji někdo nahraje.</p>
+    <p class="hint">{% trans %}Šrafování se přečte z mapy s tratí, až ji někdo nahraje.{% endtrans %}</p>
     {% elif not e.maponly_file %}
-    <p class="hint">Šrafování se přečte při první analýze s mapou bez tratě.</p>
+    <p class="hint">{% trans %}Šrafování se přečte při první analýze s mapou bez tratě.{% endtrans %}</p>
     {% else %}
-    <p class="hint">Šrafování se přečte při příští analýze závodu.</p>
+    <p class="hint">{% trans %}Šrafování se přečte při příští analýze závodu.{% endtrans %}</p>
     {% endif %}
   </div>
   <div class="karta">
-    <h3>Výchozí nastavení závodu</h3>
-    <p class="hint">Platí pro každého, kdo si výše nezvolil vlastní. Změnit ho může jen ten, kdo nahrál mapu bez
-      tratě{% if e.maponly_who and e.maponly_by != user.id %} ({{ e.maponly_who }}){% endif %}; přepočítají se pak jen
-      běžci bez vlastního nastavení.</p>
+    <h3>{{ _('Výchozí nastavení závodu') }}</h3>
+    <p class="hint">{% if e.maponly_who and e.maponly_by != user.id %}{% trans who=e.maponly_who %}Platí pro každého, kdo si výše nezvolil vlastní. Změnit ho může jen ten, kdo nahrál mapu bez
+      tratě ({{ who }}); přepočítají se pak jen
+      běžci bez vlastního nastavení.{% endtrans %}{% else %}{% trans %}Platí pro každého, kdo si výše nezvolil vlastní. Změnit ho může jen ten, kdo nahrál mapu bez
+      tratě; přepočítají se pak jen
+      běžci bez vlastního nastavení.{% endtrans %}{% endif %}</p>
     {% if e.maponly_by == user.id %}
     <form method="post" action="{{ url_for('ob.race_settings', entry_id=e.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="scope" value="event">
-      <label class="ob-pole">Železnice a dálnice
+      <label class="ob-pole">{{ _('Železnice a dálnice') }}
         <select name="osm_mode">{% for value in ('forbid', 'penalty', 'off') %}
           <option value="{{ value }}"{% if e.event_osm_mode == value %} selected{% endif %}>{{ mode_names[value] }}</option>{% endfor %}
         </select></label>
-      <label class="ob-pole">Zakázané prostory z mapy
+      <label class="ob-pole">{{ _('Zakázané prostory z mapy') }}
         <select name="hatch_mode">{% for value in ('forbid', 'off') %}
           <option value="{{ value }}"{% if e.event_hatch_mode == value %} selected{% endif %}>{{ mode_names[value] }}</option>{% endfor %}
         </select></label>
-      <button type="submit" class="btn">Uložit výchozí nastavení závodu</button>
+      <button type="submit" class="btn">{{ _('Uložit výchozí nastavení závodu') }}</button>
     </form>
     {% else %}
     <dl class="detaily">
-      <dt>Železnice a dálnice</dt><dd>{{ mode_names[e.event_osm_mode] }}</dd>
-      <dt>Zakázané prostory z mapy</dt><dd>{{ mode_names[e.event_hatch_mode] }}</dd>
+      <dt>{{ _('Železnice a dálnice') }}</dt><dd>{{ mode_names[e.event_osm_mode] }}</dd>
+      <dt>{{ _('Zakázané prostory z mapy') }}</dt><dd>{{ mode_names[e.event_hatch_mode] }}</dd>
     </dl>
     {% endif %}
   </div>
   <div class="karta">
-    <h3>Ruční zakázané čáry</h3>
-    <p class="hint">Plot, zakázaný prostor nebo trať, kterou OpenStreetMap nezná: nakresli čáru do mapy. Postup ji
+    <h3>{{ _('Ruční zakázané čáry') }}</h3>
+    <p class="hint">{% trans %}Plot, zakázaný prostor nebo trať, kterou OpenStreetMap nezná: nakresli čáru do mapy. Postup ji
       nesmí překročit. Čára je sdílená pro všechny běžce závodu a přepočítá postupy všem; smazat ji může jen ten,
-      kdo ji nakreslil.</p>
+      kdo ji nakreslil.{% endtrans %}</p>
     {% if analysis %}
     <div class="controls">
-      <button type="button" class="btn" data-ob-add="forbidden">Nakreslit zakázanou čáru</button>
-      <button type="button" class="btn" data-ob-add="hard">Nakreslit těžko překonatelnou čáru</button>
+      <button type="button" class="btn" data-ob-add="forbidden">{{ _('Nakreslit zakázanou čáru') }}</button>
+      <button type="button" class="btn" data-ob-add="hard">{{ _('Nakreslit těžko překonatelnou čáru') }}</button>
     </div>
     {% else %}
-    <p class="muted">Kreslit jde, až bude závod analyzovaný (mapa s tratí a běh z hodinek).</p>
+    <p class="muted">{% trans %}Kreslit jde, až bude závod analyzovaný (mapa s tratí a běh z hodinek).{% endtrans %}</p>
     {% endif %}
     {% if barriers %}
     <div class="tablewrap"><table>
-      <thead><tr><th>Čára</th><th>Druh</th><th class="num">Délka</th><th>Přidal</th><th></th></tr></thead>
+      <thead><tr><th>{{ _('Čára') }}</th><th>{{ _('Druh') }}</th><th class="num">{{ _('Délka') }}</th><th>{{ _('Přidal') }}</th><th></th></tr></thead>
       <tbody>
       {% for b in barriers %}
-      <tr><td>{{ loop.index }}</td><td>{{ 'těžko překonatelná' if b.kind == 'hard' else 'zakázaná' }}</td>
-          <td class="num">{{ b.length_m | int }} m</td><td>{{ b.by or 'zrušený účet' }}</td>
+      <tr><td>{{ loop.index }}</td><td>{{ _('těžko překonatelná') if b.kind == 'hard' else _('zakázaná') }}</td>
+          <td class="num">{{ b.length_m | int }} m</td><td>{{ b.by or _('zrušený účet') }}</td>
           <td>{% if b.mine %}<form method="post" action="{{ url_for('ob.barrier_remove', entry_id=e.id, bid=b.id) }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-maly">Smazat</button></form>{% endif %}</td></tr>
+              <button type="submit" class="btn btn-maly">{{ _('Smazat') }}</button></form>{% endif %}</td></tr>
       {% endfor %}
       </tbody>
     </table></div>
-    {% else %}<p class="muted">Zatím žádná.</p>{% endif %}
-    <p class="hint">„Zakázaná“ znamená zákaz (nekonečná cena, ISOM 708 a 709). „Těžko překonatelná“ není zákaz, jen
-      velká ztráta času (nepřekonatelný sráz, hustý plot): postup ji překročí, jen když se to hodně vyplatí.</p>
+    {% else %}<p class="muted">{% trans %}Zatím žádná.{% endtrans %}</p>{% endif %}
+    <p class="hint">{% trans %}„Zakázaná“ znamená zákaz (nekonečná cena, ISOM 708 a 709). „Těžko překonatelná“ není zákaz, jen
+      velká ztráta času (nepřekonatelný sráz, hustý plot): postup ji překročí, jen když se to hodně vyplatí.{% endtrans %}</p>
   </div>
   <div class="karta">
-    <h3>Občerstvovačka</h3>
-    <p class="hint">Zastávky do 30 m od značky se berou jako schválné automaticky, všem běžcům závodu. Smazat ji
-      může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).</p>
+    <h3>{{ _('Občerstvovačka') }}</h3>
+    <p class="hint">{% trans %}Zastávky do 30 m od značky se berou jako schválné automaticky, všem běžcům závodu. Smazat ji
+      může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).{% endtrans %}</p>
     {% if analysis %}
-    <div class="controls"><button type="button" class="btn" data-ob-add="refresh">Přidat občerstvovačku</button></div>
+    <div class="controls"><button type="button" class="btn" data-ob-add="refresh">{{ _('Přidat občerstvovačku') }}</button></div>
     {% endif %}
     {% if refreshes %}
-    <ul>{% for r in refreshes %}<li>občerstvovačka {{ loop.index }}: přidal {{ r.by or 'zrušený účet' }}</li>{% endfor %}</ul>
-    {% else %}<p class="muted">Zatím žádná.</p>{% endif %}
+    <ul>{% for r in refreshes %}<li>{% trans n=loop.index, who=r.by or _('zrušený účet') %}občerstvovačka {{ n }}: přidal {{ who }}{% endtrans %}</li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% trans %}Zatím žádná.{% endtrans %}</p>{% endif %}
   </div>
 </div>

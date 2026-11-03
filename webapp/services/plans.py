@@ -42,7 +42,7 @@ def price(con, conf, entry_id, again=False):
         if p is None:
             continue
         plan = dict(results.route(p["plan"]), delta=p["delta"], off_m=p["off_m"], text=p["text_cs"],
-                    crossed=[c["at"] for c in p.get("crossed") or []])
+                    text_en=p.get("text_en"), crossed=[c["at"] for c in p.get("crossed") or []])
         # only when the line is still the one that was priced (it may have been drawn again meanwhile)
         n += con.execute("UPDATE leg_notes SET plan = ? WHERE entry_id = ? AND leg_n = ? AND planned = ?",
                          (dumps(plan), entry_id, r["leg_n"], r["planned"])).rowcount

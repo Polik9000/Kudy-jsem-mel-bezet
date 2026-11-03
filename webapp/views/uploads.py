@@ -3,6 +3,7 @@ from flask import abort, flash, g, redirect, render_template, request, url_for
 
 from .. import cfg, get_db
 from ..auth import login_required
+from ..i18n import _
 from ..services import jobs, matching, storage
 from . import bp, go
 
@@ -18,14 +19,14 @@ def upload():
             kind = "fit" if name.endswith(".fit") else "zip" if name.endswith(".zip") else None
             if kind is None:
                 if name:
-                    flash(f"{f.filename}: nahrát jde jen .fit nebo .zip.", "error")
+                    flash(_("%(filename)s: nahrát jde jen .fit nebo .zip.", filename=f.filename), "error")
                 continue
             rel, path = storage.incoming(cfg(), "." + kind)
             f.save(path)  # streamed to disk; a Garmin export can have gigabytes
             jobs.enqueue(db, "import_upload", user_id=g.user["id"], payload=dict(file=rel, name=f.filename, kind=kind))
             n += 1
         if n:
-            flash(f"Nahráno souborů: {n}. Zpracují se na pozadí a samy se spárují se závody.", "ok")
+            flash(_("Nahráno souborů: %(n)s. Zpracují se na pozadí a samy se spárují se závody.", n=n), "ok")
             return go(url_for("ob.jobs_page"))
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return go(url_for("ob.upload"))  # the page it loads next shows why the files were refused
@@ -48,9 +49,9 @@ def activity_delete(activity_id):
     if row is None:
         abort(404)
     if row["paired"]:
-        flash("Běh je spárovaný se závodem. Nejdřív u závodu vyber jiný běh.", "error")
+        flash(_("Běh je spárovaný se závodem. Nejdřív u závodu vyber jiný běh."), "error")
     else:
         storage.drop_activity(db, cfg(), activity_id)
         db.commit()
-        flash("Běh je smazaný.", "ok")
+        flash(_("Běh je smazaný."), "ok")
     return redirect(url_for("ob.upload"))

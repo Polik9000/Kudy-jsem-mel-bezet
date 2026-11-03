@@ -1,57 +1,57 @@
 {% extends "ob/base.html" %}
-{% block title %}Moje závody{% endblock %}
+{% block title %}{{ _('Moje závody') }}{% endblock %}
 {% block body_attrs %} data-obnovit{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('archiv', 'ikona-nadpis') }}Přehled závodů</h2>
-<p class="evhead">Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.
-  {% if user.oris_synced_at %}ORIS načten {{ user.oris_synced_at | kdy }}.{% endif %}</p>
+<h2 class="s-ikonou">{{ ikona('archiv', 'ikona-nadpis') }}{{ _('Přehled závodů') }}</h2>
+<p class="evhead">{% trans %}Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.{% endtrans %}
+  {% if user.oris_synced_at %}{% trans when=user.oris_synced_at | kdy %}ORIS načten {{ when }}.{% endtrans %}{% endif %}</p>
 {% if local_app and not user.oris_regno %}
-<p class="karta">Závody z ORIS se načtou samy, když v <a href="{{ url_for('ob.profile') }}">Profilu</a> zadáš svoje
-  registrační číslo ORIS. Bez něj můžeš závod přidat z ORIS nebo ručně.</p>
+<p class="karta">{% trans url=url_for('ob.profile') %}Závody z ORIS se načtou samy, když v <a href="{{ url }}">Profilu</a> zadáš svoje
+  registrační číslo ORIS. Bez něj můžeš závod přidat z ORIS nebo ručně.{% endtrans %}</p>
 {% endif %}
 {% if sync and sync.status == 'failed' %}
-<p class="stalewarn">Poslední načtení z ORIS se nepovedlo: {{ sync.error.splitlines()[0] }}</p>
+<p class="stalewarn">{% trans error=sync.error.splitlines()[0] %}Poslední načtení z ORIS se nepovedlo: {{ error }}{% endtrans %}</p>
 {% endif %}
 <div class="controls">
   <form method="post" action="{{ url_for('ob.sync') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-hlavni">Načíst závody z ORIS</button>
+    <button type="submit" class="btn btn-hlavni">{{ _('Načíst závody z ORIS') }}</button>
   </form>
-  <a class="btn" href="{{ url_for('ob.upload') }}">{{ ikona('kompas') }}Nahrát běhy</a>
-  <a class="btn" href="{{ url_for('ob.race_oris') }}">Přidat závod z ORIS</a>
-  <a class="btn" href="{{ url_for('ob.race_new') }}">Přidat závod ručně</a>
+  <a class="btn" href="{{ url_for('ob.upload') }}">{{ ikona('kompas') }}{{ _('Nahrát běhy') }}</a>
+  <a class="btn" href="{{ url_for('ob.race_oris') }}">{{ _('Přidat závod z ORIS') }}</a>
+  <a class="btn" href="{{ url_for('ob.race_new') }}">{{ _('Přidat závod ručně') }}</a>
   {% if counts.hotovo %}{% include "ob/_recompute.html" %}{% endif %}
   <span class="spacer"></span>
   {% if seasons | length > 1 %}
   <form method="get">
-    <label>Sezóna
+    <label>{{ _('Sezóna') }}
       <select name="sezona" onchange="this.form.submit()">
-        <option value="">všechny</option>
+        <option value="">{{ _('všechny') }}</option>
         {% for s in seasons %}<option value="{{ s }}"{% if s == season %} selected{% endif %}>{{ s }}</option>{% endfor %}
       </select></label>
     {% if only %}<input type="hidden" name="jen" value="{{ only }}">{% endif %}
   </form>
   {% endif %}
-  {% if entries %}<input type="search" data-filter="#zavody" placeholder="Hledat závod" aria-label="Hledat závod">{% endif %}
+  {% if entries %}<input type="search" data-filter="#zavody" placeholder="{{ _('Hledat závod') }}" aria-label="{{ _('Hledat závod') }}">{% endif %}
 </div>
 {% if counts.total %}
 <div class="ob-karty3 ob-prehled">
-  <div class="karta"><b class="ob-cislo">{{ counts.total }}</b><span>{{ 'závod' if counts.total == 1 else 'závody' if counts.total < 5 else 'závodů' }}{% if season %} v sezóně {{ season }}{% endif %}</span></div>
-  <div class="karta"><b class="ob-cislo">{{ counts.hotovo }}</b><span>s hotovým rozborem</span></div>
-  <div class="karta"><b class="ob-cislo">{{ counts.mapa + counts.aktivita }}</b><span>čeká na mapu nebo běh z hodinek</span></div>
+  <div class="karta"><b class="ob-cislo">{{ counts.total }}</b><span>{{ plural(counts.total, _('závod'), _('závody'), _('závodů')) }}{% if season %} {% trans season=season %}v sezóně {{ season }}{% endtrans %}{% endif %}</span></div>
+  <div class="karta"><b class="ob-cislo">{{ counts.hotovo }}</b><span>{{ _('s hotovým rozborem') }}</span></div>
+  <div class="karta"><b class="ob-cislo">{{ counts.mapa + counts.aktivita }}</b><span>{{ _('čeká na mapu nebo běh z hodinek') }}</span></div>
 </div>
 {% if last %}
 <a class="karta ob-posledni" href="{{ url_for('ob.race', entry_id=last.id) }}">
-  <span class="ob-overline">Poslední rozbor</span>
+  <span class="ob-overline">{{ _('Poslední rozbor') }}</span>
   <b>{{ last.event_name }} <span class="muted">({{ last.class_name }})</span></b>
-  <span>{{ last.date | datum }}{% if last.official_time_s %} · oficiální čas <span class="ob-cislo">{{ last.official_time_s | mmss }}</span>{% endif %}
-    {% if last.result_place %}({{ last.result_place }}. místo){% endif %}</span>
-  <span class="ob-posledni-akce">Otevřít rozbor →</span>
+  <span>{{ last.date | datum }}{% if last.official_time_s %} · {{ _('oficiální čas') }} <span class="ob-cislo">{{ last.official_time_s | mmss }}</span>{% endif %}
+    {% if last.result_place %}({% trans place=last.result_place %}{{ place }}. místo{% endtrans %}){% endif %}</span>
+  <span class="ob-posledni-akce">{{ _('Otevřít rozbor') }} →</span>
 </a>
 {% endif %}
-<div class="controls genderfilter" role="group" aria-label="Filtr podle stavu">
-  {% for key, label in [('', 'Vše'), ('beh', 'S během'), ('hotovo', 'Hotovo'), ('mapa', 'Chybí mapa'),
-                        ('aktivita', 'Chybí aktivita')] %}
+<div class="controls genderfilter" role="group" aria-label="{{ _('Filtr podle stavu') }}">
+  {% for key, label in [('', _('Vše')), ('beh', _('S během')), ('hotovo', _('Hotovo')), ('mapa', _('Chybí mapa')),
+                        ('aktivita', _('Chybí aktivita'))] %}
   <a class="btn" aria-pressed="{{ 'true' if only == key else 'false' }}"
      href="{{ url_for('ob.races', jen=key or None) }}">{{ label }}
      <span class="badge badge-tichy">{{ counts[key or 'total'] }}</span></a>
@@ -60,19 +60,19 @@
 {% endif %}
 {% if not entries %}
 <div class="prazdno empty">{{ ikona('archiv', 'ikona-velka') }}
-  {% if counts.total %}Tomuhle filtru žádný závod neodpovídá.
-  {% elif not user.oris_regno %}Zatím tu nejsou žádné závody. Tenhle účet nemá registrační číslo ORIS,
-    takže se z něj nenačtou: přidej závod ručně.
-  {% else %}Zatím tu nejsou žádné závody. Načti je z ORIS tlačítkem nahoře, nebo přidej závod ručně.{% endif %}
-  {% if not counts.total %}<p><a href="{{ url_for('ob.help_page') }}">Jak na to</a>: kde vzít mapy z Livelox a běhy
-    z Garminu.</p>{% endif %}
+  {% if counts.total %}{% trans %}Tomuhle filtru žádný závod neodpovídá.{% endtrans %}
+  {% elif not user.oris_regno %}{% trans %}Zatím tu nejsou žádné závody. Tenhle účet nemá registrační číslo ORIS,
+    takže se z něj nenačtou: přidej závod ručně.{% endtrans %}
+  {% else %}{% trans %}Zatím tu nejsou žádné závody. Načti je z ORIS tlačítkem nahoře, nebo přidej závod ručně.{% endtrans %}{% endif %}
+  {% if not counts.total %}<p>{% trans url=url_for('ob.help_page') %}<a href="{{ url }}">Jak na to</a>: kde vzít mapy z Livelox a běhy
+    z Garminu.{% endtrans %}</p>{% endif %}
 </div>
 {% else %}
 <div class="tablewrap"><table id="zavody">
-  <thead><tr><th data-sort="text">Datum</th><th data-sort="text">Závod</th><th data-sort="text">Kat.</th>
-      <th class="num" data-sort="number">Čas</th><th class="num" data-sort="number">Místo</th>
-      <th class="ob-siroky">Aktivita</th><th class="ob-siroky">Mapa s tratí</th><th class="ob-siroky">Mapa bez tratě</th>
-      <th data-sort="text">Stav</th></tr></thead>
+  <thead><tr><th data-sort="text">{{ _('Datum') }}</th><th data-sort="text">{{ _('Závod') }}</th><th data-sort="text">{{ _('Kat.') }}</th>
+      <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">{{ _('Místo') }}</th>
+      <th class="ob-siroky">{{ _('Aktivita') }}</th><th class="ob-siroky">{{ _('Mapa s tratí') }}</th><th class="ob-siroky">{{ _('Mapa bez tratě') }}</th>
+      <th data-sort="text">{{ _('Stav') }}</th></tr></thead>
   <tbody>
   {% for e, st in entries %}
   <tr>
@@ -80,18 +80,18 @@
     <td><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a>
         <span class="evdetail">{% if e.place %}{{ e.place }}{% endif %}
           {% if e.event_oris_id %}{% if e.place %} · {% endif %}<a href="{{ oris_url(e.event_oris_id) }}" rel="noopener">ORIS {{ e.event_oris_id }}</a>
-          {% if club.ENABLED %}· <a href="{{ club.event(e.event_oris_id) }}">klubový web</a>{% endif %}{% endif %}</span></td>
+          {% if club.ENABLED %}· <a href="{{ club.event(e.event_oris_id) }}">{{ _('klubový web') }}</a>{% endif %}{% endif %}</span></td>
     <td>{{ e.class_name }}</td>
     <td class="num" data-value="{{ e.official_time_s or '' }}">{{ e.official_time_s | mmss }}</td>
     <td class="num">{{ e.result_place or '' }}</td>
     <td class="ob-siroky">{% if e.activity_id %}{{ e.act_start | localtime }}, {{ e.act_timer | mmss }}
         <span class="stav {{ conf[e.match_confidence][1] }}">{{ conf[e.match_confidence][0] }}</span>
-        {% else %}<span class="muted">chybí</span>{% endif %}</td>
-    <td class="ob-siroky">{% if e.course_file %}<span class="stav ob-ok">je</span>{% else %}<span class="muted">chybí</span>{% endif %}</td>
-    <td class="ob-siroky">{% if e.maponly_file %}<span class="stav ob-ok">je</span>{% else %}<span class="muted">chybí</span>
+        {% else %}<span class="muted">{{ _('chybí') }}</span>{% endif %}</td>
+    <td class="ob-siroky">{% if e.course_file %}<span class="stav ob-ok">{{ _('je') }}</span>{% else %}<span class="muted">{{ _('chybí') }}</span>{% endif %}</td>
+    <td class="ob-siroky">{% if e.maponly_file %}<span class="stav ob-ok">{{ _('je') }}</span>{% else %}<span class="muted">{{ _('chybí') }}</span>
         {% if livelox(e.livelox_id) %}<a href="{{ livelox(e.livelox_id) }}" target="_blank" rel="noopener">Livelox</a>{% endif %}{% endif %}</td>
     <td>{% if st[2] in ('mapa', 'aktivita') %}<a class="stav {{ st[1] }}" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady"
-           title="Doplnit podklady">{{ st[0] }}</a>
+           title="{{ _('Doplnit podklady') }}">{{ st[0] }}</a>
         {% else %}<span class="stav {{ st[1] }}">{{ st[0] }}</span>{% endif %}</td>
   </tr>
   {% endfor %}
