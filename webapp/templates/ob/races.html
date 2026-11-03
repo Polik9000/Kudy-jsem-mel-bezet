@@ -2,7 +2,7 @@
 {% block title %}Moje závody{% endblock %}
 {% block body_attrs %} data-obnovit{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('archiv', 'ikona-nadpis') }}Moje závody</h2>
+<h2 class="s-ikonou">{{ ikona('archiv', 'ikona-nadpis') }}Přehled závodů</h2>
 <p class="evhead">Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.
   {% if user.oris_synced_at %}ORIS načten {{ user.oris_synced_at | kdy }}.{% endif %}</p>
 {% if local_app and not user.oris_regno %}
@@ -35,6 +35,20 @@
   {% if entries %}<input type="search" data-filter="#zavody" placeholder="Hledat závod" aria-label="Hledat závod">{% endif %}
 </div>
 {% if counts.total %}
+<div class="ob-karty3 ob-prehled">
+  <div class="karta"><b class="ob-cislo">{{ counts.total }}</b><span>{{ 'závod' if counts.total == 1 else 'závody' if counts.total < 5 else 'závodů' }}{% if season %} v sezóně {{ season }}{% endif %}</span></div>
+  <div class="karta"><b class="ob-cislo">{{ counts.hotovo }}</b><span>s hotovým rozborem</span></div>
+  <div class="karta"><b class="ob-cislo">{{ counts.mapa + counts.aktivita }}</b><span>čeká na mapu nebo běh z hodinek</span></div>
+</div>
+{% if last %}
+<a class="karta ob-posledni" href="{{ url_for('ob.race', entry_id=last.id) }}">
+  <span class="ob-overline">Poslední rozbor</span>
+  <b>{{ last.event_name }} <span class="muted">({{ last.class_name }})</span></b>
+  <span>{{ last.date | datum }}{% if last.official_time_s %} · oficiální čas <span class="ob-cislo">{{ last.official_time_s | mmss }}</span>{% endif %}
+    {% if last.result_place %}({{ last.result_place }}. místo){% endif %}</span>
+  <span class="ob-posledni-akce">Otevřít rozbor →</span>
+</a>
+{% endif %}
 <div class="controls genderfilter" role="group" aria-label="Filtr podle stavu">
   {% for key, label in [('', 'Vše'), ('beh', 'S během'), ('hotovo', 'Hotovo'), ('mapa', 'Chybí mapa'),
                         ('aktivita', 'Chybí aktivita')] %}

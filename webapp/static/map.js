@@ -142,6 +142,8 @@
     window.addEventListener("pagehide", function () { if (noteTimer) { saveNote(null, true); } });
     $("n-text").addEventListener("focus", guard);
     $("n-text").addEventListener("blur", guard);
+    $("b-zpet").addEventListener("click", function () { select(null); });
+    overview();
     $("b-prev").addEventListener("click", function () { step(-1); });
     $("b-next").addEventListener("click", function () { step(1); });
     $("b-draw").addEventListener("click", function () { startDrawing("plan"); });
@@ -160,6 +162,13 @@
       if (!drawing && !mode) {
         // Esc goes back from a leg to the whole course
         if (ev.key === "Escape" && selected && !field) { select(null); }
+        // layer keys shown in the panel over the map: M map, T map with the course, 1-3 the other layers
+        var layer = { m: "c-map", t: "c-course", 1: "c-alts", 2: "c-prumer", 3: "c-zachyt" }[ev.key.toLowerCase()];
+        if (layer && !field && !ev.altKey && !ev.ctrlKey && !ev.metaKey && $(layer) && !$(layer).closest("[hidden]") &&
+            $("mapa").classList.contains("aktivni")) {
+          $(layer).checked = !$(layer).checked;
+          $(layer).dispatchEvent(new Event("change"));
+        }
         // ← and → go to the previous and the next leg while the map tab is open
         if ((ev.key === "ArrowLeft" || ev.key === "ArrowRight") && !field && !ev.altKey && !ev.ctrlKey && !ev.metaKey &&
             $("mapa").classList.contains("aktivni")) {
@@ -411,6 +420,9 @@
     Array.prototype.forEach.call(document.querySelectorAll("#legs tr[data-n]"), function (tr) {
       tr.classList.toggle("sel", Number(tr.dataset.n) === selected);
     });
+    Array.prototype.forEach.call(document.querySelectorAll(".ob-sl, .ob-mini-r"), function (b) {
+      b.classList.toggle("sel", Number(b.dataset.n) === selected);
+    });
     var box = $("pas-useky");
     Array.prototype.forEach.call(box.querySelectorAll("button"), function (b) {
       var on = b.dataset.n === "" ? !selected : Number(b.dataset.n) === selected;  // "" is the chip of the whole course
@@ -556,6 +568,54 @@
     });
   }
 
+  // --- overview of the whole race (right column) and the bar chart of the losses ---
+  function lossOf(l) { return D.has_routes ? l.loss_total : l.est_loss; }
+  function metrics(box, actual, model, loss) {
+    box.innerHTML = "<div><span>Skutečně</span><b class='ob-cislo'>" + (actual === null ? "–" : mmss(actual)) + "</b></div>" +
+      "<div class='ob-model'><span>Model</span><b class='ob-cislo'>" + (model === null ? "–" : mmss(model)) + "</b></div>" +
+      "<div class='ob-zt'><span>Ztráta</span><b class='ob-cislo'>" + (loss === null ? "–" : mmss(loss, true)) + "</b></div>";
+  }
+  function overview() {
+    var t = D.totals, sum = t.route + t.mistake + t.fatigue;
+    metrics($("o-metriky"), D.total_time, D.has_routes ? D.total_time - sum : null, D.has_routes ? sum : t.mistake);
+    $("o-pozn").textContent = D.has_routes
+      ? "Model je teoretický ideál bez zaváhání, ne čas, který by šel opravdu uběhnout. Ztráta je odhad."
+      : "Bez mapy bez tratě nejsou nejlepší postupy. Ztráta je odhad z GPS stopy.";
+    var top = D.legs.filter(function (l) { return lossOf(l) >= 20; })
+      .sort(function (a, b) { return lossOf(b) - lossOf(a); }).slice(0, 3), h = "";
+    if (top.length) {
+      h = "<h3>Největší časové ztráty</h3><ul class='ob-ztraty'>" + top.map(function (l) {
+        return "<li><button type='button' data-n='" + l.n + "' class='ob-ztrata-tl'><b>Úsek " + esc(l.name) + "</b>" +
+          "<span class='ob-cislo'>" + mmss(lossOf(l), true) + "</span>" +
+          (l.mistake ? "<small>" + esc(l.mistake.label) + "</small>" : "") + "</button></li>";
+      }).join("") + "</ul>";
+    }
+    $("o-ztraty").innerHTML = h;
+    var rows = D.legs.map(function (l) {
+      return "<button type='button' data-n='" + l.n + "' class='ob-mini-r z" + grade(lossOf(l)) + "'><span>" + esc(l.name) +
+        "</span><span class='ob-cislo'>" + mmss(l.time) + "</span><span class='ob-cislo ob-zt'>" +
+        (lossOf(l) >= 1 ? mmss(lossOf(l), true) : "") + "</span></button>";
+    }).join("");
+    $("o-useky").innerHTML = "<div class='ob-mini-h'><span>Úsek</span><span>Čas</span><span>Ztráta</span></div>" + rows;
+    Array.prototype.forEach.call($("panel-empty").querySelectorAll("button[data-n]"), function (b) {
+      b.addEventListener("click", function () { select(Number(b.dataset.n)); });
+    });
+    bars();
+  }
+  function bars() {
+    var max = Math.max.apply(null, D.legs.map(lossOf).concat([60])), box = $("graf-sloupce");
+    $("graf-useky").hidden = !D.legs.length;
+    box.innerHTML = D.legs.map(function (l) {
+      var v = Math.max(0, lossOf(l));
+      return "<button type='button' data-n='" + l.n + "' class='ob-sl z" + grade(v) + "' title='" + esc(l.name) + ": ztráta " +
+        mmss(v) + "' aria-label='Úsek " + esc(l.name) + ", ztráta " + mmss(v) + "'><span class='ob-sl-v' style='height:" +
+        Math.max(3, Math.round(100 * v / max)) + "%'></span><span class='ob-sl-n'>" + esc(String(l.n)) + "</span></button>";
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll("button"), function (b) {
+      b.addEventListener("click", function () { select(Number(b.dataset.n)); });
+    });
+  }
+
   function current() { return D.legs.filter(function (l) { return l.n === selected; })[0]; }
 
   // n: the number of a leg, or null for the whole course
@@ -608,6 +668,7 @@
                (leg.ws.mistake ? " (<b>chyba</b>)" : ""));
     }
     $("p-title").textContent = "Úsek " + leg.name;
+    metrics($("p-metriky"), leg.time, leg.best ? leg.best.time : null, leg.best ? leg.loss_total : leg.est_loss);
     var gps = leg.corrected ? "Stopa úseku je opravená ručně: ztráta volbou a provedením se počítá po nakreslené čáře, z osobního modelu je úsek vyřazený."
       : n.corrected ? "Opravená stopa je uložená, postupy se přepočítávají."
       : leg.gps_trouble || "";
@@ -786,6 +847,7 @@
     table();
     strip();
     totals();
+    overview();
     panel(typing);
     watchPlans();
     document.dispatchEvent(new CustomEvent("ob-data", { detail: D }));

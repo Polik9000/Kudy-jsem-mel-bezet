@@ -1,13 +1,30 @@
 {% extends "ob/base.html" %}
 {% block title %}Můj model rychlosti{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('graf', 'ikona-nadpis') }}Můj model rychlosti</h2>
+<h2 class="s-ikonou">{{ ikona('graf', 'ikona-nadpis') }}Profil rychlostního modelu</h2>
 {% if not model %}
 <div class="prazdno empty">{{ ikona('graf', 'ikona-velka') }}Model se spočítá sám po první analýze závodu, ke kterému je
   mapa s tratí, mapa bez tratě a běh z hodinek.</div>
 {% else %}
 <p class="evhead">Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech. Nový závod
   nebo poznámka ho změní; postupy ostatních závodů se přepočítají tlačítkem Přepočítat všechno.</p>
+<div class="ob-karty3">
+  <div class="karta"><b>Terén</b><span>{{ personal.races | length }} {{ 'závod' if personal.races | length == 1 else 'závody' if personal.races | length < 5 else 'závodů' }}</span></div>
+  <div class="karta"><b>Kopce</b><span>{% if slope_own %}{{ slope.activities }} běhů z Garminu{% else %}výchozí tvar (bez exportu z Garminu){% endif %}</span></div>
+  <div class="karta"><b>Vliv stoupání</b><span>1 m nahoru = <b class="ob-cislo">{{ '%.1f' | format(model.up_k) | replace('.', ',') }}</b> m po rovině</span></div>
+</div>
+<div class="karta ob-pruhy-karta">
+  <h3>Moje rychlost po rovině (km/h)</h3>
+  {% set vmax = (terrain | map(attribute='kmh') | max) or 1 %}
+  <div class="ob-pruhy">
+    {% for r in terrain | sort(attribute='kmh', reverse=True) %}
+    <div class="ob-pruh{{ ' malo' if r.trust == 'malá' }}"><span class="jmeno">{{ r.name }}{{ ' *' if r.trust == 'malá' }}</span>
+      <span class="pruh"><i style="width: {{ '%.1f' | format(100 * r.kmh / vmax) }}%"></i></span>
+      <span class="ob-cislo">{{ '%.1f' | format(r.kmh) | replace('.', ',') }} km/h</span>
+      {% if r.trust == 'malá' %}<span class="stav ob-warn">málo dat, převážně odhad</span>{% endif %}</div>
+    {% endfor %}
+  </div>
+</div>
 <div class="karta">
   <dl class="detaily">
     <dt>Rychlost na rovné cestě</dt>

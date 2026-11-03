@@ -36,7 +36,7 @@ def test_page_has_the_club_layout_and_headers(client):
     for piece in ('class="sitehead"', '<header class="site">', 'class="flagstrip"', 'class="sidemenu"',
                   '<details class="menu">', 'class="rezim-prepinac"', '<footer class="site">', 'id="i-kontrola"',
                   'localStorage.getItem("ob-rezim")||localStorage.getItem("skob-rezim")', "skob.css", "ob.css",
-                  "skob-logo.svg", "<title>Přihlášení · SKOB Frýdek-Místek</title>"):
+                  "ob-logo.svg", "<title>Přihlášení · SKOB Frýdek-Místek</title>"):
         assert piece in html, piece
     assert html.index("skob.css") < html.index("ob.css")
     csp = r.headers["Content-Security-Policy"]
@@ -48,6 +48,7 @@ def test_page_has_the_club_layout_and_headers(client):
 
 def test_club_name_and_logo_come_from_the_settings(client, monkeypatch):
     from webapp import club
+    monkeypatch.setattr(club, "THEME", "kudy")      # the club's own name and logo are in the header of the other looks
     monkeypatch.setattr(club, "NAME", "OK Jiný klub")
     monkeypatch.setattr(club, "LOGO", "ob.css")      # any file in static/ will do
     html = client.get("/login").get_data(as_text=True)
@@ -349,14 +350,27 @@ def test_hatched_areas_are_kept_per_class_and_switched_per_event(app, client, us
     assert post(client, url).status_code == 400                             # nothing to set
 
 
-def test_own_look_sits_between_the_club_and_the_app_styles(client, monkeypatch):
-    """kudy.css (own palette and type) comes after the unchanged club sheet and before ob.css;
-    OB_THEME=skob leaves it out, so the app looks like the club site again."""
+def test_own_look_sits_after_the_club_and_the_app_styles(client, monkeypatch):
+    """Default look "Lesní klid": les.css (dark palette, own panel) comes last, after the unchanged club sheet and
+    ob.css; its fonts are served by the app itself. OB_THEME=kudy / skob leave it out."""
     html = client.get("/login").get_data(as_text=True)
-    assert html.index("/skob.css") < html.index("/kudy.css") < html.index("/ob.css")
+    assert html.index("/skob.css") < html.index("/ob.css") < html.index("/les.css")
+    assert "/kudy.css" not in html and 'content="#10251E"' in html and 'class="tema-les"' in html
+    assert client.get("/ob-static/les.css").status_code == 200
+    for name in ("manrope-latin-wght-normal.woff2", "jetbrains-mono-latin-ext-wght-normal.woff2", "OFL-Manrope.txt"):
+        assert client.get("/ob-static/fonts/" + name).status_code == 200, name
+    assert 'class="bottomnav"' not in html  # not logged in: no bottom bar
+    monkeypatch.setattr(club, "THEME", "kudy")
+    html = client.get("/login").get_data(as_text=True)
+    assert html.index("/skob.css") < html.index("/kudy.css") < html.index("/ob.css") and "/les.css" not in html
     assert client.get("/ob-static/kudy.css").status_code == 200
     for name in ("barlow-semi-condensed-600-latin.woff2", "barlow-semi-condensed-700-latin-ext.woff2", "OFL.txt"):
         assert client.get("/ob-static/fonts/" + name).status_code == 200, name
     monkeypatch.setattr(club, "THEME", "skob")
     html = client.get("/login").get_data(as_text=True)
-    assert "kudy.css" not in html and 'content="#0E7A1C"' in html
+    assert "kudy.css" not in html and "les.css" not in html and 'content="#0E7A1C"' in html
+
+
+def test_about_page_and_bottom_navigation(client, user):
+    html = client.get("/o-aplikaci").get_data(as_text=True)
+    assert "Omezení modelu" in html and "Mřížka 2,7" in html and 'class="bottomnav"' in html

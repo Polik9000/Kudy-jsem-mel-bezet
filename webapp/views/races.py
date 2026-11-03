@@ -123,7 +123,10 @@ def races():
     for _, st in listed:
         counts[st[2]] += 1
     shown = [x for x in listed if not only or (bool(x[0]["activity_id"]) if only == "beh" else x[1][2] == only)]
-    return render_template("ob/races.html", entries=shown, sync=sync,
+    # the last analysed race of the runner: a quick way back to it from the list
+    analysed = [e for e, _ in listed if e["analysis_id"] and e["finished_at"]]
+    last = max(analysed, key=lambda e: e["finished_at"]) if analysed else None
+    return render_template("ob/races.html", entries=shown, sync=sync, last=last,
                            conf=texts.CONFIDENCE, livelox=oris.livelox_url, oris_url=oris.event_url,
                            seasons=seasons, season=season, only=only, counts=counts)
 

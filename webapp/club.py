@@ -6,7 +6,8 @@ from urllib.parse import urlencode
 BASE = os.environ.get("OB_CLUB_URL", "https://skobfm.vzdyonline.cz").rstrip("/")
 NAME = os.environ.get("OB_CLUB_NAME", "SKOB Frýdek-Místek")   # in the title and the header of every page
 LOGO = os.environ.get("OB_CLUB_LOGO", "skob-logo.svg")       # a file in webapp/static: header and icon
-THEME = os.environ.get("OB_THEME", "kudy")             # "kudy": own look (kudy.css), "skob": the club site's
+# "les": dark look "Lesní klid" (les.css, default), "kudy": petrol look (kudy.css), "skob": the club site's
+THEME = os.environ.get("OB_THEME", "les")
 ENABLED = bool(BASE)  # OB_CLUB_URL="" (the app on one's own computer): no links to a club site at all
 
 
