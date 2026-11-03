@@ -111,8 +111,8 @@ html:not(.en) .lang a[data-l="cs"], html.en .lang a[data-l="en"] { background: v
 details { margin: .35em 0; }
 details > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 details > ol, details > ul, details > p { margin: .5em 0 .6em; }
-.pc-only { display: none; }
-@media (hover: none) and (pointer: coarse) { .pc-only { display: block; } }
+.mobil-only .btn { margin-top: .2em; cursor: pointer; font: inherit; font-weight: 600; background: transparent; }
+@media (min-width: 768px) { .mobil-only { display: none; } }
 .skip { position: absolute; left: -9999px; top: 8px; background: var(--bg-elev); color: var(--ink); padding: 8px 12px; border-radius: 8px; }
 .skip:focus { left: 16px; z-index: 10; }
 
@@ -126,6 +126,14 @@ section.card { background: var(--bg-elev); border: 1px solid var(--line); border
 .zacit li::before { counter-increment: k; content: counter(k); display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
   border: 2.5px solid var(--accent); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
 .zacit strong { display: block; color: var(--ink); }
+.kroky { counter-reset: k; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.kroky > li { counter-increment: k; position: relative; background: var(--bg-soft); border-radius: 12px; margin: 0; padding: 16px 18px 16px 62px; }
+.kroky > li::before { content: counter(k); position: absolute; left: 16px; top: 16px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  border: 2.5px solid var(--accent); color: var(--accent); font-weight: 700; }
+.kroky h3 { margin-bottom: .4em; }
+.kroky details { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: .5em 0; }
+.hood { margin-top: .6em; }
+.hood ul { margin-bottom: 0; }
 .step .n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
   border: 2.5px solid var(--accent); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
 ol, ul { padding-left: 1.25em; margin: 0 0 1em; }
@@ -145,6 +153,8 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
   .hero { grid-template-columns: 1fr; padding-top: 8px; }
   .grid2 { grid-template-columns: 1fr; }
   section.card { padding: 18px; }
+  .kroky > li { padding: 14px 14px 14px 14px; }
+  .kroky > li::before { position: static; margin-bottom: 8px; }
   .dl, .pozor, .req { max-width: none; }
   .logo .muted { display: none; }
   .net th, .net td { padding: 6px 4px; }
@@ -203,39 +213,12 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
           <span class="sipka" aria-hidden="true">↓</span>
         </a>
       </div>
-      <p class="pc-only req" lang="cs"><strong>Program je pro počítač, ne pro mobil.</strong> Pošli si odkaz na tuhle stránku a otevři ho na počítači.</p>
-      <p class="pc-only req" lang="en"><strong>The program is for a computer, not a phone.</strong> Send yourself the link and open it on your computer.</p>
-      <div class="pozor" lang="cs">
-        <p><strong>Při instalaci tě počítač varuje. To je normální.</strong> Program je nový a nemá placený podpis od Microsoftu ani Applu.</p>
-        <details>
-          <summary>Windows napíše „Systém Windows ochránil váš počítač“</summary>
-          <ol><li>Klikni na <em>Další informace</em>.</li><li>Klikni na <em>Přesto spustit</em>.</li><li>Pak už instalace běží jako u každého programu.</li></ol>
-        </details>
-        <details>
-          <summary>Mac napíše, že aplikaci nelze otevřít</summary>
-          <ol><li>Otevři stažený soubor a přetáhni ikonu do složky <em>Aplikace</em>.</li>
-            <li>Spusť aplikaci. Mac ji napoprvé neotevře, hlášku zavři.</li>
-            <li>Otevři <em>Nastavení systému → Soukromí a zabezpečení</em>, sjeď dolů a klikni na <em>Přesto otevřít</em>. Potvrď heslem.</li>
-            <li>Napříště se aplikace otevře normálně.</li></ol>
-          <p class="muted">Jaký máš čip, zjistíš v nabídce s jablkem vlevo nahoře → <em>O tomto Macu</em>. U Macu s Intelem instalátor zatím nefunguje, viz <a href="#zdroj">spuštění přes Docker</a>.</p>
-        </details>
+      <div class="mobil-only pozor" id="mobil">
+        <p lang="cs"><strong>Program je pro počítač, ne pro mobil.</strong> Pošli si odkaz na tuhle stránku a otevři ho na počítači.</p>
+        <p lang="en"><strong>The program is for a computer, not a phone.</strong> Send yourself the link and open it on your computer.</p>
+        <button type="button" class="btn ghost" id="share-link"><span lang="cs">Poslat si odkaz na počítač</span><span lang="en">Send link to computer</span></button>
       </div>
       <p class="muted" lang="cs">Verze 0.1.0, první zkušební. Může mít chyby, napiš mi o nich (<a href="#licence">kontakt</a>). Linux zatím instalátor nemá, viz <a href="#zdroj">spuštění přes Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Všechna vydání</a></p>
-      <div class="pozor" lang="en">
-        <p><strong>Your computer will warn you during installation. That is normal.</strong> The program is new and has no paid signature from Microsoft or Apple.</p>
-        <details>
-          <summary>Windows says “Windows protected your PC”</summary>
-          <ol><li>Click <em>More info</em>.</li><li>Click <em>Run anyway</em>.</li><li>The installation then runs like any other.</li></ol>
-        </details>
-        <details>
-          <summary>Mac says the app cannot be opened</summary>
-          <ol><li>Open the downloaded file and drag the icon into <em>Applications</em>.</li>
-            <li>Start the app. The first time the Mac will refuse; close the message.</li>
-            <li>Open <em>System Settings → Privacy &amp; Security</em>, scroll down and click <em>Open Anyway</em>. Confirm with your password.</li>
-            <li>From then on the app opens normally.</li></ol>
-          <p class="muted">You can see your chip in the Apple menu (top left) → <em>About This Mac</em>. The installer does not work on Intel Macs yet, see <a href="#zdroj">running with Docker</a>.</p>
-        </details>
-      </div>
       <p class="muted" lang="en">Version 0.1.0, the first trial release. It may have bugs, please tell me about them (<a href="#licence">contact</a>). No installer for Linux yet, see <a href="#zdroj">running with Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">All releases</a></p>
     </div>
 
@@ -272,61 +255,6 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
     </figure>
   </div>
 
-  <section class="card" id="zacit">
-    <h2 lang="cs">Jak začít</h2>
-    <h2 lang="en">How to start</h2>
-    <ol class="zacit" lang="cs">
-      <li><strong>Stáhni a nainstaluj program</strong> tlačítkem nahoře.</li>
-      <li><strong>Stáhni mapu z Liveloxu</strong> dvakrát: bez tratě a s tratí (<a href="#kmz">jak na to</a>).</li>
-      <li><strong>Stáhni svůj běh z Garminu</strong> (<a href="#fit">jak na to</a>).</li>
-      <li><strong>V programu přidej závod</strong> a nahraj k němu obě mapy a běh. Rozbor se spočítá sám, trvá to pár minut.</li>
-    </ol>
-    <ol class="zacit" lang="en">
-      <li><strong>Download and install the program</strong> with the button above.</li>
-      <li><strong>Download the map from Livelox</strong> twice: without and with the course (<a href="#kmz">how</a>).</li>
-      <li><strong>Download your run from Garmin</strong> (<a href="#fit">how</a>).</li>
-      <li><strong>Add the race in the program</strong> and upload both maps and the run. The analysis runs by itself in a few minutes.</li>
-    </ol>
-    <p class="muted" lang="cs">Program se otevře ve vlastním okně, nic se nepřihlašuje. Když v Profilu zadáš registrační číslo ORIS, načte tvoje závody a oficiální mezičasy sám. Při rozboru je potřeba internet (kvůli kopcům).</p>
-    <p class="muted" lang="en">The program opens in its own window, no login. If you enter your ORIS registration number in the Profile, it loads your races and official splits by itself. The analysis needs the internet (for the hills).</p>
-  </section>
-
-  <div class="grid2">
-    <section class="card" id="kmz">
-      <h2 lang="cs">Mapa z Livelox (KMZ)</h2>
-      <h2 lang="en">The map from Livelox (KMZ)</h2>
-      <ol lang="cs">
-        <li>Otevři svůj závod a kategorii na <a href="https://www.livelox.com/">Livelox</a>.</li>
-        <li>V nabídce mapy zvol stažení mapy a formát <strong>KMZ</strong>. KMZ je mapa, která „ví“, kde přesně leží; obyčejný obrázek to neumí.</li>
-        <li>Stáhni ji dvakrát: <strong>jen mapu</strong> (bez tratě) a <strong>s tratí</strong> (s kontrolami). Z první program čte terén, z druhé kontroly.</li>
-        <li>V programu otevři závod a oba soubory nahraj, je jedno, který první.</li>
-      </ol>
-      <ol lang="en">
-        <li>Open your race and class on <a href="https://www.livelox.com/">Livelox</a>.</li>
-        <li>In the map menu choose to download the map, format <strong>KMZ</strong>. A KMZ map “knows” exactly where it lies; a plain image does not.</li>
-        <li>Download it twice: <strong>map only</strong> (no course) and <strong>with course</strong> (with controls). The program reads the terrain from the first and the controls from the second.</li>
-        <li>In the program open the race and upload both files, in any order.</li>
-      </ol>
-      <p class="muted" lang="cs">Když Livelox stažení nedovolí, zkus KMZ na <a href="https://obpostupy.orientacnisporty.cz/">OB postupech</a>, nebo velký snímek obrazovky či fotku papírové mapy. Mapa patří pořadateli: používej ji jen pro sebe.</p>
-      <p class="muted" lang="en">If Livelox does not allow downloading, try the KMZ on <a href="https://obpostupy.orientacnisporty.cz/">OB postupy</a>, or a large screenshot or a photo of the paper map. The map belongs to the organiser: use it for yourself only.</p>
-    </section>
-
-    <section class="card" id="fit">
-      <h2 lang="cs">Záznam z hodinek (.fit)</h2>
-      <h2 lang="en">The watch recording (.fit)</h2>
-      <ul lang="cs">
-        <li><strong>Garmin Connect na počítači</strong> (<a href="https://connect.garmin.com/">connect.garmin.com</a>, v mobilní aplikaci to nejde): otevři závod, ozubené kolo / tři tečky &rarr; <em>Exportovat originál</em>. Stáhne se soubor .zip a ten nahraj do programu tak, jak je.</li>
-        <li><strong>Přímo z hodinek</strong>: připoj je kabelem k počítači, ve složce <code>GARMIN/Activity</code> najdi soubor s datem závodu (končí na .fit).</li>
-        <li><strong>Všechno najednou</strong>: na garmin.com si můžeš vyžádat export všech dat. Přijde e-mailem, někdy až za několik dní. Program z něj sám vybere závody podle data a místa.</li>
-      </ul>
-      <ul lang="en">
-        <li><strong>Garmin Connect on a computer</strong> (<a href="https://connect.garmin.com/">connect.garmin.com</a>, the phone app cannot do it): open the race, gear / three dots &rarr; <em>Export Original</em>. You get a .zip file; upload it to the program as it is.</li>
-        <li><strong>Straight from the watch</strong>: connect it to the computer with the cable and find the file with the race date in <code>GARMIN/Activity</code> (it ends in .fit).</li>
-        <li><strong>Everything at once</strong>: on garmin.com you can request an export of all your data. It comes by e-mail, sometimes after several days. The program picks the races by date and place.</li>
-      </ul>
-    </section>
-  </div>
-
   <section class="card">
     <h2 lang="cs">Co to umí</h2>
     <h2 lang="en">What it does</h2>
@@ -351,7 +279,118 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
       </div>
     </div>
     <p class="muted" lang="cs" style="margin-top:1em">Bez umělé inteligence a bez placených služeb: jen geometrie, mapa a tvoje data.</p>
+    <details class="hood" lang="cs">
+      <summary>Jak výpočet funguje pod kapotou</summary>
+      <ul>
+        <li>Z čisté mapy (bez tratě) program přečte barvy terénu: jak průběžný je les, kde vedou cesty a co je překážka (skála, voda, oplocenka).</li>
+        <li>Přidá podrobný výškopis (sklon svahu z modelu ČÚZK DMR 5G).</li>
+        <li>Podle tvého osobního rychlostního modelu z toho sestaví síť, kde každé políčko má cenu v sekundách pro tebe.</li>
+        <li>V ní najde časově nejrychlejší cestu mezi kontrolami a porovná ji s tou, kterou jsi běžel.</li>
+      </ul>
+    </details>
     <p class="muted" lang="en" style="margin-top:1em">No AI and no paid services: just geometry, the map and your data.</p>
+    <details class="hood" lang="en">
+      <summary>How the calculation works under the hood</summary>
+      <ul>
+        <li>From the map without a course the program reads the terrain colours: how runnable the forest is, where the paths are and what is an obstacle (cliff, water, fenced area).</li>
+        <li>It adds detailed elevation data (slope from the Czech ČÚZK DMR 5G model).</li>
+        <li>Using your personal speed model it builds a grid in which every cell costs a number of seconds for you.</li>
+        <li>In that grid it finds the time-fastest path between controls and compares it with the one you ran.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="card" id="zacit">
+    <h2 lang="cs">Jak začít</h2>
+    <h2 lang="en">How to start</h2>
+    <ol class="kroky">
+      <li>
+        <div lang="cs">
+          <h3>Stáhni a nainstaluj program</h3>
+          <p>Použij tlačítka nahoře. Při instalaci tě počítač varuje, to je normální: program je nový a nemá placený podpis od Microsoftu ani Applu.</p>
+          <details>
+            <summary>Windows napíše „Systém Windows ochránil váš počítač“</summary>
+            <ol><li>Klikni na <em>Další informace</em>.</li><li>Klikni na <em>Přesto spustit</em>.</li><li>Pak už instalace běží jako u každého programu.</li></ol>
+          </details>
+          <details>
+            <summary>Mac napíše, že aplikaci nelze otevřít</summary>
+            <ol><li>Otevři stažený soubor a přetáhni ikonu do složky <em>Aplikace</em>.</li>
+              <li>Spusť aplikaci. Mac ji napoprvé neotevře, hlášku zavři.</li>
+              <li>Otevři <em>Nastavení systému → Soukromí a zabezpečení</em>, sjeď dolů a klikni na <em>Přesto otevřít</em>. Potvrď heslem.</li>
+              <li>Napříště se aplikace otevře normálně.</li></ol>
+            <p class="muted">Jaký máš čip, zjistíš v nabídce s jablkem vlevo nahoře → <em>O tomto Macu</em>. U Macu s Intelem instalátor zatím nefunguje, viz <a href="#zdroj">spuštění přes Docker</a>.</p>
+          </details>
+        </div>
+        <div lang="en">
+          <h3>Download and install the program</h3>
+          <p>Use the buttons at the top. Your computer will warn you during installation, which is normal: the program is new and has no paid signature from Microsoft or Apple.</p>
+          <details>
+            <summary>Windows says “Windows protected your PC”</summary>
+            <ol><li>Click <em>More info</em>.</li><li>Click <em>Run anyway</em>.</li><li>The installation then runs like any other.</li></ol>
+          </details>
+          <details>
+            <summary>Mac says the app cannot be opened</summary>
+            <ol><li>Open the downloaded file and drag the icon into <em>Applications</em>.</li>
+              <li>Start the app. The first time the Mac will refuse; close the message.</li>
+              <li>Open <em>System Settings → Privacy &amp; Security</em>, scroll down and click <em>Open Anyway</em>. Confirm with your password.</li>
+              <li>From then on the app opens normally.</li></ol>
+            <p class="muted">You can see your chip in the Apple menu (top left) → <em>About This Mac</em>. The installer does not work on Intel Macs yet, see <a href="#zdroj">running with Docker</a>.</p>
+          </details>
+        </div>
+      </li>
+      <li id="kmz">
+        <div lang="cs">
+          <h3>Mapa z Liveloxu (KMZ)</h3>
+          <ol>
+            <li>Otevři svůj závod a kategorii na <a href="https://www.livelox.com/">Livelox</a>.</li>
+            <li>Vpravo nahoře klikni na ikonu tří čárek (menu) a zvol stažení mapy ve formátu <strong>KMZ</strong>. KMZ je mapa, která „ví“, kde přesně leží; obyčejný obrázek to neumí.</li>
+            <li>Stáhni ji dvakrát: <strong>jen mapu</strong> (bez tratě) a <strong>s tratí</strong> (s kontrolami). Z první program čte terén, z druhé kontroly.</li>
+          </ol>
+          <p class="muted">Když Livelox stažení nedovolí, zkus KMZ na <a href="https://obpostupy.orientacnisporty.cz/">OB postupech</a>, nebo velký snímek obrazovky či fotku papírové mapy. Mapa patří pořadateli: používej ji jen pro sebe.</p>
+        </div>
+        <div lang="en">
+          <h3>The map from Livelox (KMZ)</h3>
+          <ol>
+            <li>Open your race and class on <a href="https://www.livelox.com/">Livelox</a>.</li>
+            <li>In the top right corner, click the three-lines menu icon and choose to download the map in <strong>KMZ</strong> format. A KMZ map “knows” exactly where it lies; a plain image does not.</li>
+            <li>Download it twice: <strong>map only</strong> (no course) and <strong>with course</strong> (with controls). The program reads the terrain from the first and the controls from the second.</li>
+          </ol>
+          <p class="muted">If Livelox does not allow downloading, try the KMZ on <a href="https://obpostupy.orientacnisporty.cz/">OB postupy</a>, or a large screenshot or a photo of the paper map. The map belongs to the organiser: use it for yourself only.</p>
+        </div>
+      </li>
+      <li id="fit">
+        <div lang="cs">
+          <h3>Záznam z hodinek (.zip nebo .fit)</h3>
+          <p>Z webu Garminu se vždy stáhne soubor <code>.zip</code>. Nerozbaluj ho, nahraj ho do programu rovnou. Soubor <code>.fit</code> dostaneš jen při stažení přímo z hodinek kabelem.</p>
+          <ul>
+            <li><strong>Garmin Connect na počítači</strong> (<a href="https://connect.garmin.com/">connect.garmin.com</a>, v mobilní aplikaci to nejde): otevři závod, vpravo nahoře klikni na ozubené kolo &rarr; <em>Exportovat originál</em>. Stáhne se soubor <code>.zip</code>, ten nerozbaluj a nahraj ho do programu tak, jak je.</li>
+            <li><strong>Všechno najednou</strong>: na garmin.com si můžeš vyžádat hromadný export všech dat. Přijde e-mailem jako <code>.zip</code>, někdy až za několik dní. Program si z něj závody vybere sám podle data a místa.</li>
+            <li><strong>Přímo z hodinek kabelem</strong>: připoj hodinky k počítači, ve složce <code>GARMIN/Activity</code> vyber soubor <code>.fit</code> s datem závodu.</li>
+          </ul>
+        </div>
+        <div lang="en">
+          <h3>The watch recording (.zip or .fit)</h3>
+          <p>The Garmin website always gives you a <code>.zip</code> file. Do not unpack it; upload it to the program as it is. You only get a <code>.fit</code> file when you copy it straight from the watch with a cable.</p>
+          <ul>
+            <li><strong>Garmin Connect on a computer</strong> (<a href="https://connect.garmin.com/">connect.garmin.com</a>, the phone app cannot do it): open the race, click the gear icon in the top right &rarr; <em>Export Original</em>. You get a <code>.zip</code> file; do not unpack it, upload it to the program as it is.</li>
+            <li><strong>Everything at once</strong>: on garmin.com you can request a bulk export of all your data. It comes by e-mail as a <code>.zip</code>, sometimes after several days. The program picks the races by date and place itself.</li>
+            <li><strong>Straight from the watch with a cable</strong>: connect the watch to the computer and pick the <code>.fit</code> file with the race date from <code>GARMIN/Activity</code>.</li>
+          </ul>
+        </div>
+      </li>
+      <li>
+        <div lang="cs">
+          <h3>Spusť rozbor v programu</h3>
+          <p>Přidej závod a nahraj obě mapy a záznam běhu. Rozbor se spočítá sám, trvá to pár minut.</p>
+          <p class="muted">Program se otevře ve vlastním okně, nic se nepřihlašuje. V Profilu můžeš zadat registrační číslo ORIS, program pak načte tvoje závody a oficiální mezičasy sám. Při výpočtu je potřeba internet kvůli výškopisu.</p>
+        </div>
+        <div lang="en">
+          <h3>Run the analysis in the program</h3>
+          <p>Add the race and upload both maps and the run. The analysis runs by itself in a few minutes.</p>
+          <p class="muted">The program opens in its own window, no login. In the Profile you can enter your ORIS registration number, and the program then loads your races and official splits by itself. The calculation needs the internet for the elevation data.</p>
+        </div>
+      </li>
+    </ol>
   </section>
 
   <section class="card privacy" id="soukromi">
@@ -428,9 +467,27 @@ docker compose up --build</code></pre>
       document.documentElement.classList.toggle("en", en);
       document.documentElement.lang = en ? "en" : "cs";
       try { localStorage.setItem("lang", en ? "en" : "cs"); } catch (err) {}
+      history.replaceState(null, "", en ? "#en" : "#cs");
       mark(en ? "en" : "cs");
     });
   });
+  (function () {
+    var b = document.getElementById("share-link");
+    if (!b) return;
+    b.addEventListener("click", function () {
+      var spans = b.querySelectorAll("span");
+      function done() {
+        var old = [].map.call(spans, function (x) { return x.textContent; });
+        spans[0].textContent = "Odkaz zkopírován"; spans[1].textContent = "Link copied";
+        setTimeout(function () { spans[0].textContent = old[0]; spans[1].textContent = old[1]; }, 2000);
+      }
+      if (navigator.share) {
+        navigator.share({ url: location.href, title: document.title }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(location.href).then(done, function () {});
+      }
+    });
+  })();
   function mark(l) {
     document.querySelectorAll(".lang a").forEach(function (x) {
       if (x.getAttribute("data-l") === l) x.setAttribute("aria-current", "true"); else x.removeAttribute("aria-current");
