@@ -194,7 +194,7 @@ EN = {
     "Výpočet selhal (%(name)s); podrobnosti jsou níže.":
         "The computation failed (%(name)s); details are below.",
     "OpenStreetMap teď neodpovídá (přetížený server). Zakázané přechody se doplní při příštím přepočtu.":
-        "OpenStreetMap is not answering right now (overloaded server). The forbidden crossings will be filled in at the next recomputation.",
+        "OpenStreetMap is not answering right now (overloaded server). The impassable crossings will be filled in at the next recomputation.",
     "K závodu chybí aktivita (.fit) nebo mapa s tratí.":
         "The race has no activity (.fit) or no map with course.",
     "čtu trať z mapy a stopu z hodinek":
@@ -246,7 +246,7 @@ EN = {
     "model řadí úseky jinak než kategorie, ber nejlepší postupy s rezervou":
         "the model orders the legs differently from the class, take the best routes with a pinch of salt",
     "kategorie tu potřebuje o %.0f %% víc času, než odpovídá modelu: model je optimistický (špatně přečtená mapa, zakázaný průchod, nebo těžká dohledávka)":
-        "the class needs %%.0f %% more time here than the model suggests: the model is optimistic (a wrongly read map, a forbidden passage, or a hard search for the control)",
+        "the class needs %%.0f %% more time here than the model suggests: the model is optimistic (a wrongly read map, a out-of-bounds passage, or a hard search for the control)",
     "ztráta proti tvému normálu":
         "loss against your normal",
     "Ztráta na úsecích proti tvému normálnímu výkonu":
@@ -364,7 +364,7 @@ EN = {
     "Snímky se usazují znovu s mapou, jak jsi ji ořízl. Výsledek uvidíš v úlohách.":
         "The screenshots are being placed again with the map as you cropped it. You will see the result in the jobs.",
     "K závodu není uložená žádná fotka mapy. Nahraj ji v Podkladech (pole Mapa s tratí).":
-        "There is no photo of the map saved for the race. Upload it in Materials (the field Map with course).",
+        "There is no photo of the map saved for the race. Upload it in Source files (the field Map with course).",
     "Označ aspoň %(MIN_POINTS)s kontroly, co nejdál od sebe.":
         "Mark at least %(MIN_POINTS)s controls, as far from each other as possible.",
     "Bod %(n)s je o %(v)s m jinde, než kam ho dávají ostatní: asi je na jiné kontrole.":
@@ -378,7 +378,7 @@ EN = {
     "Označ aspoň %(MIN_POINTS)s kontroly.":
         "Mark at least %(MIN_POINTS)s controls.",
     "zakázáno":
-        "forbidden",
+        "impassable",
     "jen znevýhodněno":
         "only penalised",
     "nepoužívat":
@@ -510,7 +510,7 @@ EN = {
     "žádné šrafování na ní není.":
         "there is no hatching on it.",
     "Čte se křížové šrafování a šrafy ze svislých rovnoběžných čar; zakázanou hranici (jednu čáru) nakresli ručně.":
-        "Cross hatching and hatching of vertical parallel lines are read; draw a forbidden boundary (a single line) by hand.",
+        "Cross hatching and hatching of vertical parallel lines are read; draw a impassable boundary (a single line) by hand.",
     "Šrafování se přečte z mapy s tratí, až ji někdo nahraje.":
         "The hatching is read from the map with course once somebody uploads it.",
     "Šrafování se přečte při první analýze s mapou bez tratě.":
@@ -526,11 +526,11 @@ EN = {
     "Uložit výchozí nastavení závodu":
         "Save the default setting of the race",
     "Ruční zakázané čáry":
-        "Forbidden lines drawn by hand",
+        "Impassable lines drawn by hand",
     "Plot, zakázaný prostor nebo trať, kterou OpenStreetMap nezná: nakresli čáru do mapy. Postup ji nesmí překročit. Čára je sdílená pro všechny běžce závodu a přepočítá postupy všem; smazat ji může jen ten, kdo ji nakreslil.":
         "A fence, a out-of-bounds area or a line that OpenStreetMap does not know: draw a line on the map. Routes must not cross it. The line is shared by all runners of the race and recomputes the routes for all of them; only the one who drew it can delete it.",
     "Nakreslit zakázanou čáru":
-        "Draw a forbidden line",
+        "Draw a impassable line",
     "Nakreslit těžko překonatelnou čáru":
         "Draw a hardly passable line",
     "Kreslit jde, až bude závod analyzovaný (mapa s tratí a běh z hodinek).":
@@ -546,7 +546,7 @@ EN = {
     "těžko překonatelná":
         "hardly passable",
     "zakázaná":
-        "forbidden",
+        "impassable",
     "zrušený účet":
         "deleted account",
     "Smazat":
@@ -554,7 +554,7 @@ EN = {
     "Zatím žádná.":
         "None yet.",
     "„Zakázaná“ znamená zákaz (nekonečná cena, ISOM 708 a 709). „Těžko překonatelná“ není zákaz, jen velká ztráta času (nepřekonatelný sráz, hustý plot): postup ji překročí, jen když se to hodně vyplatí.":
-        "“Forbidden” means a ban (infinite cost, ISOM 708 and 709). “Hardly passable” is not a ban, just a big loss of time (an impassable cliff, a thick fence): a route crosses it only when it pays off a lot.",
+        "“Impassable” means a ban (infinite cost, ISOM 708 and 709). “Hardly passable” is not a ban, just a big loss of time (an impassable cliff, a thick fence): a route crosses it only when it pays off a lot.",
     "Občerstvovačka":
         "Refreshment control",
     "Zastávky do 30 m od značky se berou jako schválné automaticky, všem běžcům závodu. Smazat ji může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).":
@@ -800,9 +800,9 @@ EN = {
     "Vyber <b>Exportovat soubor</b> (ne „originál“). Stáhne se zip, uvnitř je soubor .fit.":
         "Choose <b>Export File</b> (not “original”). A zip is downloaded with a .fit file inside.",
     "Zip nahraj v <a href=\"%(url)s\">Nahrát běhy</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.":
-        "Upload the zip in <a href=\"%(url)s\">Upload runs</a>, or in the Materials of the race. You do not have to unpack it.",
+        "Upload the zip in <a href=\"%(url)s\">Upload runs</a>, or in the source files of the race. You do not have to unpack it.",
     "Zip nahraj v Nahrát běhy, nebo v Podkladech závodu. Rozbalovat ho nemusíš.":
-        "Upload the zip in Upload runs, or in the Materials of the race. You do not have to unpack it.",
+        "Upload the zip in Upload runs, or in the source files of the race. You do not have to unpack it.",
     "Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.":
         "Do not use the other export options (TCX, GPX, Google Earth, CSV): the app reads only .fit.",
     "<b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):":
@@ -818,7 +818,7 @@ EN = {
     "Celý zip nahraj v Nahrát běhy. Appka si nechá jen běhy ze závodů a zip smaže.":
         "Upload the whole zip in Upload runs. The app keeps only the runs from races and deletes the zip.",
     "Běhy se se závody spárují samy podle dne, času startu a místa. Jiný běh jde vybrat v Podkladech závodu.":
-        "Runs are matched with races on their own by the day, the start time and the place. Another run can be chosen in the Materials of the race.",
+        "Runs are matched with races on their own by the day, the start time and the place. Another run can be chosen in the source files of the race.",
     "Mapa z Livelox (KMZ)":
         "Map from Livelox (KMZ)",
     "V Livelox vyber závod a svou kategorii. Odkaz na Livelox bývá u závodu v appce.":
@@ -828,7 +828,7 @@ EN = {
     "Stáhni dvakrát: <b>Mapa s tratí</b>, formát <b>KMZ</b>, a <b>Pouze mapa</b>, formát <b>KMZ</b>.":
         "Download twice: <b>Map with course</b>, format <b>KMZ</b>, and <b>Map only</b>, format <b>KMZ</b>.",
     "V Podkladech závodu nahraj první jako mapu s tratí a druhou jako mapu bez tratě.":
-        "In the Materials of the race upload the first as the map with course and the second as the map without course.",
+        "In the source files of the race upload the first as the map with course and the second as the map without course.",
     "Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy. Mapu bez tratě stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.":
         "From the map with course the app reads the controls, from the map without course the terrain for the best routes. It is enough if one person from the club uploads the map without course. Maps are visible only to logged-in members and cannot be downloaded from the app.",
     "Když Livelox stažení nedovolí":
@@ -836,7 +836,7 @@ EN = {
     "Pořadatel může stahování map vypnout. Pak máš dvě cesty:":
         "The organiser can switch map downloads off. Then you have two ways:",
     "<b>Nejlíp fotka papírové mapy.</b> Vyfoť celou mapu shora, za světla a bez blesku. Mapu polož rovně a nic ať nezakrývá kontroly. Nahraj ji v Podkladech jako fotku mapy. Na místo se usadí sama podle kontrol a tvé stopy (potřebuje běh z hodinek a mezičasy z ORIS); když se neusadí, jde usadit ručně.":
-        "<b>Best a photo of the paper map.</b> Photograph the whole map from above, in daylight and without flash. Lay the map flat and let nothing cover the controls. Upload it in Materials as a photo of the map. It places itself by the controls and your track (it needs the run from the watch and the splits from ORIS); if it does not place itself, it can be placed by hand.",
+        "<b>Best a photo of the paper map.</b> Photograph the whole map from above, in daylight and without flash. Lay the map flat and let nothing cover the controls. Upload it in Source files as a photo of the map. It places itself by the controls and your track (it needs the run from the watch and the splits from ORIS); if it does not place itself, it can be placed by hand.",
     "<b>Jinak dva snímky obrazovky z Livelox</b> (níže). Jen pro vlastní rozbor: nesdílej je dál, pořadatel stažení vypnul záměrně.":
         "<b>Otherwise two screenshots from Livelox</b> (below). For your own analysis only: do not share them, the organiser switched the download off on purpose.",
     "Dva snímky z Livelox (Chrome na počítači)":
@@ -852,7 +852,7 @@ EN = {
     "Znovu tři tečky → <b>Capture full size screenshot</b>. To je <b>snímek bez tratě</b>.":
         "Three dots again → <b>Capture full size screenshot</b>. This is the <b>screenshot without the course</b>.",
     "Oba snímky nahraj do polí „Snímek z Livelox s tratí“ a „Snímek z Livelox bez tratě“ v Podkladech závodu.":
-        "Upload both screenshots to the fields “Livelox screenshot with course” and “Livelox screenshot without course” in the Materials of the race.",
+        "Upload both screenshots to the fields “Livelox screenshot with course” and “Livelox screenshot without course” in the source files of the race.",
     "Proč neposouvat: appka usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá stejné místo. Snese posun o pár pixelů, ne jiné přiblížení nebo jinou velikost okna.":
         "Why not to move: the app places only the screenshot with the course (by the controls and your track) and gives the screenshot without the course the same place. It tolerates a shift of a few pixels, not a different zoom or a different window size.",
     "Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek s tratí jde nahrát i tak, nejlepší postupy z něj ale nebudou.":
@@ -890,7 +890,7 @@ EN = {
     "Když GPS na úseku zlobí (město, vysoké domy; appka napíše „GPS tu asi zlobí“), nakresli, kudy jsi opravdu běžel. Čára nahradí stopu úseku, úsek se z modelu vyřadí. Tlačítko Vrátit GPS stopu ji vrátí.":
         "When the GPS misbehaves on a leg (city, tall buildings; the app writes “The GPS is probably misbehaving here”), draw where you really ran. The line replaces the track of the leg, and the leg is left out of the model. The button Restore the GPS track brings it back.",
     "Leží celá mapa vedle stopy (všechny kontroly posunuté stejně)? V Podkladech je „Usadit mapu ručně podle kontrol“. Jde vrátit.":
-        "Is the whole map lying beside the track (all controls shifted the same way)? In Materials there is “Place the map by hand by the controls”. It can be undone.",
+        "Is the whole map lying beside the track (all controls shifted the same way)? In Source files there is “Place the map by hand by the controls”. It can be undone.",
     "Další věty u úseku píše appka sama:":
         "The app writes other sentences about a leg on its own:",
     "Nejlepší postup":
@@ -1106,7 +1106,7 @@ EN = {
     "Jak dobře model sedí":
         "How well the model fits",
     "Kontrola modelu, ne rada pro běh: řadí model úseky závodu stejně jako kategorie? Porovnává se čas nejlepšího postupu podle tvého modelu s referenčním časem kategorie (průměr nejrychlejší čtvrtiny běžců na úseku). Nemá sedět čas (ostatní běhají jinak rychle), ale pořadí a poměry úseků. Úsek, kde se model od kategorie liší o čtvrtinu a víc, ukazuje, kde mapa nebo model nesedí (špatně přečtený terén, zakázaný průchod, těžká dohledávka).":
-        "A check of the model, not advice for running: does the model order the legs of the race the same way as the class? The time of the best route by your model is compared with the reference time of the class (the average of the fastest quarter of runners on the leg). It is not the time that should fit (the others run at different speeds) but the order and the proportions of the legs. A leg where the model differs from the class by a quarter or more shows where the map or the model does not fit (a wrongly read terrain, a forbidden passage, a hard search for the control).",
+        "A check of the model, not advice for running: does the model order the legs of the race the same way as the class? The time of the best route by your model is compared with the reference time of the class (the average of the fastest quarter of runners on the leg). It is not the time that should fit (the others run at different speeds) but the order and the proportions of the legs. A leg where the model differs from the class by a quarter or more shows where the map or the model does not fit (a wrongly read terrain, a out-of-bounds passage, a hard search for the control).",
     "Pořadová korelace":
         "Rank correlation",
     "Co to říká":
@@ -1132,7 +1132,7 @@ EN = {
     "Jen když je <b>celá mapa</b> posunutá (všechny kontroly vedle tvé stopy stejným směrem). Když zlobí GPS jen na pár úsecích (město, vysoké domy), oprav si raději stopu u úseku („Opravit moji stopu“).":
         "Only when the <b>whole map</b> is shifted (all controls beside your track in the same direction). When the GPS misbehaves only on a few legs (city, tall buildings), rather correct the track at the leg (“Correct my track”).",
     "Vyber kontrolu v seznamu a klikni na mapě na střed jejího kolečka. <b>Klikni aspoň na %(min_points)s kontroly, co nejdál od sebe.</b> Kde kontroly leží v terénu, ví aplikace z tvé stopy v oficiálních časech ražení. Uložením se posune %(moved)s a analýzy závodu se pustí znovu; vrátit to jde v Podkladech.":
-        "Choose a control in the list and click the map at the centre of its circle. <b>Click at least %(min_points)s controls, as far from each other as possible.</b> Where the controls lie in the terrain, the app knows from your track at the official punch times. Saving moves %(moved)s and the analyses of the race run again; it can be undone in Materials.",
+        "Choose a control in the list and click the map at the centre of its circle. <b>Click at least %(min_points)s controls, as far from each other as possible.</b> Where the controls lie in the terrain, the app knows from your track at the official punch times. Saving moves %(moved)s and the analyses of the race run again; it can be undone in Source files.",
     "mapa s tratí i mapa bez tratě z tvých snímků":
         "the map with course and the map without course from your screenshots",
     "mapa celého závodu (s tratí všech kategorií i bez tratě)":
@@ -1184,7 +1184,7 @@ EN = {
     "Zrušení smaže účet a všechno, co patří jen tobě: závody v aplikaci (%(races)s), běhy z hodinek (%(activities)s), rozbory (%(analyses)s), poznámky a plánované postupy (%(notes)s), osobní modely (%(models)s) a závody, které jsi přidal ručně a nikdo jiný je nemá. Nejde to vrátit.":
         "Closing deletes the account and everything that belongs only to you: races in the app (%(races)s), runs from the watch (%(activities)s), analyses (%(analyses)s), notes and planned routes (%(notes)s), personal models (%(models)s) and races you added by hand that nobody else has. It cannot be undone.",
     "Zůstane, co je sdílené pro závod: mapa bez tratě, mapa s tratí kategorie, zakázané čáry a občerstvovačky (jen už u nich nebude tvoje jméno). Účet si můžeš později založit znovu.":
-        "What is shared for a race stays: the map without course, the map with course of the class, forbidden lines and refreshment controls (only your name will no longer be on them). You can create the account again later.",
+        "What is shared for a race stays: the map without course, the map with course of the class, impassable lines and refreshment controls (only your name will no longer be on them). You can create the account again later.",
     "Heslo pro potvrzení":
         "Password to confirm",
     "Zrušit účet a smazat moje data":
@@ -1194,7 +1194,7 @@ EN = {
     "Aplikace běží jen na tomhle počítači. Mapy, běhy z hodinek, poznámky a modely jsou ve složce <code>%(data_dir)s</code> a nikam se neposílají. Ven jdou jen dotazy na ORIS (závody, mezičasy) a na výškopis a OpenStreetMap (jen výřez mapy, ne tvoje stopa). Zálohu uděláš zkopírováním té složky.":
         "The app runs only on this computer. Maps, runs from the watch, notes and models are in the folder <code>%(data_dir)s</code> and are sent nowhere. Only requests to ORIS (races, splits) and for the elevation and OpenStreetMap (just a cut-out of the map, not your track) go out. You make a backup by copying that folder.",
     "Tvoje stopy z hodinek a poznámky vidíš jen ty. Mapa bez tratě, občerstvovačky a zakázané přechody jsou sdílené pro závod, takže poslouží i ostatním přihlášeným členům, kteří ho běželi. Celý export z Garminu se po zpracování z aplikace maže; zůstanou jen běhy spárované se závody a z ostatních jen odvozený model kopců.":
-        "Only you see your tracks from the watch and your notes. The map without course, refreshment controls and forbidden crossings are shared for the race, so they also serve the other logged-in members who ran it. The whole Garmin export is deleted from the app after processing; only the runs matched with races stay, and from the others only the derived hill model.",
+        "Only you see your tracks from the watch and your notes. The map without course, refreshment controls and impassable crossings are shared for the race, so they also serve the other logged-in members who ran it. The whole Garmin export is deleted from the app after processing; only the runs matched with races stay, and from the others only the derived hill model.",
     "Aplikace ukončena":
         "App closed",
     "Aplikace je ukončená":
@@ -1260,11 +1260,11 @@ EN = {
     "Mapa a úseky":
         "Map and legs",
     "Podklady":
-        "Materials",
+        "Source files",
     "Nastavení závodu":
         "Race settings",
     "Jak je rozbor spočítaný (časy, výškopis, zakázané přechody)":
-        "How the analysis is computed (times, elevation, forbidden crossings)",
+        "How the analysis is computed (times, elevation, impassable crossings)",
     "Čas start–cíl <b>%(total)s</b>.":
         "Start–finish time <b>%(total)s</b>.",
     "Časy na kontrolách jsou oficiální mezičasy z ORIS":
@@ -1278,7 +1278,7 @@ EN = {
     "<b>Nejlepší postupy se právě počítají</b>; stopa, mezičasy a typy chyb jsou už hotové.":
         "<b>The best routes are being computed right now</b>; the track, splits and kinds of mistakes are already done.",
     "<b>Nejlepší postupy nejsou spočítané</b>; analýzu jde spustit znovu v Podkladech.":
-        "<b>The best routes are not computed</b>; the analysis can be run again in Materials.",
+        "<b>The best routes are not computed</b>; the analysis can be run again in Source files.",
     "<b>Nejlepší postupy z fotky nepočítáme</b>, terén se z ní nedá spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ a přepočítá se to.":
         "<b>We do not compute best routes from a photo</b>, the terrain cannot be read reliably from it. When the organiser publishes the map on Livelox or in OB routes, upload the KMZ and it will be recomputed.",
     "<b>Nejlepší postupy chybí</b>, dokud někdo nenahraje mapu bez tratě.":
@@ -1289,8 +1289,8 @@ EN = {
         "DMR 5G (ČÚZK, laser scanning)",
     "AWS Terrain Tiles (zdroj kolem 30 m)":
         "AWS Terrain Tiles (source around 30 m)",
-    "Zakázané přechody: %(forbidden)s zakázaných a %(hard)s těžko překonatelných čar, %(crossings)s průchodů":
-        "Forbidden crossings: %(forbidden)s forbidden and %(hard)s hardly passable lines, %(crossings)s crossings",
+    "Zakázané přechody: %(impassable)s zakázaných a %(hard)s těžko překonatelných čar, %(crossings)s průchodů":
+        "Impassable crossings: %(impassable)s impassable and %(hard)s hardly passable lines, %(crossings)s crossings",
     "%(areas)s zakázaných prostorů ze šrafování mapy":
         "%(areas)s out-of-bounds areas from the hatching of the map",
     "Postupy jsou spočítané se starším modelem rychlosti. Přepočítat všechno je přepočítá u všech závodů s jedním modelem.":
@@ -1400,7 +1400,7 @@ EN = {
     "plánovaný postup":
         "planned route",
     "zakázaný přechod nebo prostor":
-        "forbidden crossing or area",
+        "impassable line or out-of-bounds area",
     "zastávka":
         "stop",
     "záchytný bod":
@@ -1500,7 +1500,7 @@ EN = {
     "Použít":
         "Use",
     "Analýza se spouští sama po každé změně podkladů. Ručně je potřeba jen výjimečně.":
-        "The analysis starts on its own after every change of the materials. Doing it by hand is needed only exceptionally.",
+        "The analysis starts on its own after every change of the source files. Doing it by hand is needed only exceptionally.",
     "Spustit analýzu znovu":
         "Run the analysis again",
     "Závod ORIS":
@@ -1598,7 +1598,7 @@ EN = {
     "je":
         "present",
     "Doplnit podklady":
-        "Add materials",
+        "Add source files",
     "Účet se zakládá registračním číslem ORIS. Jméno a tvoje závody se podle něj načtou samy.":
         "The account is created with an ORIS registration number. Your name and your races are loaded from it on their own.",
     "Tři písmena oddílu a čtyři číslice, např. BFM0000. Je to i tvoje přihlašovací jméno a později ho nejde změnit.":
@@ -1660,7 +1660,7 @@ EN = {
     "<b>Rozbor „Ztratil jsem se u kontroly“ je po závodě.</b> Až závod poběžíš, nahraj běh (.fit): stránka ukáže místa u kontrol, kde ses podle stopy zdržel, a jak ses měl vrátit. Na závodě se mobil ani jiné pomůcky používat nesmějí.":
         "<b>The analysis “I got lost at a control” is after the race.</b> When you have run the race, upload the run (.fit): the page shows the places at the controls where you lingered according to the track, and how you should have got back. A phone or other aids must not be used in a race.",
     "Nápověda potřebuje <b>mapu s tratí i mapu bez tratě</b> (KMZ, snímky z Livelox nebo fotku). Nahraj je v <a href=\"%(url)s#podklady\">Podkladech</a>; běh (.fit) k tomu potřeba není.":
-        "The help needs <b>a map with course and a map without course</b> (a KMZ, Livelox screenshots or a photo). Upload them in <a href=\"%(url)s#podklady\">Materials</a>; a run (.fit) is not needed for it.",
+        "The help needs <b>a map with course and a map without course</b> (a KMZ, Livelox screenshots or a photo). Upload them in <a href=\"%(url)s#podklady\">Source files</a>; a run (.fit) is not needed for it.",
     "<b>Připravuju mapu kolem kontrol.</b> Dělá se jednou pro závod (a znovu po nové analýze nebo usazení mapy), trvá asi minutu. Stránka se sama obnoví.":
         "<b>Preparing the map around the controls.</b> It is done once for a race (and again after a new analysis or placing of the map), it takes about a minute. The page refreshes itself.",
     "Mapu kolem kontrol se nepodařilo připravit: %(error)s":
@@ -1733,7 +1733,7 @@ EN_JS = {
     "Plánovaný postup: klikáním do mapy přidávej body od kontroly ke kontrole. Dvojklik nebo Hotovo uloží.":
         "Planned route: add points by clicking on the map from control to control. A double click or Done saves.",
     "Zakázaná čára: klikáním do mapy přidávej její body. Dvojklik nebo Hotovo uloží.":
-        "Forbidden line: add its points by clicking on the map. A double click or Done saves.",
+        "Impassable line: add its points by clicking on the map. A double click or Done saves.",
     "Těžko překonatelná čára: klikáním do mapy přidávej její body. Dvojklik nebo Hotovo uloží.":
         "Hardly passable line: add its points by clicking on the map. A double click or Done saves.",
     "Občerstvovačka: klikni do mapy na místo, kde stála.":
@@ -1757,7 +1757,7 @@ EN_JS = {
     "Těžko překonatelné (velmi pomalé).":
         "Hardly passable (very slow).",
     "Zakázaný přechod (sdílený pro závod).":
-        "Forbidden crossing (shared for the race).",
+        "Impassable crossing (shared for the race).",
     "Přidal: %(by)s.":
         "Added by: %(by)s.",
     "Smazat":
@@ -1803,7 +1803,7 @@ EN_JS = {
     "Schválné zastávky %(t)s se jako chyba nepočítají.":
         "Deliberate stops %(t)s do not count as a mistake.",
     "Zakázané přechody se změnily, postupy se přepočítávají.":
-        "The forbidden crossings changed, the routes are being recomputed.",
+        "The impassable crossings changed, the routes are being recomputed.",
     "občerstvení":
         "refreshment",
     "schválná zastávka":
@@ -1921,13 +1921,13 @@ EN_JS = {
     "Čas plánovaného postupu se počítá…":
         "The time of the planned route is being computed…",
     "Plánovaný postup se nepodařilo ocenit. Nakresli ho znovu, nebo spusť v Podkladech analýzu znovu.":
-        "The planned route could not be priced. Draw it again, or run the analysis again in Materials.",
+        "The planned route could not be priced. Draw it again, or run the analysis again in Source files.",
     "ke kontrole":
         "to the control",
     "Do 150 m od kontroly není na mapě nic, čeho by se dalo spolehlivě chytit (žádná cesta, voda, budova ani paseka).":
         "Within 150 m of the control there is nothing on the map you could reliably catch onto (no path, water, building or clearing).",
     "Azimuty jsou k severu mapy (magnetické poledníky), tedy rovnou pro buzolu. Body jsou čtené z kresby mapy bez tratě a pojmenované podle mapového klíče ISOM 2017-2: cesty a jejich konce a křížení, voda, budovy, oplocenky a samostatně stojící bodové značky (kupka, jáma, výrazný strom, posed a další). Plot, který nic neuzavírá, čte aplikace jako cestu. „Vrchol“ je z výškového modelu, ne z kresby. Na mapě je zapíná volba „záchytné body“.":
-        "Bearings are to the north of the map (magnetic meridians), so ready for the compass. The points are read from the drawing of the map without course and named by the ISOM 2017-2 map key: paths and their ends and junctions, water, buildings, fenced areas and separately standing point symbols (knoll, pit, prominent tree, hunting tower and others). A fence that does not enclose anything is read by the app as a path. “Hilltop” is from the elevation model, not from the drawing. It is switched on on the map by the option “relocating features”.",
+        "Bearings are to the north of the map (magnetic meridians), so ready for the compass. The points are read from the drawing of the map without course and named by the ISOM 2017-2 map key: paths and their ends and junctions, water, buildings, forestry fences and separately standing point symbols (knoll, pit, prominent tree, hunting tower and others). A fence that does not enclose anything is read by the app as a path. “Hilltop” is from the elevation model, not from the drawing. It is switched on on the map by the option “relocating features”.",
     "Popis kontroly:":
         "Control description:",
     "Ztratil jsem se tady: co dělat":

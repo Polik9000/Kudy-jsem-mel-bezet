@@ -84,7 +84,7 @@ def mistake(m, read=None, note=None):
 # kind -> name of the feature
 FEATURES = {
     "junction": "path junction", "path_end": "end of a path", "path": "path", "stream_path": "path crossing a stream",
-    "stream": "stream", "pond": "body of water", "building": "building", "enclosure": "fenced area", "fence": "fence",
+    "stream": "stream", "pond": "lake or pond", "building": "building", "enclosure": "forestry fence", "fence": "fence",
     "settlement": "edge of the out-of-bounds area (built-up)", "clearing": "clearing", "open_edge": "edge of an open area",
     "hilltop": "hilltop", "knoll": "knoll", "depression": "depression", "pit": "pit",
     "landform": "prominent landform", "boulder": "boulder", "water_pit": "waterhole", "well": "well or water reservoir",
@@ -175,7 +175,7 @@ def beyond(b):
 LOST_NAMES = {
     "path": ("path", True), "stream": ("stream", True), "fence": ("fence", False),
     "settlement": ("edge of the out-of-bounds area", False), "open_edge": ("edge of an open area", True),
-    "pond": ("body of water", False), "building": ("building", False), "wall": ("wall", False),
+    "pond": ("lake or pond", False), "building": ("building", False), "wall": ("wall", False),
     "junction": ("path junction", False), "path_end": ("end of the path", False),
     "stream_path": ("path crossing a stream", False), "clearing": ("clearing", False), "hilltop": ("hilltop", False),
     "knoll": ("knoll", False), "depression": ("depression", False), "pit": ("pit", False),
@@ -277,7 +277,7 @@ def lost_advice(a):
 
 
 def lost_note(a):
-    return "Where you tapped is off limits (fenced area, out-of-bounds area, water); I am taking the nearest place outside." \
+    return "Where you tapped is off limits (forestry fence, out-of-bounds area, water); I am taking the nearest place outside." \
         if a and a.get("snapped") else None
 
 
@@ -297,12 +297,12 @@ CROSSED = {
                 "If crossing was allowed, switch “Railways and motorways” to “do not use” in the race settings."),
     "motorway": ("crosses a motorway outside a crossing",
                  "If crossing was allowed, switch “Railways and motorways” to “do not use” in the race settings."),
-    "manual": ("crosses a forbidden line drawn by hand",
+    "manual": ("crosses a impassable line drawn by hand",
                "If the line should not be there, whoever drew it can delete it in the race settings."),
     "area": ("goes through a out-of-bounds area from the map hatching",
              "If it was allowed there, switch “Out-of-bounds areas from the map” to “do not use” in the race settings."),
-    "enclosure": ("goes across a fenced area",
-                  "The app treats a fenced area as impassable; if there is no fence or it has a gate, take the "
+    "enclosure": ("goes across a forestry fence",
+                  "The app treats a forestry fence as impassable; if there is no fence or it has a gate, take the "
                   "difference with a pinch of salt."),
 }
 
