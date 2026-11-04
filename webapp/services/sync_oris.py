@@ -35,9 +35,24 @@ def upsert_event(con, ev):
                        " oris_id) VALUES (?,?,?,?,?,?,?,?,?,?)", (*vals, ev["oris_id"])).lastrowid
 
 
+def _free_name(con, event_id, name, oris_id, skip_id=None):
+    """A class name nobody else in this race has. ORIS can list two classes of one race under the same name;
+    the second one then gets its ORIS id behind the name (the database keeps one name per race)."""
+    taken = con.execute("SELECT 1 FROM classes WHERE event_id = ? AND name = ? AND id IS NOT ?",
+                        (event_id, name, skip_id)).fetchone()
+    return f"{name} ({oris_id})" if taken else name
+
+
 def upsert_class(con, event_id, c):
     row = con.execute("SELECT id FROM classes WHERE oris_id = ?", (c["oris_id"],)).fetchone()
-    vals = (c["name"], c["distance_km"], c["climb_m"], c["controls"])
+    if row is None:
+        # a class of this race added without the ORIS id (by hand, or by an older version): it is the same one
+        row = con.execute("SELECT id FROM classes WHERE event_id = ? AND name = ? AND oris_id IS NULL",
+                          (event_id, c["name"])).fetchone()
+        if row:
+            con.execute("UPDATE classes SET oris_id = ? WHERE id = ?", (c["oris_id"], row["id"]))
+    name = _free_name(con, event_id, c["name"], c["oris_id"], row["id"] if row else None)
+    vals = (name, c["distance_km"], c["climb_m"], c["controls"])
     if row:
         con.execute("UPDATE classes SET name=?, distance_km=?, climb_m=?, controls=? WHERE id=?", (*vals, row["id"]))
         return row["id"]
