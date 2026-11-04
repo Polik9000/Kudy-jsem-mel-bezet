@@ -23,8 +23,18 @@ def local(tmp_path, monkeypatch):
     return app
 
 
+def test_first_start_asks_for_regno_once(local):
+    c = local.test_client()
+    r = c.get("/")
+    assert r.status_code == 302 and r.headers["Location"].endswith("/profile")
+    assert "registrační číslo ORIS" in c.get("/profile").get_data(as_text=True)
+    assert c.get("/").status_code == 200              # skipped: never asked again
+    assert local.test_client().get("/").status_code == 200
+
+
 def test_no_login(local):
     c = local.test_client()
+    c.get("/")                                          # the first start goes to the profile
     r = c.get("/")
     assert r.status_code == 200
     html = r.get_data(as_text=True)
@@ -67,10 +77,10 @@ def test_unknown_regno(local):
 
 def test_quit(local):
     c = local.test_client()
-    assert c.post("/konec", data=dict(csrf_token=csrf(c, "/"))).status_code == 404   # no window to close
+    assert c.post("/konec", data=dict(csrf_token=csrf(c, "/profile"))).status_code == 404   # no window to close
     called = []
     local.config["OB_QUIT"] = lambda: called.append(1)
-    r = c.post("/konec", data=dict(csrf_token=csrf(c, "/")))
+    r = c.post("/konec", data=dict(csrf_token=csrf(c, "/profile")))
     assert r.status_code == 200 and called == [1]
 
 
@@ -79,7 +89,7 @@ def test_quit_not_on_the_server(app, user):
     app.config["OB_QUIT"] = lambda: None
     with c.session_transaction() as s:
         s["user_id"] = user
-    assert c.post("/konec", data=dict(csrf_token=csrf(c, "/"))).status_code == 404
+    assert c.post("/konec", data=dict(csrf_token=csrf(c, "/profile"))).status_code == 404
 
 
 def test_data_dir(monkeypatch, tmp_path):

@@ -447,6 +447,9 @@ EN = {
         "%(filename)s: not a Garmin activity (a .fit with a run recording, or a zip with one .fit). Upload a whole Garmin export in Upload runs.",
     "Běh je nahraný a spárovaný s tímhle závodem.":
         "The run is uploaded and matched with this race.",
+    "Vítej! Zadej svoje registrační číslo ORIS, načtou se z něj tvoje závody. Jde to i později, nebo to přeskoč a přidávej závody ručně.":
+        "Welcome! Enter your ORIS registration number and your races will be loaded from it. You can also do it "
+        "later, or skip it and add races by hand.",
     "Uloženo. Závody z ORIS se načítají (%(name)s).":
         "Saved. Races are being loaded from ORIS (%(name)s).",
     " Postupy se přepočítají na pozadí.":
