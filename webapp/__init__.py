@@ -19,7 +19,12 @@ from . import club
 from . import db as dbm
 from .config import Config
 
-VERSION = "2026.10.21"
+# The version of the installers (0.3.5): the build writes webapp/_version.py from the git tag (workflow Instalátory).
+# A Docker or source run keeps the date below, or OB_VERSION when it is set.
+try:
+    from ._version import VERSION
+except ImportError:
+    VERSION = os.environ.get("OB_VERSION") or "2026.10.21"
 # the club site's policy (docs/design-klubovy-web.md): nothing from another origin, no framing
 CSP = ("default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; "
        "script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'")
