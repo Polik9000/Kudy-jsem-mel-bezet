@@ -15,6 +15,7 @@ from flask.cli import with_appcontext
 
 from .. import oris
 from ..db import dumps
+from ..i18n import _
 from . import matching
 from . import splits as class_splits
 
@@ -34,9 +35,24 @@ def upsert_event(con, ev):
                        " oris_id) VALUES (?,?,?,?,?,?,?,?,?,?)", (*vals, ev["oris_id"])).lastrowid
 
 
+def _free_name(con, event_id, name, oris_id, skip_id=None):
+    """A class name nobody else in this race has. ORIS can list two classes of one race under the same name;
+    the second one then gets its ORIS id behind the name (the database keeps one name per race)."""
+    taken = con.execute("SELECT 1 FROM classes WHERE event_id = ? AND name = ? AND id IS NOT ?",
+                        (event_id, name, skip_id)).fetchone()
+    return f"{name} ({oris_id})" if taken else name
+
+
 def upsert_class(con, event_id, c):
     row = con.execute("SELECT id FROM classes WHERE oris_id = ?", (c["oris_id"],)).fetchone()
-    vals = (c["name"], c["distance_km"], c["climb_m"], c["controls"])
+    if row is None:
+        # a class of this race added without the ORIS id (by hand, or by an older version): it is the same one
+        row = con.execute("SELECT id FROM classes WHERE event_id = ? AND name = ? AND oris_id IS NULL",
+                          (event_id, c["name"])).fetchone()
+        if row:
+            con.execute("UPDATE classes SET oris_id = ? WHERE id = ?", (c["oris_id"], row["id"]))
+    name = _free_name(con, event_id, c["name"], c["oris_id"], row["id"] if row else None)
+    vals = (name, c["distance_km"], c["climb_m"], c["controls"])
     if row:
         con.execute("UPDATE classes SET name=?, distance_km=?, climb_m=?, controls=? WHERE id=?", (*vals, row["id"]))
         return row["id"]
@@ -52,11 +68,11 @@ def sync_user(con, conf, user_id, client=None, today=None, pause=PAUSE_S, lookup
     user = con.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     regno = user["oris_regno"]
     if not regno:
-        raise ValueError("V profilu chybí registrační číslo ORIS.")
+        raise ValueError(_("V profilu chybí registrační číslo ORIS."))
     if lookup or not user["oris_user_id"]:
         u = client.user(regno)
         if u is None:
-            raise ValueError(f"Registrační číslo {regno} v ORIS není.")
+            raise ValueError(_("Registrační číslo %(regno)s v ORIS není.", regno=regno))
         con.execute("UPDATE users SET oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
                     (u["oris_user_id"], u["name"], user_id))
     else:
@@ -118,8 +134,9 @@ def sync_user(con, conf, user_id, client=None, today=None, pause=PAUSE_S, lookup
     con.commit()
     matching.match_user(con, user_id)
     total = con.execute("SELECT COUNT(*) FROM entries WHERE user_id = ?", (user_id,)).fetchone()[0]
-    return (f"ORIS: {total} závodů ({new} nových), oficiální čas doplněn u {with_time}"
-            + (f", mezičasy kategorie načteny u {with_class}." if with_class else "."))
+    return (_("ORIS: %(total)s závodů (%(new)s nových), oficiální čas doplněn u %(with_time)s",
+        total=total, new=new, with_time=with_time)
+            + (_(", mezičasy kategorie načteny u %(with_class)s.", with_class=with_class) if with_class else "."))
 
 
 def sync_all(con, conf, client=None, pause=PAUSE_S, hours=SYNC_HOURS, now=None, log=print):

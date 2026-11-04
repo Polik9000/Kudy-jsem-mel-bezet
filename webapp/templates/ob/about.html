@@ -1,57 +1,56 @@
 {% extends "ob/base.html" %}
-{% block title %}O aplikaci a omezení{% endblock %}
+{% block title %}{{ _('O aplikaci a omezení') }}{% endblock %}
 {% block content %}
-<h2 class="ob-nadpis">O aplikaci a omezení</h2>
-<p class="evhead">Jak to celé funguje a co model (zatím) nedokáže.</p>
+<h2 class="ob-nadpis">{% trans %}O aplikaci a omezení{% endtrans %}</h2>
+<p class="evhead">{% trans %}Jak to celé funguje a co model (zatím) nedokáže.{% endtrans %}</p>
 
-<h3 class="ob-oddil">Jak to funguje</h3>
+<h3 class="ob-oddil">{{ _("Jak to funguje") }}</h3>
 <div class="ob-kroky-o">
   <div class="karta">
     <span class="ob-krok-cislo">1</span>
-    <h4>Mřížka 2,7 × 2,7 m</h4>
-    <p>Mapu z Livelox rozdělí na čtvercová políčka a z barev mapy přečte, jaký terén v každém leží (cesta, louka, les, podrost, zelená, voda).</p>
+    <h4>{% trans %}Mřížka 2,7 × 2,7 m{% endtrans %}</h4>
+    <p>{% trans %}Mapu z Livelox rozdělí na čtvercová políčka a z barev mapy přečte, jaký terén v každém leží (cesta, louka, les, podrost, zelená, voda).{% endtrans %}</p>
   </div>
   <div class="karta">
     <span class="ob-krok-cislo">2</span>
-    <h4>Ohodnocení v sekundách</h4>
-    <p>Každé políčko dostane cenu podle terénu, sklonu z výškopisu a tvého osobního modelu rychlosti.</p>
+    <h4>{% trans %}Ohodnocení v sekundách{% endtrans %}</h4>
+    <p>{% trans %}Každé políčko dostane cenu podle terénu, sklonu z výškopisu a tvého osobního modelu rychlosti.{% endtrans %}</p>
   </div>
   <div class="karta">
     <span class="ob-krok-cislo">3</span>
-    <h4>Výpočet bez AI</h4>
-    <p>Najde trasu s nejmenším součtem časů, jako navigace přes les. Žádná umělá inteligence nic nehádá: počítá geometrie, mřížka a tvůj model.</p>
+    <h4>{% trans %}Výpočet bez AI{% endtrans %}</h4>
+    <p>{% trans %}Najde trasu s nejmenším součtem časů, jako navigace přes les. Žádná umělá inteligence nic nehádá: počítá geometrie, mřížka a tvůj model.{% endtrans %}</p>
   </div>
 </div>
 
 <div class="ob-radek ob-o-spodek">
   <div>
-    <h3 class="ob-oddil">Zdroje dat</h3>
+    <h3 class="ob-oddil">{{ _("Zdroje dat") }}</h3>
     <div class="ob-zdroje">
-      <div class="karta"><b>Garmin FIT</b><span>tvoje stopa</span></div>
-      <div class="karta"><b>Livelox KMZ</b><span>mapa a trať</span></div>
-      <div class="karta"><b>ORIS</b><span>výsledky a mezičasy</span></div>
-      <div class="karta"><b>ČÚZK, AWS</b><span>výškopis</span></div>
+      <div class="karta"><b>Garmin FIT</b><span>{% trans %}tvoje stopa{% endtrans %}</span></div>
+      <div class="karta"><b>Livelox KMZ</b><span>{% trans %}mapa a trať{% endtrans %}</span></div>
+      <div class="karta"><b>ORIS</b><span>{% trans %}výsledky a mezičasy{% endtrans %}</span></div>
+      <div class="karta"><b>{% trans %}ČÚZK, AWS{% endtrans %}</b><span>{% trans %}výškopis{% endtrans %}</span></div>
     </div>
   </div>
   <div>
-    <h3 class="ob-oddil">Omezení modelu</h3>
+    <h3 class="ob-oddil">{% trans %}Omezení modelu{% endtrans %}</h3>
     <div class="ob-limity" role="note">
-      <div class="ob-limity-hlava"><span>Limitace modelu</span><span>Pozor</span></div>
+      <div class="ob-limity-hlava"><span>{% trans %}Limitace modelu{% endtrans %}</span><span>{% trans %}Pozor{% endtrans %}</span></div>
       <ul>
-        <li>Zná jen mě a pár závodů (malý vzorek).</li>
-        <li>Tmavě zelenou (hustník) skoro nemá změřenou.</li>
-        <li>Skály, srázy a detaily na mapě z Livelox nepřečte.</li>
-        <li>Sprintové mapy a zakázané prostory jsou jen částečně ověřené.</li>
-        <li>Neví, co se běžci honilo hlavou při chybách.</li>
+        <li>{% trans %}Zná jen tebe a závody, které nahraješ (malý vzorek).{% endtrans %}</li>
+        <li>{% trans %}Skály, srázy a detaily na mapě z Livelox nepřečte.{% endtrans %}</li>
+        <li>{% trans %}Sprintové mapy a zakázané prostory jsou jen částečně ověřené.{% endtrans %}</li>
+        <li>{% trans %}Neví, co se běžci honilo hlavou při chybách.{% endtrans %}</li>
       </ul>
     </div>
   </div>
 </div>
 
 <p class="ob-o-paticka">
-  {% if local_app %}Lokální zpracování · data zůstávají u tebe · {% endif %}Zdarma ·
-  <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet" rel="noopener">GitHub (Polik9000)</a> · Autor: Tobiáš Otta
+  {% if local_app %}{{ _('Lokální zpracování · data zůstávají u tebe') }} · {% endif %}{{ _('Zdarma') }} ·
+  <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet" rel="noopener">GitHub (Polik9000)</a> · {{ _('Autor') }}: Tobiáš Otta
   <span class="badge badge-tichy">SKOB BFM</span>
-  · <a href="{{ url_for('ob.help_page') }}">Jak na to</a> · verze {{ app_version }}
+  · <a href="{{ url_for('ob.help_page') }}">{{ _('Jak na to') }}</a> · {% trans version=app_version %}verze {{ version }}{% endtrans %}
 </p>
 {% endblock %}

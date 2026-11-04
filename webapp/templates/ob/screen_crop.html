@@ -1,20 +1,20 @@
 {% extends "ob/base.html" %}
-{% block title %}Oříznout snímek · {{ e.event_name }}{% endblock %}
+{% block title %}{{ _('Oříznout snímek') }} · {{ e.event_name }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
 {% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}Oříznout snímek z Livelox</h2>
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Oříznout snímek z Livelox') }}</h2>
 <p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ e.event_name }}</a> · {{ e.date | datum }}
-  · kategorie {{ e.class_name }}</p>
+  · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</p>
 {% if not reliable and not by_hand %}
-<div class="stalewarn">Kde na snímku končí mapa a začíná stránka Livelox, aplikace nepoznala jistě. Zkontroluj obdélník.</div>
+<div class="stalewarn">{% trans %}Kde na snímku končí mapa a začíná stránka Livelox, aplikace nepoznala jistě. Zkontroluj obdélník.{% endtrans %}</div>
 {% endif %}
-<p>Obdélník ukazuje, co ze snímku je mapa. <b>Přetáhni jeho rohy tak, aby obsahoval celou mapu, ale ne lištu, seznam
-  běžců ani tlačítka Livelox.</b> Šedé pozadí kolem mapy nevadí. Totéž oříznutí dostane i snímek bez tratě.</p>
+<p>{% trans %}Obdélník ukazuje, co ze snímku je mapa. <b>Přetáhni jeho rohy tak, aby obsahoval celou mapu, ale ne lištu, seznam
+  běžců ani tlačítka Livelox.</b> Šedé pozadí kolem mapy nevadí. Totéž oříznutí dostane i snímek bez tratě.{% endtrans %}</p>
 <div class="ob-foto-obal">
   <div class="ob-foto-ram">
-    <div id="foto-mapa" class="ob-foto-mapa" role="application" aria-label="Snímek s tratí; rohy obdélníku jdou přetáhnout"></div>
+    <div id="foto-mapa" class="ob-foto-mapa" role="application" aria-label="{{ _('Snímek s tratí; rohy obdélníku jdou přetáhnout') }}"></div>
   </div>
   <div class="ob-foto-panel">
     <p id="orez-stav" class="ob-foto-vyber" aria-live="polite"></p>
@@ -22,12 +22,11 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       {% for k, v in [('x0', box[0]), ('y0', box[1]), ('x1', box[2]), ('y1', box[3])] %}
       <input type="hidden" name="{{ k }}" id="orez-{{ k }}" value="{{ v }}">{% endfor %}
-      <p><button type="button" id="orez-cely" class="btn btn-maly">Celý snímek</button></p>
-      <button type="submit" class="btn btn-hlavni">Oříznout a usadit znovu</button>
-      <a class="btn" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">Zpět</a>
+      <p><button type="button" id="orez-cely" class="btn btn-maly">{{ _('Celý snímek') }}</button></p>
+      <button type="submit" class="btn btn-hlavni">{{ _('Oříznout a usadit znovu') }}</button>
+      <a class="btn" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ _('Zpět') }}</a>
     </form>
-    <p class="hint">Snímky se usadí znovu s tímhle oříznutím{% if maponly %} a mapa bez tratě se uloží znovu{% endif %};
-      analýza se pak spustí sama.</p>
+    <p class="hint">{% if maponly %}{% trans %}Snímky se usadí znovu s tímhle oříznutím a mapa bez tratě se uloží znovu; analýza se pak spustí sama.{% endtrans %}{% else %}{% trans %}Snímky se usadí znovu s tímhle oříznutím; analýza se pak spustí sama.{% endtrans %}{% endif %}</p>
   </div>
 </div>
 {% endblock %}

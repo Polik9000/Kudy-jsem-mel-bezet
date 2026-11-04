@@ -1,93 +1,93 @@
 {% extends "ob/base.html" %}
-{% block title %}Ztratil jsem se · {{ e.event_name }}{% endblock %}
+{% block title %}{{ _('Ztratil jsem se') }} · {{ e.event_name }}{% endblock %}
 {% block head %}
 {% if state == 'ready' %}
 <link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
 {% endif %}
 {% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}Ztratil jsem se u kontroly</h2>
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Ztratil jsem se u kontroly') }}</h2>
 <p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a> · {{ e.date | datum }}
-  · kategorie {{ e.class_name }} · <a href="{{ url_for('ob.help_page') }}#ztraceny">jak to funguje</a></p>
+  · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %} · <a href="{{ url_for('ob.help_page') }}#ztraceny">{{ _('jak to funguje') }}</a></p>
 
 {% if state == 'too_early' %}
 <div class="karta">
-  <p><b>Rozbor „Ztratil jsem se u kontroly“ je po závodě.</b> Až závod poběžíš, nahraj běh (.fit): stránka ukáže
+  <p>{% trans %}<b>Rozbor „Ztratil jsem se u kontroly“ je po závodě.</b> Až závod poběžíš, nahraj běh (.fit): stránka ukáže
     místa u kontrol, kde ses podle stopy zdržel, a jak ses měl vrátit. Na závodě se mobil ani jiné pomůcky
-    používat nesmějí.</p>
+    používat nesmějí.{% endtrans %}</p>
 </div>
 {% elif state == 'no_maps' %}
 <div class="karta">
-  <p>Nápověda potřebuje <b>mapu s tratí i mapu bez tratě</b> (KMZ, snímky z Livelox nebo fotku). Nahraj je
-    v <a href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">Podkladech</a>; běh (.fit) k tomu potřeba není.</p>
+  <p>{% trans url=url_for('ob.race', entry_id=e.id) %}Nápověda potřebuje <b>mapu s tratí i mapu bez tratě</b> (KMZ, snímky z Livelox nebo fotku). Nahraj je
+    v <a href="{{ url }}#podklady">Podkladech</a>; běh (.fit) k tomu potřeba není.{% endtrans %}</p>
 </div>
 {% elif state == 'preparing' %}
 <div class="karta" id="z-cekani" data-stav="{{ url_for('ob.lost_state', entry_id=e.id) }}">
-  <p><b>Připravuju mapu kolem kontrol.</b> Dělá se jednou pro závod (a znovu po nové analýze nebo usazení mapy),
-    trvá asi minutu. Stránka se sama obnoví.</p>
-  <p id="z-postup" class="hint" aria-live="polite">{{ job.message if job and job.message else 'čeká ve frontě' }}</p>
+  <p>{% trans %}<b>Připravuju mapu kolem kontrol.</b> Dělá se jednou pro závod (a znovu po nové analýze nebo usazení mapy),
+    trvá asi minutu. Stránka se sama obnoví.{% endtrans %}</p>
+  <p id="z-postup" class="hint" aria-live="polite">{{ job.message if job and job.message else _('čeká ve frontě') }}</p>
 </div>
 {% elif state == 'failed' %}
 <div class="karta">
-  <p class="ob-bad">Mapu kolem kontrol se nepodařilo připravit{% if error %}: {{ error }}{% else %}.{% endif %}</p>
+  <p class="ob-bad">{% if error %}{% trans %}Mapu kolem kontrol se nepodařilo připravit: {{ error }}{% endtrans %}{% else %}{% trans %}Mapu kolem kontrol se nepodařilo připravit.{% endtrans %}{% endif %}</p>
   <form method="post" action="{{ url_for('ob.lost_prepare', entry_id=e.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-hlavni">Zkusit znovu</button>
+    <button type="submit" class="btn btn-hlavni">{{ _('Zkusit znovu') }}</button>
   </form>
 </div>
 {% else %}
 <div class="ob-ztr">
   <div class="ob-ztr-horni">
-    <div class="ob-ztr-kontroly" id="z-kontroly" role="group" aria-label="Kontrola">
+    <div class="ob-ztr-kontroly" id="z-kontroly" role="group" aria-label="{{ _('Kontrola') }}">
       {% for c in controls %}<button type="button" class="ob-ztr-cip" data-k="{{ c.k }}" aria-pressed="false">{{ c.k }}</button>{% endfor %}
     </div>
     {% if back %}
-    <div class="ob-ztr-rezim" role="group" aria-label="Režim">
-      <button type="button" class="btn" id="z-po" aria-pressed="true">Po závodě: kde jsem se ztratil</button>
-      <button type="button" class="btn" id="z-misto" aria-pressed="false">Kde jsem asi byl</button>
+    <div class="ob-ztr-rezim" role="group" aria-label="{{ _('Režim') }}">
+      <button type="button" class="btn" id="z-po" aria-pressed="true">{{ _('Po závodě: kde jsem se ztratil') }}</button>
+      <button type="button" class="btn" id="z-misto" aria-pressed="false">{{ _('Kde jsem asi byl') }}</button>
     </div>
     {% endif %}
   </div>
   <div class="ob-ztr-telo">
     <div class="ob-ztr-mapa-obal">
-      <div id="z-mapa" class="ob-ztr-mapa" role="application" aria-label="Mapa; ťukni, kde jsi asi byl"></div>
+      <div id="z-mapa" class="ob-ztr-mapa" role="application" aria-label="{{ _('Mapa; ťukni, kde jsi asi byl') }}"></div>
       <p id="z-mapa-stav" class="ob-ztr-mapa-stav" hidden></p>
     </div>
     <div class="ob-ztr-panel">
       <div id="z-misto-panel"{% if back %} hidden{% endif %}>
-        <p id="z-pokyn" class="ob-ztr-pokyn">Vyber kontrolu a ťukni do mapy, kde jsi asi byl, když ses ztratil.</p>
+        <p id="z-pokyn" class="ob-ztr-pokyn">{% trans %}Vyber kontrolu a ťukni do mapy, kde jsi asi byl, když ses ztratil.{% endtrans %}</p>
         <div class="ob-ztr-tlacitka">
-          <button type="button" class="btn" id="z-okoli">Jen kontrola a okolí</button>
+          <button type="button" class="btn" id="z-okoli">{{ _('Jen kontrola a okolí') }}</button>
         </div>
-        <div class="ob-ztr-r" role="group" aria-label="Jak moc si nejsi jistý, kde jsi byl">
-          <span>Nejistota</span>
+        <div class="ob-ztr-r" role="group" aria-label="{{ _('Jak moc si nejsi jistý, kde jsi byl') }}">
+          <span>{{ _('Nejistota') }}</span>
           {% for r in radii %}<button type="button" class="btn" data-r="{{ r }}" aria-pressed="{{ 'true' if r == r0 else 'false' }}">{{ r }} m</button>{% endfor %}
         </div>
       </div>
       <div id="z-po-panel"{% if not back %} hidden{% endif %}>
-        <p class="ob-ztr-pokyn">Místa do 100 m od kontroly, kde jsi zpomalil, kroužil nebo se otočil:</p>
+        <p class="ob-ztr-pokyn">{% trans %}Místa do 100 m od kontroly, kde jsi zpomalil, kroužil nebo se otočil:{% endtrans %}</p>
         <div id="z-mista" class="ob-ztr-mista"></div>
       </div>
       <div id="z-rada" class="ob-ztr-rada" aria-live="polite" hidden>
         <p id="z-note" class="nota" hidden></p>
         <div id="z-vety" class="ob-ztr-vety"></div>
-        <details id="z-body"><summary>Záchytné body kolem</summary><ol id="z-seznam" class="ob-ztr-seznam"></ol></details>
+        <details id="z-body"><summary>{{ _('Záchytné body kolem') }}</summary><ol id="z-seznam" class="ob-ztr-seznam"></ol></details>
       </div>
       <div class="ob-ztr-popis">
-        <label class="ob-pole" for="z-popis">Popis kontroly <span class="hint">(nepovinné, ručně, třeba „kupka, severní úpatí“)</span></label>
+        <label class="ob-pole" for="z-popis">{{ _('Popis kontroly') }} <span class="hint">{% trans %}(nepovinné, ručně, třeba „kupka, severní úpatí“){% endtrans %}</span></label>
         <div class="ob-ztr-popis-radek">
           <input type="text" id="z-popis" maxlength="{{ desc_max }}" autocomplete="off">
-          <button type="button" class="btn" id="z-popis-ulozit">Uložit</button>
+          <button type="button" class="btn" id="z-popis-ulozit">{{ _('Uložit') }}</button>
         </div>
         <p id="z-popis-stav" class="hint" aria-live="polite"></p>
       </div>
-      <label class="check"><input type="checkbox" id="z-trat" checked> mapa s tratí</label>
+      <label class="check"><input type="checkbox" id="z-trat" checked> {{ _('mapa s tratí') }}</label>
     </div>
   </div>
-  <p class="hint">Rozbor po závodě: co bylo kolem kontroly a jak ses z místa, kde ses ztratil, měl vrátit. Rada je
+  <p class="hint">{% trans %}Rozbor po závodě: co bylo kolem kontroly a jak ses z místa, kde ses ztratil, měl vrátit. Rada je
     odhad z kresby mapy (cesty, vodoteče, ploty, okraje ploch, budovy), bez vrstevnic a skal. „Nedalo se minout“
     znamená, že na tu věc bys narazil odkudkoli z kruhu nejistoty, kdybys šel daným směrem. Do oplocených a zakázaných
-    míst rada nevede.</p>
+    míst rada nevede.{% endtrans %}</p>
 </div>
 {% endif %}
 {% endblock %}

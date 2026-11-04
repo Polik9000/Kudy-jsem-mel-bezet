@@ -1,18 +1,18 @@
 {% extends "ob/base.html" %}
-{% block title %}Zapomenuté heslo{% endblock %}
+{% block title %}{{ _('Zapomenuté heslo') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('start', 'ikona-nadpis') }}Zapomenuté heslo</h2>
-<p class="evhead">Aplikace nemá e-mail, takže kód k novému heslu ti dá správce aplikace. Platí 24 hodin a jde použít
-  jednou.</p>
+<h2 class="s-ikonou">{{ ikona('start', 'ikona-nadpis') }}{{ _('Zapomenuté heslo') }}</h2>
+<p class="evhead">{% trans %}Aplikace nemá e-mail, takže kód k novému heslu ti dá správce aplikace. Platí 24 hodin a jde použít
+  jednou.{% endtrans %}</p>
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Registrační číslo ORIS <input name="oris_regno" autocomplete="username" required autofocus placeholder="BFM0000"
+  <label>{{ _('Registrační číslo ORIS') }} <input name="oris_regno" autocomplete="username" required autofocus placeholder="BFM0000"
          value="{{ request.form.get('oris_regno') or request.args.get('regno', '') }}"></label>
-  <p class="hint">Tři písmena oddílu a čtyři číslice, např. BFM0000.</p>
-  <label>Jednorázový kód od správce <input name="code" autocomplete="off" required placeholder="ABCD-2345"></label>
-  <label>Nové heslo (aspoň 8 znaků) <input name="password" type="password" autocomplete="new-password" required></label>
-  <label>Nové heslo znovu <input name="password2" type="password" autocomplete="new-password" required></label>
-  <button type="submit" class="btn btn-hlavni">Nastavit nové heslo</button>
+  <p class="hint">{% trans %}Tři písmena oddílu a čtyři číslice, např. BFM0000.{% endtrans %}</p>
+  <label>{{ _('Jednorázový kód od správce') }} <input name="code" autocomplete="off" required placeholder="ABCD-2345"></label>
+  <label>{{ _('Nové heslo (aspoň 8 znaků)') }} <input name="password" type="password" autocomplete="new-password" required></label>
+  <label>{{ _('Nové heslo znovu') }} <input name="password2" type="password" autocomplete="new-password" required></label>
+  <button type="submit" class="btn btn-hlavni">{{ _('Nastavit nové heslo') }}</button>
 </form>
-<p><a href="{{ url_for('auth.login') }}">Zpět na přihlášení</a></p>
+<p><a href="{{ url_for('auth.login') }}">{{ _('Zpět na přihlášení') }}</a></p>
 {% endblock %}

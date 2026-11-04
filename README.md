@@ -9,6 +9,21 @@ tvého osobního modelu rychlosti a ukáže, kde jsi ztratil čas. Spouští se 
 zůstávají u tebe. Mapy ani záznamy běhů v tomto repozitáři nejsou, nahraješ si vlastní. Licence: PolyForm
 Noncommercial 1.0.0, tedy zdarma pro jakékoli nekomerční použití (sám, oddíl, škola); komerční jen se svolením autora.
 
+## Languages: Czech and English
+
+The web app and the desktop app come in Czech (the default) and English. The link **CZ | EN** at the end of the menu
+switches and remembers the choice (a cookie); `?lang=en` on any address works for one page. `OB_LANG=en` makes
+English the default for everyone who has not chosen (Docker: `environment:` in `docker-compose.yml`; desktop app:
+`python -m desktop.app --lang en`). The notes the analysis writes, the job list and the error messages follow the language too,
+and a background job writes its sentences in the language of the page that started it.
+
+How it is built: the Czech text is the message id (`_("...")` in Python, `{{ _('...') }}` and
+`{% trans %}...{% endtrans %}` in templates, `T("...")` in `webapp/static/*.js`) and `webapp/lang_en.py` holds the
+English text for each. The grammar-heavy sentences of the analysis (relocating features, "I got lost" advice, mistake
+types) are written in English separately in `webapp/texts_en.py`. `python tools/i18n_extract.py` lists texts that have
+no English yet; `tests/test_i18n.py` fails when one is missing. The docs in `docs/` stay in Czech, the landing page
+`docs/index.html` has both languages.
+
 ## Download (Windows, macOS)
 
 Installers without Docker or Python: the GitHub Releases of this repository (Windows 10/11, macOS on Apple
@@ -79,7 +94,7 @@ What a runner does:
    (WinSplits method, works without a .fit), notes per leg, forbidden crossings (railways and motorways from
    OpenStreetMap, lines drawn by hand), links to ORIS, OResults and the club site. A route planned for a leg
    (drawn on the map) is priced by the model and shown next to the best route and the one that was run; "if you
-   got lost" lists two to four catching features around the control with bearings, and where the track shows
+   got lost" lists two to four relocating features around the control with bearings, and where the track shows
    wandering, where contact was lost and what was close by. The selected leg is in the
    address (`#usek-7`), the arrow keys go from leg to leg, notes are saved as they are typed; the page reloads
    itself only when it shows the state of a job, never over unsaved work. The run and both maps can be uploaded
@@ -136,9 +151,9 @@ without the web. Besides the modules described in the sections below:
   `bestroute.py --barriers areas.json`;
 - `planned.py` the model time of a route drawn by hand, priced like the best route and the line that was run,
   with a sentence on why it is slower or where the time was lost;
-- `relocate.py` catching features around every control (path junctions and ends, paths, streams, buildings, ponds,
+- `relocate.py` relocating features around every control (path junctions and ends, paths, streams, buildings, ponds,
   fenced enclosures, clearings, the point symbols of the map) with bearings to the north of the map, the attack
-  point before the control on the way the best route comes in, the backstop beyond it, and wandering near a
+  point before the control on the way the best route comes in, the catching feature beyond it, and wandering near a
   control read from the track;
 - `symbols.py` point symbols of ISOM 2017-2 read from the picture of the map by colour, size and shape (knoll,
   depression, pit, landform, boulder, waterhole, well, tree, stand, man-made object);

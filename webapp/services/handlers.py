@@ -11,6 +11,7 @@ from oroute import garmin
 
 from .. import oris
 from ..config import ROOT
+from ..i18n import _, _n
 from . import jobs, matching, personal, plans, results, runner, storage, sync_oris
 
 
@@ -37,14 +38,14 @@ def _import_upload(ctx, job):
                     data = f.read()
             aid, new = storage.save_activity(ctx.con, ctx.conf, job["user_id"], data, name, "fit")
             if aid is None:
-                raise ValueError("Soubor není aktivita Garmin (.fit se záznamem běhu).")
-            msg = "Aktivita uložena." if new else "Tahle aktivita už nahraná je."
+                raise ValueError(_("Soubor není aktivita Garmin (.fit se záznamem běhu)."))
+            msg = _("Aktivita uložena.") if new else _("Tahle aktivita už nahraná je.")
             # a run from a race ORIS has not been asked about yet (the race was this weekend): load the races
             # first, as the Garmin export does, or the run stays unpaired and the race missing from the list
             if new and not _race_on_day_of(ctx.con, job["user_id"], aid):
                 msg += " " + _races_from_oris(ctx, job["user_id"])     # it pairs the runs it can, too
                 if ctx.con.execute("SELECT 1 FROM entries WHERE activity_id = ?", (aid,)).fetchone():
-                    msg += " Spárováno se závodem."
+                    msg += _(" Spárováno se závodem.")
         else:
             seen = added = 0
             try:
@@ -52,8 +53,8 @@ def _import_upload(ctx, job):
                     seen += 1
                     added += storage.save_activity(ctx.con, ctx.conf, job["user_id"], data, name, "garmin-export")[1]
             except zipfile.BadZipFile as e:
-                raise ValueError("Soubor není zip (export účtu Garmin nebo zip se soubory .fit).") from e
-            msg = f"V archivu {seen} souborů .fit, běhů {added}."
+                raise ValueError(_("Soubor není zip (export účtu Garmin nebo zip se soubory .fit).")) from e
+            msg = _("V archivu %(seen)s souborů .fit, běhů %(added)s.", seen=seen, added=added)
             # The runs that are not paired are about to be dropped: first learn every race ORIS knows of the
             # runner (as the button on the race list does), or the run of a race loaded later would be gone.
             before = _paired(ctx.con, job["user_id"])
@@ -67,16 +68,17 @@ def _import_upload(ctx, job):
             at_race = matching.at_races(ctx.con, job["user_id"])
             paired, spared, dropped = storage.drop_unpaired(ctx.con, ctx.conf, job["user_id"], "garmin-export",
                                                             keep=set(at_race))
-            msg += (f" Zůstalo {paired + spared} běhů: {paired} spárovaných se závody a {spared} nespárovaných u závodu"
-                    " (v seznamu nahraných aktivit je jde přiřadit nebo smazat)." if spared else
-                    f" Zůstalo {paired} běhů spárovaných se závody.")
-            msg += f" Smazáno {dropped} ostatních běhů; ty se vrátí jen opětovným nahráním exportu."
-            return msg + (f" Nově spárováno: {len(changed)}." if changed else "")
+            msg += (_(" Zůstalo %(v)s běhů: %(paired)s spárovaných se závody a %(spared)s nespárovaných u "
+                        "závodu (v seznamu nahraných aktivit je jde přiřadit nebo smazat).",
+                            v=paired + spared, paired=paired, spared=spared) if spared else
+                    _(" Zůstalo %(paired)s běhů spárovaných se závody.", paired=paired))
+            msg += _(" Smazáno %(dropped)s ostatních běhů; ty se vrátí jen opětovným nahráním exportu.", dropped=dropped)
+            return msg + (_(" Nově spárováno: %(len)s.", len=len(changed)) if changed else "")
     finally:
         if os.path.exists(path):
             os.remove(path)
     changed = matching.match_user(ctx.con, job["user_id"])
-    return msg + (f" Spárováno se závody: {len(changed)}." if changed else "")
+    return msg + (_(" Spárováno se závody: %(len)s.", len=len(changed)) if changed else "")
 
 
 def _race_on_day_of(con, user_id, activity_id):
@@ -98,17 +100,17 @@ def _races_from_oris(ctx, user_id):
     """Load the runner's races from ORIS inside another job. Returns a Czech sentence on how it went; ORIS
     being down must not lose the upload."""
     if not ctx.con.execute("SELECT oris_regno FROM users WHERE id = ?", (user_id,)).fetchone()["oris_regno"]:
-        return "Účet nemá registrační číslo, závody z ORIS se nenačítaly."
+        return _("Účet nemá registrační číslo, závody z ORIS se nenačítaly.")
     try:
         sync_oris.sync_user(ctx.con, ctx.conf, user_id)
     except ValueError as e:                      # the number is not in ORIS
         ctx.con.rollback()
-        return f"{e} Závody z ORIS se nenačetly."
+        return _("%(e)s Závody z ORIS se nenačetly.", e=e)
     except (oris.OrisError, OSError):
         ctx.con.rollback()
-        return ("ORIS teď neodpovídá, párovalo se jen se závody, které aplikace už zná: běh ze závodu, který se "
-                "načte až později, nahraj znovu.")
-    return "Závody z ORIS načteny."
+        return (_("ORIS teď neodpovídá, párovalo se jen se závody, které aplikace už zná: běh ze závodu, který "
+                    "se načte až později, nahraj znovu."))
+    return _("Závody z ORIS načteny.")
 
 
 def fit_slope(ctx, user_id, export):
@@ -131,13 +133,13 @@ def fit_slope(ctx, user_id, export):
     try:
         p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=runner.TIMEOUT)
     except subprocess.TimeoutExpired:
-        return "Model kopců se nestihl spočítat."
+        return _("Model kopců se nestihl spočítat.")
     if p.returncode != 0 or not os.path.exists(conf.path(rel)):
-        return "Na vlastní model kopců je v archivu málo běhů, zůstává výchozí."
+        return _("Na vlastní model kopců je v archivu málo běhů, zůstává výchozí.")
     con.execute("UPDATE users SET slope_file = ? WHERE id = ?", (rel, user_id))
     con.commit()
     jobs.enqueue(con, "refit_model", user_id=user_id)
-    return "Model kopců spočítán z tvých běhů."
+    return _("Model kopců spočítán z tvých běhů.")
 
 
 @jobs.handler("analyse")
@@ -166,20 +168,17 @@ def _analyse(ctx, job):
     try:
         plans.price(ctx.con, ctx.conf, entry_id, again=True)
     except (runner.AnalysisError, OSError, ValueError, KeyError):
-        notes.append("Plánované postupy se nepodařilo ocenit.")
+        notes.append(_("Plánované postupy se nepodařilo ocenit."))
     if not has_routes:
         src = ctx.con.execute("SELECT c.course_source FROM entries e JOIN classes c ON c.id = e.class_id"
                               " WHERE e.id = ?", (entry_id,)).fetchone()
         if src and src["course_source"] in ("image", "photo", "manual", "screen"):
-            return ("Mezičasy a chyby hotové. Nejlepší postupy z fotky nepočítáme, terén se z ní nedá spolehlivě "
-                    "přečíst. Až pořadatel zveřejní mapu na Livelox, nahraj KMZ a přepočítá se to.")
-        return "Mezičasy a chyby hotové. Na nejlepší postupy chybí mapa bez tratě."
-    return ("Analýza hotová" + (", osobní model přepočítán." if any(refitted) else ".")
+            return (_("Mezičasy a chyby hotové. Nejlepší postupy z fotky nepočítáme, terén se z ní nedá "
+                        "spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox, nahraj KMZ "
+                        "a přepočítá se to."))
+        return _("Mezičasy a chyby hotové. Na nejlepší postupy chybí mapa bez tratě.")
+    return (_("Analýza hotová") + (_(", osobní model přepočítán.") if any(refitted) else ".")
             + ((" " + " ".join(notes)) if notes else ""))
-
-
-def _plural(n, one, few, many):
-    return one if n == 1 else few if 2 <= n <= 4 else many
 
 
 @jobs.handler("recompute_all")
@@ -199,14 +198,14 @@ def _recompute_all(ctx, job):
         " JOIN events ev ON ev.id = c.event_id JOIN analyses a ON a.entry_id = e.id"
         " WHERE e.user_id = ? AND a.has_routes = 1 ORDER BY ev.date, e.id", (uid,)).fetchall()
     if not rows:
-        return "Zatím není co přepočítat (žádný závod s nejlepšími postupy)."
+        return _("Zatím není co přepočítat (žádný závod s nejlepšími postupy).")
     n = len(rows)
     resampled = set()
     for i, r in enumerate(rows, 1):
-        say(f"vzorky {i} z {n} závodů ({r['name']})")
+        say(_("vzorky %(i)s z %(n)s závodů (%(name)s)", i=i, n=n, name=r['name']))
         if runner.sample_entry(con, conf, r["id"]):
             resampled.add(r["id"])
-    say("přepočítávám osobní model")
+    say(_("přepočítávám osobní model"))
     model_id, changed = personal.refit(con, conf, uid, tol=personal.KEEP_TOL)
     model = runner.current_model(con, uid)
 
@@ -217,7 +216,7 @@ def _recompute_all(ctx, job):
     todo = [r for r in rows if stale(r)]
     notes = []
     for i, r in enumerate(todo, 1):
-        head = f"postupy {i} z {len(todo)} závodů ({r['name']})"
+        head = _("postupy %(i)s z %(len)s závodů (%(name)s)", i=i, len=len(todo), name=r['name'])
         say(head)
         rel, has_routes, used, more = runner.analyse_entry(
             con, conf, r["id"], routes_only=True, progress=lambda text, head=head: say(f"{head}: {text}"),
@@ -226,13 +225,16 @@ def _recompute_all(ctx, job):
         try:
             plans.price(con, conf, r["id"], again=True)
         except (runner.AnalysisError, OSError, ValueError, KeyError):
-            more.append("Plánované postupy se nepodařilo ocenit.")
+            more.append(_("Plánované postupy se nepodařilo ocenit."))
         notes += [f"{r['name']}: {m}" for m in more]
     if not todo:
-        which = _plural(n, "závod už má", f"všechny {n} závody už mají", f"všech {n} závodů už má")
-        return f"Nic nového: {which} postupy spočítané s aktuálním modelem."
-    return (f"Přepočítáno {len(todo)} z {n} {_plural(n, 'závodu', 'závodů', 'závodů')} s jedním modelem"
-            + (" (model se změnil)." if changed else ".") + ((" " + " ".join(notes)) if notes else ""))
+        return _n(n, "Nic nového: závod už má postupy spočítané s aktuálním modelem.",
+                  "Nic nového: všechny %(n)s závody už mají postupy spočítané s aktuálním modelem.",
+                  "Nic nového: všech %(n)s závodů už má postupy spočítané s aktuálním modelem.")
+    return (_n(n, "Přepočítáno %(done)s z %(n)s závodu s jedním modelem",
+               "Přepočítáno %(done)s z %(n)s závodů s jedním modelem",
+               "Přepočítáno %(done)s z %(n)s závodů s jedním modelem", done=len(todo))
+            + (_(" (model se změnil).") if changed else ".") + ((" " + " ".join(notes)) if notes else ""))
 
 
 @jobs.handler("relocate")
@@ -241,23 +243,23 @@ def _relocate(ctx, job):
     of the analysis stay as they are."""
     runner.relocate_entry(ctx.con, ctx.conf, job["entry_id"])
     results.store_relocate(ctx.con, ctx.conf, job["entry_id"])
-    return "Záchytné a náběhové body u kontrol přepočítány."
+    return _("Záchytné a náběhové body u kontrol přepočítány.")
 
 
 @jobs.handler("lost_scene")
 def _lost_scene(ctx, job):
     """What is around every control to catch when lost there (oroute/lost.py), for the page "Ztratil jsem se". Not
     part of an analysis and of "Přepočítat všechno": the page asks for it when it finds it missing or stale."""
-    jobs.progress(ctx.con, job["id"], "čtu mapu kolem kontrol")
+    jobs.progress(ctx.con, job["id"], _("čtu mapu kolem kontrol"))
     runner.run_lost(ctx.con, ctx.conf, job["entry_id"])
-    return "Nápověda „Ztratil jsem se“ je připravená."
+    return _("Nápověda „Ztratil jsem se“ je připravená.")
 
 
 @jobs.handler("price_plans")
 def _price_plans(ctx, job):
     """A planned route was drawn or changed: what the speed model says about it (services/plans.py)."""
     n = plans.price(ctx.con, ctx.conf, job["entry_id"])
-    return f"Plánované postupy oceněny modelem: {n}." if n else "Žádný plánovaný postup k ocenění."
+    return _("Plánované postupy oceněny modelem: %(n)s.", n=n) if n else _("Žádný plánovaný postup k ocenění.")
 
 
 @jobs.handler("georef_map")
@@ -285,17 +287,17 @@ def _georef_map(ctx, job):
         cls = ctx.con.execute("SELECT * FROM classes WHERE id = ?", (info["cid"],)).fetchone()
         before = storage.course_source(ctx.conf, cls)
         if before == "kmz":
-            return "Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila."
+            return _("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila.")
         if by_hand:
             row = ctx.con.execute("SELECT file FROM photos WHERE entry_id = ?", (job["entry_id"],)).fetchone()
             if row is None or not os.path.exists(ctx.conf.path(row["file"])):
-                raise jobs.Refused("Fotka k ručnímu usazení už tu není; nahraj ji znovu.")
+                raise jobs.Refused(_("Fotka k ručnímu usazení už tu není; nahraj ji znovu."))
             image = georef.open_image(ctx.conf.path(row["file"]))
         else:
             try:
                 image = georef.open_image(path)
             except (OSError, ValueError, Image.DecompressionBombError) as e:
-                raise jobs.Refused("Soubor se nepodařilo otevřít jako obrázek (jpg nebo png).") from e
+                raise jobs.Refused(_("Soubor se nepodařilo otevřít jako obrázek (jpg nebo png).")) from e
             storage.save_photo(ctx.con, ctx.conf, job["entry_id"], image)
         lat0, lon0 = georef.track_frame(track)
         try:
@@ -315,12 +317,13 @@ def _georef_map(ctx, job):
         # a screenshot of Livelox is a straight picture with the exact purple: a photo replaces it, even placed by
         # hand, only when it fits the controls better
         if before == "screen" and cls["course_rms"] is not None and fit["rms"] >= cls["course_rms"]:
-            return (f"Pro kategorii už je mapa ze snímku Livelox s menší odchylkou ({cls['course_rms']:.0f} m); fotka "
-                    f"({fit['rms']:.0f} m) se nepoužila.")
+            return (_("Pro kategorii už je mapa ze snímku Livelox s menší odchylkou (%(course_rms).0f m); fotka "
+                        "(%(rms).0f m) se nepoužila.", course_rms=cls['course_rms'], rms=fit['rms']))
         if not by_hand and before in ("image", "photo", "manual") and cls["course_rms"] is not None \
                 and fit["rms"] >= cls["course_rms"]:
-            return (f"Pro kategorii už je mapa z fotky s menší odchylkou ({cls['course_rms']:.0f} m); tahle "
-                    f"({fit['rms']:.0f} m) se nepoužila. Přepsat ji jde ručním usazením.")
+            return (_("Pro kategorii už je mapa z fotky s menší odchylkou (%(course_rms).0f m); tahle "
+                        "(%(rms).0f m) se nepoužila. Přepsat ji jde ručním usazením.",
+                            course_rms=cls['course_rms'], rms=fit['rms']))
         fd, tmp = tempfile.mkstemp(suffix=".kmz", dir=ctx.conf.path("incoming"))
         os.close(fd)
         georef.write_kmz(tmp, gm.image, gm, name=f"{info['event_name']} ({info['class_name']})")
@@ -337,12 +340,12 @@ def _georef_map(ctx, job):
         ctx.con.commit()
         for r in ctx.con.execute("SELECT id FROM entries WHERE class_id = ?", (info["cid"],)).fetchall():
             matching.queue_analysis(ctx.con, r["id"])
-        how = (f"podle {fit['n']} bodů, které jsi označil" if by_hand
-               else f"podle {fit['n']} z {fit['controls']} kontrol")
-        replaced = (" Nahradila předchozí mapu z fotky." if before in ("image", "photo", "manual") else
-                    " Nahradila mapu ze snímku Livelox." if before == "screen" else "")
-        return (f"Mapa usazena {how}, odchylka {fit['rms']:.0f} m, na okraji mapy asi {fit['edge_m']:.0f} m."
-                f"{replaced} Analýza je ve frontě.")
+        how = (_("podle %(n)s bodů, které jsi označil", n=fit['n']) if by_hand
+               else _("podle %(n)s z %(controls)s kontrol", n=fit['n'], controls=fit['controls']))
+        replaced = (_(" Nahradila předchozí mapu z fotky.") if before in ("image", "photo", "manual") else
+                    _(" Nahradila mapu ze snímku Livelox.") if before == "screen" else "")
+        return (_("Mapa usazena %(how)s, odchylka %(rms).0f m, na okraji mapy asi %(edge_m).0f m.%(replaced)s "
+                    "Analýza je ve frontě.", how=how, rms=fit['rms'], edge_m=fit['edge_m'], replaced=replaced))
     finally:
         if path and os.path.exists(path):
             os.remove(path)
@@ -359,8 +362,8 @@ def photo_track(conf, info):
     from .. import texts
     official = runner.official_times(info) if info else None
     if not info or not info["fit_file"] or not official:
-        raise jobs.Refused("Fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí "
-                           "běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit).")
+        raise jobs.Refused(_("Fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí "
+                               "běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit)."))
     try:
         track = load_track(conf.path(info["fit_file"]))
     except InputError as e:
@@ -374,5 +377,5 @@ def photo_track(conf, info):
 def _refit_model(ctx, job):
     mid, changed = personal.refit(ctx.con, ctx.conf, job["user_id"])
     if mid is None:
-        return "Zatím není z čeho model počítat (žádný závod s nejlepšími postupy)."
-    return "Osobní model přepočítán." if changed else "Osobní model se nezměnil."
+        return _("Zatím není z čeho model počítat (žádný závod s nejlepšími postupy).")
+    return _("Osobní model přepočítán.") if changed else _("Osobní model se nezměnil.")

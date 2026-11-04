@@ -76,6 +76,6 @@ def test_average_runner_is_stored_shown_and_counted(app, client, user, monkeypat
     con.commit()
     html = client.get("/model").get_data(as_text=True)
     assert "Proti průměrnému běžci" in html
-    assert "Na <b>1</b> z 2 úseků (50 %,\n  1 závod)" in html, html[html.index("Proti průměrnému"):][:600]
+    assert "Na <b>1</b> z 2 úseků (50 %, 1 závod)" in " ".join(html.split()), html[html.index("Proti průměrnému"):][:600]
     assert "do kopce jsi rychlejší než průměr (1×)" in html
     assert f"#usek-2\">Trénink na louce, úsek {legs[1]['name']}</a>" in html and SENTENCE in html

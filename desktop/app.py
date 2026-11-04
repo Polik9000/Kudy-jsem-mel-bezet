@@ -2,6 +2,7 @@
 
     python -m desktop.app               the window (pywebview); without it the default browser
     python -m desktop.app --browser     always the default browser
+    python -m desktop.app --lang en     English pages for those who have not chosen (OB_LANG; the menu link CZ | EN too)
     python -m desktop.app --smoke-test  start, answer a few pages, run the analysis scripts with --help, exit
 
 The same Flask app as on the club server (webapp/), with OB_LOCAL=1: one runner, no accounts, no club site. The
@@ -23,6 +24,12 @@ import time
 
 APP_NAME = "Kudy jsem měl běžet"
 APP_FOLDER = "KudyJsemMelBezet"   # the data folder: no diacritics, some tools still trip over them
+
+
+def _(msgid, **kw):
+    """A message in the language of the interface (webapp/i18n.py: OB_LANG, Czech by default)."""
+    from webapp.i18n import _ as translate
+    return translate(msgid, **kw)
 
 
 def data_dir():
@@ -215,6 +222,8 @@ def _show_error(text):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if "--lang" in argv and argv.index("--lang") + 1 < len(argv):
+        os.environ["OB_LANG"] = argv[argv.index("--lang") + 1]
     if "--smoke-test" in argv:
         return smoke_test()
     instance = data_dir()
@@ -224,7 +233,7 @@ def main(argv=None):
     try:
         url, server, app = start()
     except Exception as e:  # noqa: BLE001
-        _show_error(f"Aplikace se nespustila: {e}\nData: {instance}")
+        _show_error(_("Aplikace se nespustila: %(error)s\nData: %(data)s", error=e, data=instance))
         return 1
     _wait_until_up(url)
     done = threading.Event()
@@ -251,7 +260,8 @@ def main(argv=None):
             window = None
     import webbrowser
     webbrowser.open(url)
-    print(f"{APP_NAME} běží na {url} (ukončení: v nabídce Ukončit aplikaci, nebo Ctrl+C)", flush=True)
+    print(_("%(app)s běží na %(url)s (ukončení: v nabídce Ukončit aplikaci, nebo Ctrl+C)", app=APP_NAME, url=url),
+          flush=True)
     try:
         while not done.wait(1):
             pass

@@ -3,6 +3,7 @@
    what is wrong, and where the runner's track lies on the photo. Markers can be dragged; × removes a point. */
 (function () {
   "use strict";
+  var t = window.obT;
   var OB = window.OB, $ = function (id) { return document.getElementById(id); };
   var W = OB.size[0], H = OB.size[1];
   var points = {};          // control name -> [u, v] in pixels of the photo
@@ -23,7 +24,7 @@
   function esc(t) {
     return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
   }
-  function label(name) { return name === "S" ? "Start" : name === "C" ? "Cíl" : "Kontrola " + name; }
+  function label(name) { return name === "S" ? t("Start") : name === "C" ? t("Cíl") : t("Kontrola %(name)s", { name: name }); }
   function count() { return Object.keys(points).length; }
   function nextFree(after) {
     var names = OB.names.filter(function (n) { return n[1]; }).map(function (n) { return n[0]; });
@@ -65,15 +66,15 @@
     var html = OB.names.map(function (n) {
       var name = n[0], p = points[name], d = deviation[name];
       var cls = (name === selected ? "vybrany " : "") + (p ? "je" : "") + (d !== undefined && d !== null && d > 40 ? " spatne" : "");
-      var dev = p ? (d === undefined || d === null ? "✓" : "± " + d + " m") : (n[1] ? "" : "bez ražení");
+      var dev = p ? (d === undefined || d === null ? "✓" : "± " + d + " m") : (n[1] ? "" : t("bez ražení"));
       return "<li class=\"" + cls + "\"><button type=\"button\" data-bod=\"" + esc(name) + "\"" + (n[1] ? "" : " disabled") +
              " aria-pressed=\"" + (name === selected) + "\"><b>" + esc(name) + "</b> <small>" + esc(dev) + "</small></button>" +
-             (p ? "<button type=\"button\" class=\"smazat\" data-smazat=\"" + esc(name) + "\" aria-label=\"Smazat bod " +
-                  esc(label(name)) + "\">×</button>" : "") + "</li>";
+             (p ? "<button type=\"button\" class=\"smazat\" data-smazat=\"" + esc(name) + "\" aria-label=\"" + esc(t("Smazat bod %(name)s", { name: label(name) })) +
+                  "\">×</button>" : "") + "</li>";
     }).join("");
     $("foto-seznam").innerHTML = html;
-    $("foto-vyber").textContent = selected ? "Klikni na fotce: " + label(selected) + "." :
-      "Vyber v seznamu kontrolu, kterou chceš označit.";
+    $("foto-vyber").textContent = selected ? t("Klikni na fotce: %(name)s.", { name: label(selected) }) :
+      t("Vyber v seznamu kontrolu, kterou chceš označit.");
   }
   function select(name) {
     selected = name;
@@ -129,11 +130,11 @@
         drawTrack();
         var n = count(), msg = [];
         if (n < OB.minPoints) {
-          msg.push("Označeno " + n + " z aspoň " + OB.minPoints + " bodů.");
+          msg.push(t("Označeno %(n)s z aspoň %(min)s bodů.", { n: n, min: OB.minPoints }));
         } else if (d.ok) {
-          msg.push(d.summary || ("Usazení vychází s odchylkou " + Math.round(d.rms) + " m, přesnost asi ±" + d.accuracy + " m."));
+          msg.push(d.summary || t("Usazení vychází s odchylkou %(rms)s m, přesnost asi ±%(acc)s m.", { rms: Math.round(d.rms), acc: d.accuracy }));
         }
-        (d.problems || []).forEach(function (p) { if (n >= OB.minPoints || p.indexOf("dvakrát") >= 0) { msg.push(p); } });
+        (d.problems || []).forEach(function (p) { if (n >= OB.minPoints || p.indexOf("dvakrát") >= 0 || p.indexOf("twice") >= 0) { msg.push(p); } });
         $("foto-stav").innerHTML = msg.map(function (m) { return "<p>" + esc(m) + "</p>"; }).join("");
         $("foto-stav").className = "ob-foto-stav" + (d.ok ? " ok" : (n >= OB.minPoints ? " chyba" : ""));
         $("foto-ulozit").disabled = !d.ok;
@@ -141,7 +142,7 @@
         list();
       })
       .catch(function () {
-        $("foto-stav").innerHTML = "<p>Spojení se serverem selhalo, zkus bod posunout znovu.</p>";
+        $("foto-stav").innerHTML = "<p>" + esc(t("Spojení se serverem selhalo, zkus bod posunout znovu.")) + "</p>";
       });
   }
 

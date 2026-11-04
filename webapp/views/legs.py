@@ -4,6 +4,7 @@ from flask import abort, flash, g, jsonify, redirect, request, url_for
 from .. import cfg, get_db
 from ..auth import login_required
 from ..db import dumps
+from ..i18n import _
 from ..services import barriers, jobs, plans, view
 from . import bp
 from .races import _ws, get_entry, refreshments, rerouting
@@ -101,7 +102,7 @@ def barrier_delete(entry_id, bid):
 def barrier_remove(entry_id, bid):
     """The same from the settings tab (a plain form, no script needed)."""
     _barrier_delete(get_entry(entry_id), bid)
-    flash("Čára je smazaná, postupy se přepočítají všem, kdo závod běželi.", "ok")
+    flash(_("Čára je smazaná, postupy se přepočítají všem, kdo závod běželi."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#nastaveni")
 
 

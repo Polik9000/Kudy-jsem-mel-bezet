@@ -4,16 +4,17 @@ from flask import abort, flash, g, jsonify, redirect, render_template, request, 
 from .. import get_db
 from ..auth import login_required
 from ..db import loads
+from ..i18n import N_, _
 from ..services import jobs
 from . import bp
 
-KINDS = {"sync_oris": "Načtení závodů z ORIS", "import_upload": "Zpracování nahraných aktivit",
-         "analyse": "Analýza závodu", "refit_model": "Přepočet osobního modelu",
-         "georef_map": "Usazení obrázku nebo fotky mapy", "price_plans": "Ocenění plánovaného postupu",
-         "relocate": "Záchytné body u kontrol", "recompute_all": "Přepočítat všechno",
-         "lost_scene": "Nápověda „Ztratil jsem se“"}
-STATES = {"queued": ("čeká", ""), "running": ("běží", "ob-warn"), "done": ("hotovo", "ob-ok"),
-          "failed": ("chyba", "ob-bad"), "stopped": ("zastaveno", "")}
+KINDS = {"sync_oris": N_("Načtení závodů z ORIS"), "import_upload": N_("Zpracování nahraných aktivit"),
+         "analyse": N_("Analýza závodu"), "refit_model": N_("Přepočet osobního modelu"),
+         "georef_map": N_("Usazení obrázku nebo fotky mapy"), "price_plans": N_("Ocenění plánovaného postupu"),
+         "relocate": N_("Záchytné body u kontrol"), "recompute_all": N_("Přepočítat všechno"),
+         "lost_scene": N_("Nápověda „Ztratil jsem se“")}
+STATES = {"queued": (N_("čeká"), ""), "running": (N_("běží"), "ob-warn"), "done": (N_("hotovo"), "ob-ok"),
+          "failed": (N_("chyba"), "ob-bad"), "stopped": (N_("zastaveno"), "")}
 # kinds that can simply be queued again (an upload is gone by then)
 RETRY = ("analyse", "sync_oris", "refit_model", "relocate", "recompute_all", "lost_scene")
 
@@ -38,16 +39,16 @@ def entry_progress(db, entry_id):
                      " ORDER BY status = 'queued', id LIMIT 1", (entry_id,)).fetchone()
     if job is None:
         return ""
-    name = KINDS.get(job["kind"], job["kind"])
+    name = _(KINDS.get(job["kind"], job["kind"]))
     if job["status"] == "running":
-        return f"{name}: {job['message'] or 'běží'}."
+        return f"{name}: {job['message'] or _('běží')}."
     # the worker takes the quick jobs first and analyses after them, each kind in the order they came
     late = int(job["kind"] in ("analyse", "recompute_all"))
     heavy = jobs.HEAVY_SQL
     ahead = db.execute("SELECT COUNT(*) FROM jobs WHERE status = 'running' OR (status = 'queued' AND"
                        f" ({heavy} < ? OR ({heavy} = ? AND id < ?)))",
                        (late, late, job["id"])).fetchone()[0]
-    return f"{name}: čeká ve frontě" + (f", úloh před ní: {ahead}." if ahead else ".")
+    return _("%(name)s: čeká ve frontě", name=name) + (_(", úloh před ní: %(ahead)s.", ahead=ahead) if ahead else ".")
 
 
 @bp.route("/jobs")
@@ -84,7 +85,7 @@ def job_retry(job_id):
     if j is None or j["kind"] not in RETRY:
         abort(404)
     jobs.enqueue(db, j["kind"], user_id=j["user_id"], entry_id=j["entry_id"], payload=loads(j["payload"]))
-    flash("Úloha je znovu ve frontě.", "ok")
+    flash(_("Úloha je znovu ve frontě."), "ok")
     return redirect(url_for("ob.jobs_page"))
 
 
@@ -95,8 +96,8 @@ def job_stop(job_id):
     got = jobs.stop(get_db(), job_id, g.user["id"])
     if got is None:
         abort(404)
-    flash("Úloha je zastavená." if got == "stopped" else
-          "Úloha se zastavuje: počítaný závod se zahodí, hotové zůstanou.", "ok")
+    flash(_("Úloha je zastavená.") if got == "stopped" else
+          _("Úloha se zastavuje: počítaný závod se zahodí, hotové zůstanou."), "ok")
     return redirect(url_for("ob.jobs_page"))
 
 
@@ -104,7 +105,7 @@ def job_stop(job_id):
 @login_required
 def jobs_stop_all():
     n = jobs.stop_all(get_db(), g.user["id"])
-    flash(f"Zastaveno úloh: {n}." if n else "Žádná úloha nečeká ani neběží.", "ok")
+    flash(_("Zastaveno úloh: %(n)s.", n=n) if n else _("Žádná úloha nečeká ani neběží."), "ok")
     return redirect(url_for("ob.jobs_page"))
 
 

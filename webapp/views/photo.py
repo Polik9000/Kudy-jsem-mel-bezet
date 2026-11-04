@@ -18,6 +18,7 @@ from oroute import georef
 from .. import cfg, get_db, texts
 from ..auth import login_required
 from ..db import loads
+from ..i18n import _, _n
 from ..services import jobs, mapfix, screens, storage
 from . import bp
 from .races import get_entry
@@ -98,14 +99,14 @@ def photo_page(entry_id):
                                by_hand=bool(shot["crop"]), reliable=info.get("reliable", True),
                                maponly=bool(shot["maponly_file"]), aktivni="races")
     if row is None:
-        flash("K závodu není uložená žádná fotka mapy. Nahraj ji v Podkladech (pole Mapa s tratí).", "error")
+        flash(_("K závodu není uložená žádná fotka mapy. Nahraj ji v Podkladech (pole Mapa s tratí)."), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
     try:
         ground = _ground(e)[0]
     except jobs.Refused as err:
         flash(str(err), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
-    size, _ = _sheet(cfg().path(row["file"]))
+    size, _sheets = _sheet(cfg().path(row["file"]))
     return render_template("ob/photo.html", e=e, size=size, names=_names(ground), points=loads(row["points"], []),
                            kmz=storage.course_source(cfg(), e) == "kmz", aktivni="races",
                            min_points=georef.MANUAL_MIN)
@@ -161,7 +162,7 @@ def _evaluate(e, row, pts):
     ground, lat0, lon0, track = _ground(e)
     known = {n for n, ok in _names(ground) if ok}
     names = [p[0] for p in pts]
-    if any(n not in {m for m, _ in _names(ground)} for n in names):
+    if any(n not in {m for m, _p in _names(ground)} for n in names):
         abort(400)
     problems = []
     if len(set(names)) < len(names):
@@ -175,7 +176,7 @@ def _evaluate(e, row, pts):
     for code, i in got["problems"]:
         problems.append(texts.photo_problem(code, use[i][0] if i is not None else None,
                                             got["deviation"][i] if i is not None else None))
-    blocking = [c for c, _ in got["problems"] if c in ("few", "line", "mirror")]
+    blocking = [c for c, _p in got["problems"] if c in ("few", "line", "mirror")]
     out["ok"] = out["ok"] and not blocking and len(set(names)) == len(names)
     if got["H"] is not None and not blocking:
         # metres -> picture centred with y up -> picture pixels
@@ -196,7 +197,7 @@ def photo_save(entry_id):
     if row is None:
         abort(404)
     if storage.course_source(cfg(), e) == "kmz":
-        flash("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila.", "error")
+        flash(_("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila."), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
     pts = [tuple(p) for p in loads(row["points"], [])]
     try:
@@ -208,7 +209,7 @@ def photo_save(entry_id):
         flash(" ".join(out["problems"]) or texts.photo_problem("few"), "error")
         return redirect(url_for("ob.photo_page", entry_id=entry_id))
     jobs.enqueue(get_db(), "georef_map", user_id=g.user["id"], entry_id=entry_id, payload=dict(points=pts))
-    flash("Fotka se usazuje podle tvých bodů na pozadí. Až bude hotová, analýza kategorie se spustí znovu.", "ok")
+    flash(_("Fotka se usazuje podle tvých bodů na pozadí. Až bude hotová, analýza kategorie se spustí znovu."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
 
 
@@ -228,10 +229,10 @@ def _map_entry(entry_id):
 
 def _map_evaluate(e, pts):
     ground, lat0, lon0, track = _ground(e)
-    names = {m for m, _ in _names(ground)}
+    names = {m for m, _p in _names(ground)}
     if any(p[0] not in names for p in pts):
         abort(400)
-    _, _, k, gm = mapfix.preview(cfg(), e["course_file"])
+    _a, _b, k, gm = mapfix.preview(cfg(), e["course_file"])
     got = [p[0] for p in pts]
     out = mapfix.evaluate(gm, k, [p for p in pts if got.count(p[0]) == 1], lambda n: _where(ground, n),
                           lat0, lon0, track)
@@ -239,15 +240,18 @@ def _map_evaluate(e, pts):
     if len(set(got)) < len(got):
         problems.append(texts.photo_problem("same"))
     if out["n"] < mapfix.MIN_POINTS:
-        problems.append(f"Označ aspoň {mapfix.MIN_POINTS} kontroly, co nejdál od sebe.")
+        problems.append(_("Označ aspoň %(MIN_POINTS)s kontroly, co nejdál od sebe.", MIN_POINTS=mapfix.MIN_POINTS))
     elif out.get("problem") == "line":
         problems.append(texts.photo_problem("line"))
     for n in out["far"]:
-        problems.append(f"Bod {n} je o {out['deviation'][n]} m jinde, než kam ho dávají ostatní: asi je na jiné kontrole.")
+        problems.append(_("Bod %(n)s je o %(v)s m jinde, než kam ho dávají ostatní: asi je na jiné kontrole.",
+            n=n, v=out['deviation'][n]))
     out["ok"] = out["ok"] and len(set(got)) == len(got)
     if out["corr"]:
-        out["summary"] = (f"Mapa by se posunula o {out['shift_m']:.0f} m a otočila o {abs(out['turn_deg']):.1f}°"
-                          f" (měřítko {out['scale_pct']:+.1f} %); body pak sedí na {out['rms']:.0f} m.")
+        out["summary"] = (_("Mapa by se posunula o %(shift_m).0f m a otočila o %(abs).1f° (měřítko "
+                              "%(scale_pct)+.1f %%); body pak sedí na %(rms).0f m.",
+                                  shift_m=out['shift_m'], abs=abs(out['turn_deg']),
+                                      scale_pct=out['scale_pct'], rms=out['rms']))
         out["accuracy"] = int(max(10.0, out["rms"]) + 0.5)
     out["problems"] = problems
     return out
@@ -262,7 +266,7 @@ def map_fix_page(entry_id):
     except jobs.Refused as err:
         flash(str(err), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
-    _, size, _, _ = mapfix.preview(cfg(), e["course_file"])
+    _a, size, _b, _c = mapfix.preview(cfg(), e["course_file"])
     try:
         with open(_map_points_path(entry_id), encoding="utf-8") as f:
             points = json.load(f)
@@ -308,19 +312,21 @@ def map_fix_save(entry_id):
         with open(_map_points_path(entry_id), encoding="utf-8") as f:
             pts = [tuple(p) for p in json.load(f)]
         out = _map_evaluate(e, pts)
-        _, lat0, lon0, _ = _ground(e)
+        _a, lat0, lon0, _b = _ground(e)
     except (OSError, ValueError):
         abort(400)
     except jobs.Refused as err:
         flash(str(err), "error")
         return redirect(url_for("ob.map_fix_page", entry_id=entry_id))
     if not out["ok"]:
-        flash(" ".join(out["problems"]) or f"Označ aspoň {mapfix.MIN_POINTS} kontroly.", "error")
+        flash(" ".join(out["problems"]) or _("Označ aspoň %(MIN_POINTS)s kontroly.", MIN_POINTS=mapfix.MIN_POINTS), "error")
         return redirect(url_for("ob.map_fix_page", entry_id=entry_id))
     n = mapfix.apply(get_db(), cfg(), e, out["corr"], lat0, lon0, g.user["id"],
                      dict(shift_m=out["shift_m"], turn_deg=out["turn_deg"], rms=out["rms"]))
-    flash(f"Mapa posunutá o {out['shift_m']:.0f} m a otočená o {abs(out['turn_deg']):.1f}° "
-          f"({n} {'mapa' if n == 1 else 'mapy' if n < 5 else 'map'}). Analýzy závodu se pustí znovu.", "ok")
+    flash(_n(n, "Mapa posunutá o %(shift_m).0f m a otočená o %(turn).1f° (%(n)s mapa). Analýzy závodu se pustí znovu.",
+             "Mapa posunutá o %(shift_m).0f m a otočená o %(turn).1f° (%(n)s mapy). Analýzy závodu se pustí znovu.",
+             "Mapa posunutá o %(shift_m).0f m a otočená o %(turn).1f° (%(n)s map). Analýzy závodu se pustí znovu.",
+             shift_m=out["shift_m"], turn=abs(out["turn_deg"])), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
 
 
@@ -329,7 +335,7 @@ def map_fix_save(entry_id):
 def map_fix_revert(entry_id):
     e = get_entry(entry_id)
     n = mapfix.revert(get_db(), cfg(), e["event_id"])
-    flash("Mapy jsou zpět, jak byly nahrané. Analýzy závodu se pustí znovu." if n else "Nebylo co vracet.", "ok")
+    flash(_("Mapy jsou zpět, jak byly nahrané. Analýzy závodu se pustí znovu.") if n else _("Nebylo co vracet."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
 
 
@@ -374,9 +380,9 @@ def screen_crop(entry_id):
     x0, x1 = sorted((min(max(x0, 0), W), min(max(x1, 0), W)))
     y0, y1 = sorted((min(max(y0, 0), H), min(max(y1, 0), H)))
     if x1 - x0 < 0.1 * W or y1 - y0 < 0.1 * H:
-        flash("Obdélník je moc malý. Natáhni ho přes celou mapu (bez lišty a tlačítek Livelox).", "error")
+        flash(_("Obdélník je moc malý. Natáhni ho přes celou mapu (bez lišty a tlačítek Livelox)."), "error")
         return redirect(url_for("ob.photo_page", entry_id=entry_id, snimek=1))
     jobs.enqueue(get_db(), "georef_map", user_id=g.user["id"], entry_id=entry_id,
                  payload=dict(screens={}, crop=[round(x0), round(y0), round(x1), round(y1)]))
-    flash("Snímky se usazují znovu s mapou, jak jsi ji ořízl. Výsledek uvidíš v úlohách.", "ok")
+    flash(_("Snímky se usazují znovu s mapou, jak jsi ji ořízl. Výsledek uvidíš v úlohách."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")

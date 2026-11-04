@@ -9,9 +9,10 @@ from flask import abort, current_app, flash, g, jsonify, redirect, render_templa
 
 from oroute import garmin
 
-from .. import cfg, club, get_db, oris, texts
+from .. import cfg, club, get_db, i18n, oris, texts
 from ..auth import login_required
 from ..db import loads
+from ..i18n import N_, _
 from ..services import accounts, barriers, jobs, mapfix, matching, oris_class, plans, results, screens, storage, view
 from ..services import splits as class_splits
 from . import bp, go
@@ -44,20 +45,20 @@ def get_entry(entry_id):
 def status(e, job):
     """(text, css class, key) of where the analysis of an entry stands. key: hotovo | mapa | aktivita | jine."""
     if job and job["status"] in ("queued", "running"):
-        return ("počítá se" if job["status"] == "running" else "čeká ve frontě"), "ob-warn", "jine"
+        return (_("počítá se") if job["status"] == "running" else _("čeká ve frontě")), "ob-warn", "jine"
     if job and job["status"] == "failed" and not (e["analysis_id"] and e["has_routes"]):
-        return "analýza selhala", "ob-bad", "jine"
+        return _("analýza selhala"), "ob-bad", "jine"
     if job and job["status"] == "stopped" and not (e["analysis_id"] and e["has_routes"]):
-        return "zastaveno", "", "jine"
+        return _("zastaveno"), "", "jine"
     if e["analysis_id"] and e["has_routes"]:
-        return "hotovo", "ob-ok", "hotovo"
+        return _("hotovo"), "ob-ok", "hotovo"
     if not e["activity_id"]:
-        return "chybí aktivita", "", "aktivita"
+        return _("chybí aktivita"), "", "aktivita"
     if e["analysis_id"]:
-        return "chybí mapa bez tratě", "ob-warn", "mapa"
+        return _("chybí mapa bez tratě"), "ob-warn", "mapa"
     if not e["course_file"]:
-        return "chybí mapa", "ob-warn", "mapa"
-    return "připraveno", "", "jine"
+        return _("chybí mapa"), "ob-warn", "mapa"
+    return _("připraveno"), "", "jine"
 
 
 def last_jobs(db, user_id):
@@ -85,12 +86,12 @@ def _localtime(iso, fmt="%H:%M"):
 
 @bp.app_template_filter("datum")
 def _datum(iso):
-    """'2026-10-03' -> '3. 10. 2026' (as the club site writes dates)."""
+    """'2026-10-03' -> '3. 10. 2026' (as the club site writes dates), in English '3 Oct 2026'."""
     try:
         d = dt.date.fromisoformat(iso)
     except (TypeError, ValueError):
         return iso or ""
-    return f"{d.day}. {d.month}. {d.year}"
+    return i18n.date_text(d)
 
 
 @bp.app_template_filter("kdy")
@@ -100,13 +101,32 @@ def _kdy(iso):
         d = garmin.local(dt.datetime.fromisoformat(iso))
     except (TypeError, ValueError):
         return iso or ""
-    return f"{d.day}. {d.month}. {d.year} {d:%H:%M}"
+    return f"{i18n.date_text(d)} {d:%H:%M}"
+
+
+def _first_start():
+    """True once: the first time the races page opens in the app on one's own computer. A marker file in the
+    data folder remembers it, so a runner who skips the number is not asked again at every start."""
+    marker = os.path.join(cfg().instance, ".uvod-profil")
+    if os.path.exists(marker):
+        return False
+    try:
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write("1")
+    except OSError:
+        return False  # cannot remember it: do not ask at all rather than at every start
+    return True
 
 
 @bp.route("/")
 @login_required
 def races():
     db = get_db()
+    if cfg().local and not g.user["oris_regno"] and _first_start():
+        # the app on one's own computer, the very first start: ask for the registration number right away
+        flash(_("Vítej! Zadej svoje registrační číslo ORIS, načtou se z něj tvoje závody. Jde to i později, "
+                "nebo to přeskoč a přidávej závody ručně."), "ok")
+        return redirect(url_for("ob.profile"))
     rows = db.execute(ENTRY_SQL + " WHERE e.user_id = ? ORDER BY ev.date DESC, e.id DESC", (g.user["id"],)).fetchall()
     lj = last_jobs(db, g.user["id"])
     sync = db.execute("SELECT * FROM jobs WHERE user_id = ? AND kind = 'sync_oris' ORDER BY id DESC LIMIT 1",
@@ -119,15 +139,15 @@ def races():
     listed = [(e, status(e, lj.get(e["id"]))) for e in rows if not season or e["date"].startswith(season)]
     # beh = races with a run from the watch: the ones there is something to look at or to finish
     counts = dict(total=len(listed), hotovo=0, mapa=0, aktivita=0, jine=0,
-                  beh=sum(bool(e["activity_id"]) for e, _ in listed))
-    for _, st in listed:
+                  beh=sum(bool(e["activity_id"]) for e, _st in listed))
+    for _e, st in listed:
         counts[st[2]] += 1
     shown = [x for x in listed if not only or (bool(x[0]["activity_id"]) if only == "beh" else x[1][2] == only)]
     # the last analysed race of the runner: a quick way back to it from the list
-    analysed = [e for e, _ in listed if e["analysis_id"] and e["finished_at"]]
+    analysed = [e for e, _st in listed if e["analysis_id"] and e["finished_at"]]
     last = max(analysed, key=lambda e: e["finished_at"]) if analysed else None
     return render_template("ob/races.html", entries=shown, sync=sync, last=last,
-                           conf=texts.CONFIDENCE, livelox=oris.livelox_url, oris_url=oris.event_url,
+                           conf=texts.confidence(), livelox=oris.livelox_url, oris_url=oris.event_url,
                            seasons=seasons, season=season, only=only, counts=counts)
 
 
@@ -157,10 +177,10 @@ def member(oris_user_id):
 @login_required
 def sync():
     if not g.user["oris_regno"]:
-        flash("Tenhle účet nemá registrační číslo ORIS, závody z něj načíst nejde. Přidej závod ručně.", "error")
+        flash(_("Tenhle účet nemá registrační číslo ORIS, závody z něj načíst nejde. Přidej závod ručně."), "error")
         return redirect(url_for("ob.races"))
     jobs.enqueue(get_db(), "sync_oris", user_id=g.user["id"])
-    flash("Načítám závody z ORIS, za chvíli se objeví.", "ok")
+    flash(_("Načítám závody z ORIS, za chvíli se objeví."), "ok")
     return redirect(url_for("ob.races"))
 
 
@@ -177,7 +197,7 @@ def race_new():
         except ValueError:
             date = None
         if not name or date is None:
-            flash("Vyplň název, datum (RRRR-MM-DD) a čas jako 55:07 nebo 1:20:18 (čas může zůstat prázdný).", "error")
+            flash(_("Vyplň název, datum (RRRR-MM-DD) a čas jako 55:07 nebo 1:20:18 (čas může zůstat prázdný)."), "error")
         else:
             db = get_db()
             ev = db.execute("INSERT INTO events (name, date, place, created_by) VALUES (?,?,?,?)",
@@ -199,7 +219,7 @@ def race_oris():
     if request.method == "POST":
         oris_id = oris_class.parse_ref(request.form.get("zavod"))
         if oris_id is None:
-            flash("Zadej číslo závodu v ORIS (např. 9827) nebo odkaz na něj (…/Zavod?id=9827).", "error")
+            flash(_("Zadej číslo závodu v ORIS (např. 9827) nebo odkaz na něj (…/Zavod?id=9827)."), "error")
         else:
             try:
                 oris_class.load_event(get_db(), cfg(), oris_id)
@@ -244,7 +264,7 @@ def race_class(entry_id):
             flash(oris_class.change_class(db, cfg(), g.user, entry_id, int(request.form["class_id"])), "ok")
         else:
             oris_class.load_event(db, cfg(), e["event_oris_id"])
-            flash("Kategorie závodu jsou načtené z ORIS.", "ok")
+            flash(_("Kategorie závodu jsou načtené z ORIS."), "ok")
     except (oris_class.Refused, ValueError) as err:
         flash(str(err), "error")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#kategorie")
@@ -282,11 +302,11 @@ def race(entry_id):
         has_photo=bool(db.execute("SELECT 1 FROM photos WHERE entry_id = ?", (entry_id,)).fetchone()),
         status=status(e, job), analysis=analysis, summary=summary, lost_early=too_early(e),
         official=official, official_reason=texts.official_reason((official or {}).get("reason")), aktivni="races",
-        conf=texts.CONFIDENCE, match_note=texts.match_note(e["match_note"]), livelox=oris.livelox_url(e["livelox_id"]),
+        conf=texts.confidence(), match_note=texts.match_note(e["match_note"]), livelox=oris.livelox_url(e["livelox_id"]),
         oris_url=oris.event_url(e["event_oris_id"]), oris_results=oris.results_url(e["event_oris_id"]),
         oresults=oris.oresults_url(loads(e["links"], [])), club_url=club.event(e["event_oris_id"]),
         barriers=barriers.manual(db, e["event_id"], g.user["id"]), osm_info=_osm_info(e["event_id"]),
-        osm_enabled=cfg().osm, mode_names=MODE_NAMES,
+        osm_enabled=cfg().osm, mode_names={k: _(v) for k, v in MODE_NAMES.items()},
         hatch_info=barriers.hatch_data(cfg(), e["class_id"]),
         refreshes=refreshments(db, e["event_id"]), wide=bool(analysis),
         progress=entry_progress(db, entry_id), stamp=analysis_stamp(db, entry_id),
@@ -333,7 +353,7 @@ def _osm_info(event_id):
     return dict(fetched=d.get("fetched"), lines=len(used), crossings=len(d.get("crossings", [])))
 
 
-MODE_NAMES = {"forbid": "zakázáno", "penalty": "jen znevýhodněno", "off": "nepoužívat"}
+MODE_NAMES = {"forbid": N_("zakázáno"), "penalty": N_("jen znevýhodněno"), "off": N_("nepoužívat")}
 
 
 @bp.route("/races/<int:entry_id>/settings", methods=["POST"])
@@ -369,9 +389,9 @@ def race_settings(entry_id):
         moved = any((sent[k] or e["event_" + k]) != e[k] for k in changed)
         n = barriers.requeue_entry(db, entry_id, g.user["id"]) if moved and e["has_routes"] else 0
     if changed:
-        flash("Uloženo." + (" Postupy se přepočítají na pozadí." if n else ""), "ok")
+        flash(_("Uloženo.") + (_(" Postupy se přepočítají na pozadí.") if n else ""), "ok")
     else:
-        flash("Nastavení se nezměnilo.", "ok")
+        flash(_("Nastavení se nezměnilo."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#nastaveni")
 
 
@@ -381,21 +401,21 @@ def _take_map(db, e, kind, f):
     the worker, which places it and queues the analysis itself."""
     ext = os.path.splitext(f.filename)[1].lower()
     if ext in storage.HEIC_EXT:
-        flash(storage.HEIC_TEXT, "error")
+        flash(_(storage.HEIC_TEXT), "error")
         return None
     if ext in storage.IMAGE_EXT:
         # a picture without a georeference: the worker places it by the controls and the runner's track
         if kind != "course":
-            flash("Obrázek jde nahrát jen jako mapu s tratí (usazuje se podle kontrol). Mapu bez tratě nahraj "
-                  "jako KMZ z Livelox.", "error")
+            flash(_("Obrázek jde nahrát jen jako mapu s tratí (usazuje se podle kontrol). Mapu bez tratě nahraj "
+                      "jako KMZ z Livelox."), "error")
             return None
         if not e["activity_id"] or not loads(e["splits"]):
-            flash("Obrázek nebo fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí "
-                  "běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij KMZ "
-                  "z Livelox.", "error")
+            flash(_("Obrázek nebo fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu "
+                      "chybí běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij "
+                      "KMZ z Livelox."), "error")
             return None
         if storage.course_source(cfg(), e) == "kmz":
-            flash("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila.", "error")
+            flash(_("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila."), "error")
             return None
         rel, tmp = storage.incoming(cfg(), ext)
         f.save(tmp)
@@ -406,7 +426,7 @@ def _take_map(db, e, kind, f):
             flash(str(err), "error")
             return None
         jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"], payload=dict(file=rel))
-        flash("Obrázek je nahraný. Usazuje se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách.", "ok")
+        flash(_("Obrázek je nahraný. Usazuje se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách."), "ok")
         return []
     rel, tmp = storage.incoming(cfg(), ".kmz")
     f.save(tmp)
@@ -425,8 +445,8 @@ def _take_map(db, e, kind, f):
         screens.drop_event(db, cfg(), e["event_id"])
         who = db.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id WHERE c.event_id = ?",
                          (e["event_id"],)).fetchall()
-        flash("Mapa bez tratě je uložená pro všechny, kdo tenhle závod běželi."
-              + (" Nahradila mapu ze snímku Livelox; nejlepší postupy se přepočítají."
+        flash(_("Mapa bez tratě je uložená pro všechny, kdo tenhle závod běželi.")
+              + (_(" Nahradila mapu ze snímku Livelox; nejlepší postupy se přepočítají.")
                  if e["maponly_source"] == "snimek" else ""), "ok")
     else:
         was = storage.course_source(cfg(), e)
@@ -437,10 +457,10 @@ def _take_map(db, e, kind, f):
                    " course_source = 'kmz', course_rms = NULL, course_n = NULL, course_edge_m = NULL WHERE id = ?",
                    (path, g.user["id"], e["class_id"]))
         who = db.execute("SELECT id FROM entries WHERE class_id = ?", (e["class_id"],)).fetchall()
-        flash(f"Mapa s tratí je uložená pro kategorii {e['class_name']}."
-              + (" Nahradila mapu z fotky; analýza všech běžců kategorie se spustí znovu."
+        flash(_("Mapa s tratí je uložená pro kategorii %(class_name)s.", class_name=e['class_name'])
+              + (_(" Nahradila mapu z fotky; analýza všech běžců kategorie se spustí znovu.")
                  if was in ("image", "photo", "manual") else
-                 " Nahradila mapu ze snímku Livelox; analýza všech běžců kategorie se spustí znovu."
+                 _(" Nahradila mapu ze snímku Livelox; analýza všech běžců kategorie se spustí znovu.")
                  if was == "screen" else ""), "ok")
     db.commit()
     return [r["id"] for r in who]
@@ -452,18 +472,18 @@ def _take_screens(db, e, course, maponly):
     payload.screens, services/screens.py). Returns [] when a job was queued, None when refused (flashed)."""
     for f in (course, maponly):
         if f is not None and os.path.splitext(f.filename)[1].lower() not in storage.IMAGE_EXT:
-            flash(f"{f.filename}: snímek obrazovky má být obrázek (png nebo jpg).", "error")
+            flash(_("%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).", filename=f.filename), "error")
             return None
     if not e["activity_id"] or not loads(e["splits"]):
-        flash("Snímek z Livelox se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí běh z hodinek "
-              "nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij KMZ z Livelox.", "error")
+        flash(_("Snímek z Livelox se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí běh z "
+                  "hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij KMZ z Livelox."), "error")
         return None
     if maponly is not None and course is None and screens.row(db, cfg(), e["class_id"], g.user["id"]) is None:
-        flash("Snímek bez tratě se usazuje podle snímku s tratí ze stejného pohledu. Nahraj nejdřív oba snímky "
-              "najednou (nebo mapu bez tratě jako KMZ z Livelox).", "error")
+        flash(_("Snímek bez tratě se usazuje podle snímku s tratí ze stejného pohledu. Nahraj nejdřív oba "
+                  "snímky najednou (nebo mapu bez tratě jako KMZ z Livelox)."), "error")
         return None
     if maponly is not None and e["maponly_file"] and (e["maponly_source"] or "kmz") == "kmz":
-        flash("Pro závod už je mapa bez tratě z KMZ, která je přesnější. Snímek bez tratě se nepoužil.", "error")
+        flash(_("Pro závod už je mapa bez tratě z KMZ, která je přesnější. Snímek bez tratě se nepoužil."), "error")
         maponly = None
         if course is None:
             return None
@@ -484,7 +504,7 @@ def _take_screens(db, e, course, maponly):
         sent[key] = rel
     jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"],
                  payload=dict(screens=dict(course=sent.get("course"), maponly=sent.get("maponly"))))
-    flash("Snímky jsou nahrané. Usazují se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách.", "ok")
+    flash(_("Snímky jsou nahrané. Usazují se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách."), "ok")
     return []
 
 
@@ -523,7 +543,7 @@ def race_files(entry_id):
         sent.setdefault("course", photo)
     again = set()
     if not sent:
-        flash("Vyber aspoň jeden soubor.", "error")
+        flash(_("Vyber aspoň jeden soubor."), "error")
     if "fit" in sent:
         data = sent["fit"].read(MAX_FIT + 1)
         aid, name = None, sent["fit"].filename
@@ -533,13 +553,13 @@ def race_files(entry_id):
         if name.lower().endswith(".fit") and data and len(data) <= MAX_FIT:
             aid = storage.save_activity(db, cfg(), g.user["id"], data, name, "fit")[0]
         if aid is None:
-            flash(f"{sent['fit'].filename}: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit)."
-                  " Celý export z Garminu nahraj v Nahrát běhy.", "error")
+            flash(_("%(filename)s: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit). Celý "
+                      "export z Garminu nahraj v Nahrát běhy.", filename=sent['fit'].filename), "error")
         else:
             db.execute("UPDATE entries SET activity_id = ?, match_confidence = 'manual', match_note = NULL WHERE id = ?",
                        (aid, entry_id))
             db.commit()
-            flash("Běh je nahraný a spárovaný s tímhle závodem.", "ok")
+            flash(_("Běh je nahraný a spárovaný s tímhle závodem."), "ok")
             again.add(entry_id)
             e = get_entry(entry_id)
     for kind in ("course", "maponly"):
@@ -581,10 +601,10 @@ def race_relocate(entry_id):
     """Find the catching features around the controls again (a short job); the routes of the analysis stay."""
     e = get_entry(entry_id)
     if not e["has_routes"]:
-        flash("Záchytné body se počítají až s nejlepšími postupy (chybí mapa bez tratě nebo analýza).", "error")
+        flash(_("Záchytné body se počítají až s nejlepšími postupy (chybí mapa bez tratě nebo analýza)."), "error")
     else:
         jobs.enqueue(get_db(), "relocate", user_id=g.user["id"], entry_id=entry_id)
-        flash("Záchytné body se přepočítávají, za chvíli se objeví.", "ok")
+        flash(_("Záchytné body se přepočítávají, za chvíli se objeví."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id))
 
 
@@ -593,9 +613,9 @@ def race_relocate(entry_id):
 def race_reanalyse(entry_id):
     get_entry(entry_id)
     if matching.queue_analysis(get_db(), entry_id) is None:
-        flash("K analýze chybí běh (.fit) nebo mapa s tratí.", "error")
+        flash(_("K analýze chybí běh (.fit) nebo mapa s tratí."), "error")
     else:
-        flash("Analýza je zařazená do fronty.", "ok")
+        flash(_("Analýza je zařazená do fronty."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id))
 
 
@@ -684,26 +704,26 @@ def profile():
             # on one's own computer the number is given once here (there is no registration form)
             if not re.fullmatch(accounts.REGNO, regno):
                 db.commit()
-                flash("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000.", "error")
+                flash(_("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000."), "error")
                 return redirect(url_for("ob.profile"))
             try:
                 person = oris.client(cfg()).user(regno)
             except oris.OrisError:
                 db.commit()
-                flash("ORIS teď neodpovídá, zkus registrační číslo uložit později.", "error")
+                flash(_("ORIS teď neodpovídá, zkus registrační číslo uložit později."), "error")
                 return redirect(url_for("ob.profile"))
             if person is None:
                 db.commit()
-                flash(f"Registrační číslo {regno} v ORIS není.", "error")
+                flash(_("Registrační číslo %(regno)s v ORIS není.", regno=regno), "error")
                 return redirect(url_for("ob.profile"))
             db.execute("UPDATE users SET oris_regno = ?, oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
                        (regno, person["oris_user_id"], person["name"], g.user["id"]))
             db.commit()
             jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
-            flash(f"Uloženo. Závody z ORIS se načítají ({person['name']}).", "ok")
+            flash(_("Uloženo. Závody z ORIS se načítají (%(name)s).", name=person['name']), "ok")
             return redirect(url_for("ob.races"))
         db.commit()
-        flash("Uloženo.", "ok")
+        flash(_("Uloženo."), "ok")
         return redirect(url_for("ob.profile"))
     return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]))
 

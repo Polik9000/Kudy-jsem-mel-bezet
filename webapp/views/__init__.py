@@ -15,4 +15,4 @@ def go(url):
 
 
 # the modules attach their routes to bp
-from . import jobs, legs, lost, model, napoveda, photo, races, uploads  # noqa: E402,F401
+from . import jobs, language, legs, lost, model, napoveda, photo, races, uploads  # noqa: E402,F401

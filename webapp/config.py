@@ -16,6 +16,8 @@ OB_OSM           1 = fetch railways, motorways and fences from OpenStreetMap as 
 OB_OSM_FENCES    1 = fences and walls from OpenStreetMap count as hard to cross (default 0: not verified to help)
 OB_CLUB_PRIOR    1 = a runner's terrain factors start from the average of the club instead of the ISOM values
                  (needs three other runners with data in the terrain; default 0, see docs/validace.md)
+OB_LANG          cs | en: the language of the pages for those who have not chosen one (default cs; the link
+                 CZ | EN in the menu and ?lang= choose per browser)
 OB_REGISTRATION  0 closes the registration (otherwise it is open to those with the code of their number)
 OB_BACKUP_DIR    where flask backup puts the backups (default: backups/ in the instance folder; docs/provoz.md)
 OB_BACKUP_KEEP   how many backups are kept (default 14)

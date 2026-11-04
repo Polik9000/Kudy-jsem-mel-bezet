@@ -1,62 +1,62 @@
 {% extends "ob/base.html" %}
-{% block title %}Profil{% endblock %}
+{% block title %}{{ _('Profil') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}Profil</h2>
+<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}{{ _('Profil') }}</h2>
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Jméno <input name="name" value="{{ user.name or '' }}"></label>
+  <label>{{ _('Jméno') }} <input name="name" value="{{ user.name or '' }}"></label>
   {% if local_app and not user.oris_regno %}
-  <label>Registrační číslo ORIS (nepovinné, např. BFM0000)
+  <label>{{ _('Registrační číslo ORIS (nepovinné, např. BFM0000)') }}
     <input name="oris_regno" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{4}"></label>
-  <p class="hint">Podle něj se z ORIS načtou tvoje závody a kategorie. Zadat ho jde jen jednou.</p>
+  <p class="hint">{% trans %}Podle něj se z ORIS načtou tvoje závody a kategorie. Zadat ho jde jen jednou.{% endtrans %}</p>
   {% endif %}
-  <button type="submit" class="btn btn-hlavni">Uložit</button>
+  <button type="submit" class="btn btn-hlavni">{{ _('Uložit') }}</button>
 </form>
 <div class="karta">
   <dl class="detaily">
-    {% if not local_app %}<dt>Přihlašovací jméno</dt><dd>{{ user.username }}</dd>{% endif %}
-    <dt>Registrační číslo ORIS</dt><dd>{{ user.oris_regno or 'účet ho nemá' }}</dd>
-    <dt>ORIS ID</dt><dd>{{ user.oris_user_id or 'zatím nenačteno' }}</dd>
-    <dt>Závody z ORIS načteny</dt><dd>{{ (user.oris_synced_at | kdy) or 'zatím ne' }}</dd>
+    {% if not local_app %}<dt>{{ _('Přihlašovací jméno') }}</dt><dd>{{ user.username }}</dd>{% endif %}
+    <dt>{{ _('Registrační číslo ORIS') }}</dt><dd>{{ user.oris_regno or _('účet ho nemá') }}</dd>
+    <dt>ORIS ID</dt><dd>{{ user.oris_user_id or _('zatím nenačteno') }}</dd>
+    <dt>{{ _('Závody z ORIS načteny') }}</dt><dd>{{ (user.oris_synced_at | kdy) or _('zatím ne') }}</dd>
   </dl>
-  <p class="hint">Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.
-    Účet k němu patří napořád, změnit ho nejde.</p>
+  <p class="hint">{% trans %}Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.
+    Účet k němu patří napořád, změnit ho nejde.{% endtrans %}</p>
   {% if user.oris_user_id and club.ENABLED %}
   <p class="controls zavododkazy ob-odkazy">
-    <a class="btn btn-zdroj zdroj-start" href="{{ club.member(user.oris_user_id) }}">{{ ikona('start') }}Vizitka na klubovém webu</a>
-    <a class="btn btn-zdroj zdroj-cil" href="{{ club.archive(user.oris_user_id) }}">{{ ikona('cil') }}Moje výsledky v archivu</a>
+    <a class="btn btn-zdroj zdroj-start" href="{{ club.member(user.oris_user_id) }}">{{ ikona('start') }}{{ _('Vizitka na klubovém webu') }}</a>
+    <a class="btn btn-zdroj zdroj-cil" href="{{ club.archive(user.oris_user_id) }}">{{ ikona('cil') }}{{ _('Moje výsledky v archivu') }}</a>
   </p>
   {% endif %}
 </div>
 {% if not local_app %}
-<h3>Změna hesla</h3>
+<h3>{{ _('Změna hesla') }}</h3>
 <form method="post" action="{{ url_for('auth.password') }}" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Současné heslo <input name="current" type="password" autocomplete="current-password" required></label>
-  <label>Nové heslo (aspoň 8 znaků) <input name="password" type="password" autocomplete="new-password" required></label>
-  <label>Nové heslo znovu <input name="password2" type="password" autocomplete="new-password" required></label>
-  <button type="submit" class="btn">Změnit heslo</button>
+  <label>{{ _('Současné heslo') }} <input name="current" type="password" autocomplete="current-password" required></label>
+  <label>{{ _('Nové heslo (aspoň 8 znaků)') }} <input name="password" type="password" autocomplete="new-password" required></label>
+  <label>{{ _('Nové heslo znovu') }} <input name="password2" type="password" autocomplete="new-password" required></label>
+  <button type="submit" class="btn">{{ _('Změnit heslo') }}</button>
 </form>
-<h3>Zrušení účtu</h3>
+<h3>{{ _('Zrušení účtu') }}</h3>
 <form method="post" action="{{ url_for('auth.account_delete') }}" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <p>Zrušení smaže účet a všechno, co patří jen tobě: závody v aplikaci ({{ has.races }}), běhy z hodinek
-    ({{ has.activities }}), rozbory ({{ has.analyses }}), poznámky a plánované postupy ({{ has.notes }}), osobní modely
-    ({{ has.models }}) a závody, které jsi přidal ručně a nikdo jiný je nemá. Nejde to vrátit.</p>
-  <p class="hint">Zůstane, co je sdílené pro závod: mapa bez tratě, mapa s tratí kategorie, zakázané čáry
-    a občerstvovačky (jen už u nich nebude tvoje jméno). Účet si můžeš později založit znovu.</p>
-  <label>Heslo pro potvrzení <input name="password" type="password" autocomplete="current-password" required></label>
-  <button type="submit" class="btn">Zrušit účet a smazat moje data</button>
+  <p>{% trans races=has.races, activities=has.activities, analyses=has.analyses, notes=has.notes, models=has.models %}Zrušení smaže účet a všechno, co patří jen tobě: závody v aplikaci ({{ races }}), běhy z hodinek
+    ({{ activities }}), rozbory ({{ analyses }}), poznámky a plánované postupy ({{ notes }}), osobní modely
+    ({{ models }}) a závody, které jsi přidal ručně a nikdo jiný je nemá. Nejde to vrátit.{% endtrans %}</p>
+  <p class="hint">{% trans %}Zůstane, co je sdílené pro závod: mapa bez tratě, mapa s tratí kategorie, zakázané čáry
+    a občerstvovačky (jen už u nich nebude tvoje jméno). Účet si můžeš později založit znovu.{% endtrans %}</p>
+  <label>{{ _('Heslo pro potvrzení') }} <input name="password" type="password" autocomplete="current-password" required></label>
+  <button type="submit" class="btn">{{ _('Zrušit účet a smazat moje data') }}</button>
 </form>
 {% endif %}
-<h3>Soukromí</h3>
+<h3>{{ _('Soukromí') }}</h3>
 {% if local_app %}
-<p class="hint">Aplikace běží jen na tomhle počítači. Mapy, běhy z hodinek, poznámky a modely jsou ve složce
+<p class="hint">{% trans %}Aplikace běží jen na tomhle počítači. Mapy, běhy z hodinek, poznámky a modely jsou ve složce
   <code>{{ data_dir }}</code> a nikam se neposílají. Ven jdou jen dotazy na ORIS (závody, mezičasy) a na výškopis
-  a OpenStreetMap (jen výřez mapy, ne tvoje stopa). Zálohu uděláš zkopírováním té složky.</p>
+  a OpenStreetMap (jen výřez mapy, ne tvoje stopa). Zálohu uděláš zkopírováním té složky.{% endtrans %}</p>
 {% else %}
-<p class="hint">Tvoje stopy z hodinek a poznámky vidíš jen ty. Mapa bez tratě, občerstvovačky a zakázané přechody jsou
+<p class="hint">{% trans %}Tvoje stopy z hodinek a poznámky vidíš jen ty. Mapa bez tratě, občerstvovačky a zakázané přechody jsou
   sdílené pro závod, takže poslouží i ostatním přihlášeným členům, kteří ho běželi. Celý export z Garminu se po
-  zpracování z aplikace maže; zůstanou jen běhy spárované se závody a z ostatních jen odvozený model kopců.</p>
+  zpracování z aplikace maže; zůstanou jen běhy spárované se závody a z ostatních jen odvozený model kopců.{% endtrans %}</p>
 {% endif %}
 {% endblock %}

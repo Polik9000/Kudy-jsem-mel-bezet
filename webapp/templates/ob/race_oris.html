@@ -1,32 +1,32 @@
 {% extends "ob/base.html" %}
-{% block title %}Přidat závod z ORIS{% endblock %}
+{% block title %}{{ _('Přidat závod z ORIS') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}Přidat závod z ORIS</h2>
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Přidat závod z ORIS') }}</h2>
 {% if not ev %}
-<p class="evhead">Pro závod z ORIS, kde nejsi v přihláškách pod svou registračkou (běžel jsi za někoho, na místě, jinou
-  kategorii). Závody, na které jsi přihlášený, se načtou samy.</p>
+<p class="evhead">{% trans %}Pro závod z ORIS, kde nejsi v přihláškách pod svou registračkou (běžel jsi za někoho, na místě, jinou
+  kategorii). Závody, na které jsi přihlášený, se načtou samy.{% endtrans %}</p>
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Číslo závodu v ORIS nebo odkaz
+  <label>{{ _('Číslo závodu v ORIS nebo odkaz') }}
     <input name="zavod" required value="{{ request.form.get('zavod', '') }}" placeholder="https://oris.ceskyorientak.cz/Zavod?id=9827"></label>
-  <button type="submit" class="btn btn-hlavni">Najít závod</button>
+  <button type="submit" class="btn btn-hlavni">{{ _('Najít závod') }}</button>
 </form>
 {% else %}
 <p class="evhead">{{ ev.name }} · {{ ev.date | datum }}{% if ev.place %} · {{ ev.place }}{% endif %}
-  {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">závod v ORIS ↗</a>{% endif %}</p>
+  {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">{{ _('závod v ORIS') }} ↗</a>{% endif %}</p>
 {% if have %}
-<p class="nota">Tenhle závod už mezi svými závody máš (kategorie {{ have.name }}):
-  <a href="{{ url_for('ob.race', entry_id=have.id) }}#kategorie">otevřít</a>. Kategorii změníš na jeho stránce.</p>
+<p class="nota">{% trans name=have.name, url=url_for('ob.race', entry_id=have.id) %}Tenhle závod už mezi svými závody máš (kategorie {{ name }}):
+  <a href="{{ url }}#kategorie">otevřít</a>. Kategorii změníš na jeho stránce.{% endtrans %}</p>
 {% elif classes %}
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Kategorie, kterou jsi běžel
+  <label>{{ _('Kategorie, kterou jsi běžel') }}
     <select name="class_id">{% for c in classes %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
-  <p class="hint">Oficiální čas a mezičasy se vezmou z výsledků kategorie, když v nich jsi; jinak z GPS.</p>
-  <button type="submit" class="btn btn-hlavni">Přidat</button>
+  <p class="hint">{% trans %}Oficiální čas a mezičasy se vezmou z výsledků kategorie, když v nich jsi; jinak z GPS.{% endtrans %}</p>
+  <button type="submit" class="btn btn-hlavni">{{ _('Přidat') }}</button>
 </form>
 {% else %}
-<p class="nota">Závod v ORIS nemá žádné kategorie.</p>
+<p class="nota">{% trans %}Závod v ORIS nemá žádné kategorie.{% endtrans %}</p>
 {% endif %}
 {% endif %}
 {% endblock %}

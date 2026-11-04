@@ -89,3 +89,19 @@ def test_sync_oris_all_command(app, user):
     out = app.test_cli_runner().invoke(args=["sync-oris-all", "--hours", "0"])
     assert out.exit_code == 0 and "1 accounts loaded" in out.output, out.output
 
+
+
+def test_upsert_class_survives_same_name_in_one_race(app):
+    """ORIS can list two classes of a race under one name, and a class may already exist without its ORIS id:
+    neither stops the load (UNIQUE constraint failed: classes.event_id, classes.name)."""
+    con = con_of(app)
+    ev = con.execute("INSERT INTO events (name, date, oris_id) VALUES ('Zavod', '2026-10-01', 777)").lastrowid
+    hand = con.execute("INSERT INTO classes (event_id, name) VALUES (?, 'D21')", (ev,)).lastrowid
+    c = dict(oris_id=5001, name="D21", distance_km=5.0, climb_m=100, controls=15)
+    assert sync_oris.upsert_class(con, ev, c) == hand                      # adopted, not duplicated
+    assert con.execute("SELECT oris_id FROM classes WHERE id = ?", (hand,)).fetchone()[0] == 5001
+    twin = sync_oris.upsert_class(con, ev, dict(c, oris_id=5002))          # same name, other ORIS class
+    assert twin != hand
+    assert con.execute("SELECT name FROM classes WHERE id = ?", (twin,)).fetchone()[0] == "D21 (5002)"
+    assert sync_oris.upsert_class(con, ev, dict(c, oris_id=5002)) == twin  # and a second load changes nothing
+    assert con.execute("SELECT COUNT(*) FROM classes WHERE event_id = ?", (ev,)).fetchone()[0] == 2

@@ -5,6 +5,15 @@
   "use strict";
   var root = document.documentElement;
 
+  /* The texts the scripts show are written in Czech; in an English page window.OBAPP.t maps them to English
+     (webapp/lang_en.py EN_JS). A call with a second argument, {n: 3}, fills the %(n)s places of the text. */
+  var DICT = (window.OBAPP && window.OBAPP.t) || {};
+  window.obT = function (text, vars) {
+    var s = Object.prototype.hasOwnProperty.call(DICT, text) ? DICT[text] : text;
+    return vars ? s.replace(/%\((\w+)\)s/g, function (all, k) { return k in vars ? vars[k] : all; }) : s;
+  };
+  var t = window.obT;
+
   // light / dark: no value = follow the device
   var btn = document.getElementById("rezim"), SIGN = { "": "◐", svetly: "☀", tmavy: "☾" };
   var KEY = "ob-rezim", OLD_KEY = "skob-rezim";
@@ -18,7 +27,7 @@
   function show(m) {
     if (m) { root.setAttribute("data-theme", m); } else { root.removeAttribute("data-theme"); }
     btn.textContent = SIGN[m] || SIGN[""];
-    btn.title = m === "svetly" ? "Světlý režim" : m === "tmavy" ? "Tmavý režim" : "Režim podle zařízení";
+    btn.title = m === "svetly" ? t("Světlý režim") : m === "tmavy" ? t("Tmavý režim") : t("Režim podle zařízení");
   }
   if (btn) {
     btn.hidden = false;
@@ -35,8 +44,10 @@
   var clock = document.getElementById("ted-cas");
   function tick() {
     var d = new Date(), p = function (n) { return ("0" + n).slice(-2); };
-    clock.textContent = d.getDate() + ". " + (d.getMonth() + 1) + ". " + d.getFullYear() + " " +
-      p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var day = window.OBAPP && window.OBAPP.lang === "en" ? d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear()
+      : d.getDate() + ". " + (d.getMonth() + 1) + ". " + d.getFullYear();
+    clock.textContent = day + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   }
   if (clock) { tick(); setInterval(tick, 1000); }
 
@@ -109,7 +120,7 @@
       var bar = form.querySelector("progress") || document.createElement("progress"), xhr = new XMLHttpRequest();
       bar.max = 100;
       bar.value = 0;
-      if (note) { note.textContent = "Nahrávám… "; note.appendChild(bar); }
+      if (note) { note.textContent = t("Nahrávám…") + " "; note.appendChild(bar); }
       button.disabled = true;
       function failed(text) {
         if (note) { note.textContent = text; }
@@ -119,15 +130,15 @@
         if (!e.lengthComputable) { return; }
         bar.value = 100 * e.loaded / e.total;
         if (note) {
-          note.firstChild.textContent = e.loaded < e.total ? "Nahrávám… " + Math.round(bar.value) + " % "
-            : "Nahráno, server soubory ukládá… ";
+          note.firstChild.textContent = e.loaded < e.total ? t("Nahrávám…") + " " + Math.round(bar.value) + " % "
+            : t("Nahráno, server soubory ukládá…") + " ";
         }
       });
       xhr.addEventListener("load", function () {
         var to = null;
         try { to = JSON.parse(xhr.responseText).redirect; } catch (e) { /* an error page, not our answer */ }
         if (xhr.status !== 200 || !to) {
-          failed(xhr.status === 413 ? "Soubor je větší, než server přijme." : "Nahrání se nepovedlo (HTTP " + xhr.status + "). Zkus to znovu.");
+          failed(xhr.status === 413 ? t("Soubor je větší, než server přijme.") : t("Nahrání se nepovedlo (HTTP %(status)s). Zkus to znovu.", { status: xhr.status }));
           return;
         }
         form.reset();  // nothing is left unsaved, the page may go on
@@ -135,7 +146,7 @@
         location.href = there.href;
         if (there.href.split("#")[0] === here) { location.reload(); }  // only the part after # changed
       });
-      xhr.addEventListener("error", function () { failed("Nahrání se nepovedlo (spojení se přerušilo). Zkus to znovu."); });
+      xhr.addEventListener("error", function () { failed(t("Nahrání se nepovedlo (spojení se přerušilo). Zkus to znovu.")); });
       xhr.open("POST", form.getAttribute("action") || location.href);
       xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
       xhr.send(new FormData(form));
@@ -274,9 +285,9 @@
         if (d < gap) { gap = d; best = i; }
       });
       var loss = parseFloat(body[best].split(",")[1]);
-      var where = best === body.length - 1 ? "v cíli" : "na kontrole " + (best + 1);
+      var where = best === body.length - 1 ? t("v cíli") : t("na kontrole %(n)s", { n: best + 1 });
       tip.textContent = hit.getAttribute("data-jmeno") + " " + where + ": " +
-        (loss >= 0 ? "ztráta " + mmss(loss) + " na referenci" : mmss(loss) + " před referencí");
+        (loss >= 0 ? t("ztráta %(t)s na referenci", { t: mmss(loss) }) : t("%(t)s před referencí", { t: mmss(loss) }));
       tip.hidden = false;
       var r = box.getBoundingClientRect();
       tip.style.left = box.scrollLeft + Math.max(0, Math.min(ev.clientX - r.left + 12, r.width - tip.offsetWidth)) + "px";

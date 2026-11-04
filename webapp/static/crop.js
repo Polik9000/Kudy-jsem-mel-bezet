@@ -2,6 +2,7 @@
    screenshot whose four corners can be dragged (mouse or finger); the form sends it in pixels of the screenshot. */
 (function () {
   "use strict";
+  var t = window.obT;
   var OB = window.OB, $ = function (id) { return document.getElementById(id); };
   var W = OB.size[0], H = OB.size[1];
   var box = OB.box.slice();          // x0, y0, x1, y1 in pixels of the screenshot
@@ -20,7 +21,7 @@
   var corners = [[0, 1], [2, 1], [2, 3], [0, 3]];   // which of box are x and y of each corner
   var handles = corners.map(function (c, i) {
     var m = L.marker(ll(box[c[0]], box[c[1]]), {
-      draggable: true, keyboard: false, title: "Roh obdélníku",
+      draggable: true, keyboard: false, title: t("Roh obdélníku"),
       icon: L.divIcon({ className: "ob-foto-bod ob-orez-roh", html: "<span>" + "↖↗↘↙"[i] + "</span>",
                         iconSize: [28, 28], iconAnchor: [14, 14] })
     }).addTo(map);
@@ -41,8 +42,8 @@
       if (i !== skip) { m.setLatLng(ll(box[corners[i][0]], box[corners[i][1]])); }
     });
     ["x0", "y0", "x1", "y1"].forEach(function (k, i) { $("orez-" + k).value = Math.round([x0, y0, x1, y1][i]); });
-    $("orez-stav").textContent = "Mapa: " + Math.round(x1 - x0) + " × " + Math.round(y1 - y0) + " px ze snímku "
-      + W + " × " + H + " px.";
+    $("orez-stav").textContent = t("Mapa: %(w)s × %(h)s px ze snímku %(W)s × %(H)s px.",
+      { w: Math.round(x1 - x0), h: Math.round(y1 - y0), W: W, H: H });
   }
   $("orez-cely").addEventListener("click", function () { box = [0, 0, W, H]; update(-1); });
   OB.setBox = function (b) { box = b.slice(); update(-1); };      // for the scripted walk
