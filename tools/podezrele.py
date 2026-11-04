@@ -168,6 +168,7 @@ def from_map(rows, races, pictures, folder):
     sys.path.insert(0, HERE)
     sys.path.insert(0, os.path.join(HERE, "tools"))
     from kontrola import Race  # tools/kontrola.py
+
     from oroute import relocate
     by_slug = {r["slug"]: r for r in races}
     os.makedirs(folder, exist_ok=True)
