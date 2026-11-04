@@ -104,10 +104,29 @@ def _kdy(iso):
     return f"{i18n.date_text(d)} {d:%H:%M}"
 
 
+def _first_start():
+    """True once: the first time the races page opens in the app on one's own computer. A marker file in the
+    data folder remembers it, so a runner who skips the number is not asked again at every start."""
+    marker = os.path.join(cfg().instance, ".uvod-profil")
+    if os.path.exists(marker):
+        return False
+    try:
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write("1")
+    except OSError:
+        return False  # cannot remember it: do not ask at all rather than at every start
+    return True
+
+
 @bp.route("/")
 @login_required
 def races():
     db = get_db()
+    if cfg().local and not g.user["oris_regno"] and _first_start():
+        # the app on one's own computer, the very first start: ask for the registration number right away
+        flash(_("Vítej! Zadej svoje registrační číslo ORIS, načtou se z něj tvoje závody. Jde to i později, "
+                "nebo to přeskoč a přidávej závody ručně."), "ok")
+        return redirect(url_for("ob.profile"))
     rows = db.execute(ENTRY_SQL + " WHERE e.user_id = ? ORDER BY ev.date DESC, e.id DESC", (g.user["id"],)).fetchall()
     lj = last_jobs(db, g.user["id"])
     sync = db.execute("SELECT * FROM jobs WHERE user_id = ? AND kind = 'sync_oris' ORDER BY id DESC LIMIT 1",
