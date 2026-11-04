@@ -111,6 +111,8 @@ EN = {
         "The hill model could not be computed in time.",
     "Mezičasy a chyby hotové. Nejlepší postupy z fotky nepočítáme, terén se z ní nedá spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ a přepočítá se to.":
         "Splits and mistakes are done. We do not compute best routes from a photo, the terrain cannot be read reliably from it. When the organiser publishes the map on Livelox or in OB routes, upload the KMZ and it will be recomputed.",
+    "Kontakt":
+        "Contact",
     "Analýza hotová":
         "Analysis done",
     "vzorky %(i)s z %(n)s závodů (%(name)s)":
