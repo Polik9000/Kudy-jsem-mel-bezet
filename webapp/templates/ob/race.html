@@ -97,7 +97,7 @@
   {% elif not analysis.has_routes and e.maponly_file %}{% trans %}<b>Nejlepší postupy nejsou spočítané</b>; analýzu jde
     spustit znovu v Podkladech.{% endtrans %}
   {% elif not analysis.has_routes and course_acc %}{% trans %}<b>Nejlepší postupy z fotky nepočítáme</b>, terén se z ní nedá
-    spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ a přepočítá se to.{% endtrans %}
+    spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox, nahraj KMZ a přepočítá se to.{% endtrans %}
   {% elif not analysis.has_routes %}{% trans %}<b>Nejlepší postupy chybí</b>, dokud někdo nenahraje mapu bez tratě.{% endtrans %}
   {% else %}{% trans dem=_('DMR 5G (ČÚZK, laserové skenování)') if summary.dem == 'cuzk' else _('AWS Terrain Tiles (zdroj kolem 30 m)') %}Výškopis: {{ dem }}.{% endtrans %}
     {% if summary.barriers %}{% trans forbidden=summary.barriers.forbidden, hard=summary.barriers.hard, crossings=summary.barriers.crossings %}Zakázané přechody: {{ forbidden }} zakázaných a {{ hard }}

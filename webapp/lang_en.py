@@ -109,8 +109,8 @@ EN = {
         "ORIS is not answering right now, only races the app already knows were matched: upload a run from a race that is loaded later again.",
     "Model kopců se nestihl spočítat.":
         "The hill model could not be computed in time.",
-    "Mezičasy a chyby hotové. Nejlepší postupy z fotky nepočítáme, terén se z ní nedá spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ a přepočítá se to.":
-        "Splits and mistakes are done. We do not compute best routes from a photo, the terrain cannot be read reliably from it. When the organiser publishes the map on Livelox or in OB routes, upload the KMZ and it will be recomputed.",
+    "Mezičasy a chyby hotové. Nejlepší postupy z fotky nepočítáme, terén se z ní nedá spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox, nahraj KMZ a přepočítá se to.":
+        "Splits and mistakes are done. We do not compute best routes from a photo, the terrain cannot be read reliably from it. When the organiser publishes the map on Livelox, upload the KMZ and it will be recomputed.",
     "Analýza hotová":
         "Analysis done",
     "vzorky %(i)s z %(n)s závodů (%(name)s)":
@@ -1280,8 +1280,8 @@ EN = {
         "<b>The best routes are being computed right now</b>; the track, splits and kinds of mistakes are already done.",
     "<b>Nejlepší postupy nejsou spočítané</b>; analýzu jde spustit znovu v Podkladech.":
         "<b>The best routes are not computed</b>; the analysis can be run again in Source files.",
-    "<b>Nejlepší postupy z fotky nepočítáme</b>, terén se z ní nedá spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ a přepočítá se to.":
-        "<b>We do not compute best routes from a photo</b>, the terrain cannot be read reliably from it. When the organiser publishes the map on Livelox or in OB routes, upload the KMZ and it will be recomputed.",
+    "<b>Nejlepší postupy z fotky nepočítáme</b>, terén se z ní nedá spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox, nahraj KMZ a přepočítá se to.":
+        "<b>We do not compute best routes from a photo</b>, the terrain cannot be read reliably from it. When the organiser publishes the map on Livelox, upload the KMZ and it will be recomputed.",
     "<b>Nejlepší postupy chybí</b>, dokud někdo nenahraje mapu bez tratě.":
         "<b>The best routes are missing</b> until somebody uploads the map without course.",
     "Výškopis: %(dem)s.":

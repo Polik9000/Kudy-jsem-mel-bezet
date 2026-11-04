@@ -174,7 +174,7 @@ def _analyse(ctx, job):
                               " WHERE e.id = ?", (entry_id,)).fetchone()
         if src and src["course_source"] in ("image", "photo", "manual", "screen"):
             return (_("Mezičasy a chyby hotové. Nejlepší postupy z fotky nepočítáme, terén se z ní nedá "
-                        "spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox nebo OB postupech, nahraj KMZ "
+                        "spolehlivě přečíst. Až pořadatel zveřejní mapu na Livelox, nahraj KMZ "
                         "a přepočítá se to."))
         return _("Mezičasy a chyby hotové. Na nejlepší postupy chybí mapa bez tratě.")
     return (_("Analýza hotová") + (_(", osobní model přepočítán.") if any(refitted) else ".")
