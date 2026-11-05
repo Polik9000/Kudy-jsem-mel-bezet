@@ -80,7 +80,7 @@ for (const s of JSON.parse(readFileSync(shotsFile, "utf8"))) {
     { name: "prefers-color-scheme", value: s.theme === "tmavy" ? "dark" : "light" }] });
   if (!s.stay) {
     await go(base + "/login");  // any page of the origin, to set the theme before the real page loads
-    await run(s.theme ? `localStorage.setItem("skob-rezim", ${JSON.stringify(s.theme)})` : `localStorage.removeItem("skob-rezim")`);
+    await run(s.theme ? `localStorage.setItem("ob-rezim", ${JSON.stringify(s.theme)})` : `localStorage.removeItem("ob-rezim")`);
     await go(base + s.path);
   }
   await sleep(s.wait || 800);

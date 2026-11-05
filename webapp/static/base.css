@@ -1,15 +1,6 @@
 /* ====================================================================
-   VZHLED SKOB — jediný zdroj pravdy o tom, jak vypadá web oddílu.
-
-   Sdílený soubor: používá ho skob-results (archiv výsledků) i
-   oris2sidroid (export přihlášek pro SI Droid), aby obě aplikace
-   oddílu vypadaly jako jedna rodina. Zdroj je repozitář
-   skob-results; kopie v druhé aplikaci se nesmí upravovat ručně —
-   je to kopie, ne originál.
-
-   Barvy oddílu jsou dole v `:root` jako VÝCHOZÍ hodnoty. Aplikace,
-   která je má v databázi, je přepíše vlastním blokem `:root` za
-   tímhle souborem.
+   ZÁKLADNÍ STYLY APLIKACE — rozložení, tabulky, navigace a komponenty.
+   Finální barvy a typografii nastavuje vrstva Lesní klid.
    ==================================================================== */
 
 /* ================================================================== */
@@ -18,11 +9,7 @@
 /*     už jen skládají hotové hodnoty.                                 */
 /* ================================================================== */
 :root {
-  /* --- barvy oddílu: VÝCHOZÍ hodnoty (§11) ---
-     Aplikace skob-results je přepisuje z databáze (`club_color`) druhým
-     blokem `:root`, který vkládá `layout.html` HNED ZA tenhle soubor.
-     Stojí tu proto, aby soubor fungoval i sám o sobě — v aplikaci bez
-     tabulky barev (oris2sidroid) nebo při otevření z disku. Pořadí
+  /* --- výchozí hodnoty tokenů; finální vzhled aplikace přepíše následující vrstva. Pořadí
      nevadí: `var()` se vyhodnocuje až při použití, ne při zápisu.
      Hodnoty musí souhlasit s `cli.DEFAULT_COLORS` (tím, co zakládá
      `init`) — hlídá test, jinak by se druhá aplikace tiše rozešla. */
@@ -41,16 +28,16 @@
   --accent: var(--c-accent);
   --support: var(--c-support);
   --on-brand: var(--c-on-brand);
-  /* Vlajka: když ji oddíl nemá zadanou, spadne to zpátky na logo. */
+  /* Vlajka: když ji aplikace nemá zadanou, spadne to zpátky na značku. */
   --flag-a: var(--c-flag-green, var(--c-primary));
   --flag-b: var(--c-flag-orange, var(--c-secondary));
   --flag-c: var(--c-flag-red, var(--c-accent));
 
-  /* Odvozené odstíny. Ve světlém režimu jsou to přímo barvy oddílu;
+  /* Odvozené odstíny. Ve světlém režimu jsou to přímo výchozí barvy;
      v tmavém se rozsvítí (viz blok tmavého režimu), aby text na tmavém
      podkladu držel kontrast. Kdo mění paletu, tady nemusí sahat. */
   --brand-svetla: var(--brand);
-  /* Barva odkazů. Od v32 je to SVĚTLÁ ZELENÁ Z TRIKOLÓRY oddílu
+  /* Barva odkazů. Od v32 je to SVĚTLÁ ZELENÁ Z TRIKOLÓRY aplikaceu
      (`--c-flag-green` #6CBE45 — pruh pod hlavičkou a linka nad
      nabídkou); vybral ji Jakub 25. 8. 2026 místo fialové z v31
      („nelíbí se mi"), a ta zase vystřídala modrou z v30.
@@ -193,7 +180,7 @@
 }
 
 /* ================================================================== */
-/*  2. TMAVÝ REŽIM — přebarvují se JEN neutrály; barvy oddílu zůstanou */
+/*  2. TMAVÝ REŽIM — přebarvují se JEN neutrály; výchozí barvy zůstanou */
 /*     (jsou to jeho barvy, ne dekorace). Odvozené odstíny se rozsvítí */
 /*     mícháním s bílou; kdyby prohlížeč `color-mix` neuměl, text jen  */
 /*     zdědí barvu okolí a stránka zůstane čitelná.                    */
@@ -317,7 +304,7 @@ body {
 header.site {
   background: var(--brand);
   /* Jemný přesvit místo ploché plochy. Je to gradient PŘES barvu
-     oddílu, ne z ní odvozený — funguje s libovolnou paletou. Světlá
+     aplikaceu, ne z ní odvozený — funguje s libovolnou paletou. Světlá
      strana je schválně jen 8 %: při 12 % klesl kontrast bílého nadpisu
      na zelené hlavičce pod 4,5 : 1. */
   background-image: linear-gradient(105deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .12));
@@ -341,7 +328,7 @@ header.site h1 {
   letter-spacing: .01em; white-space: nowrap;
 }
 header.site h1 .suffix { font-weight: 400; opacity: .82; }
-/* Logo i název oddílu vedou na úvodní stránku (přání Jakuba). Odkaz je
+/* Logo i název aplikaceu vedou na úvodní stránku (přání Jakuba). Odkaz je
    uvnitř nadpisu h1, aby zůstal jen jeden nadpis první úrovně;
    v samostatném reportu (§10) je místo odkazu span — proto táž třída. */
 .brandlink { display: flex; align-items: center; gap: .9rem; }
@@ -445,7 +432,7 @@ a.brandlink:focus-visible { outline: 2px solid var(--on-brand); outline-offset: 
 .menuseznam .podmenu a { font-size: .93em; padding: .4rem .8rem; }
 /* Svislé menu vlevo pod hlavičkou — široká obrazovka (od 64rem, viz
    media query níž). Je přišpendlené pod hlavičkou, takže při rolování
-   dlouhé tabulky zůstává na očích. Panel je v barvě oddílu se stejným
+   dlouhé tabulky zůstává na očích. Panel je v barvě aplikaceu se stejným
    jemným přesvitem jako hlavička (zadal Jakub 17. 8. večer: sloupec má ladit
    s hlavičkou, ne splývat s podkladem obsahu) — gradient jde PŘES
    barvu, funguje tedy s libovolnou paletou (§11). */
@@ -694,7 +681,7 @@ h2 {
   font-weight: 640; letter-spacing: -.01em; line-height: 1.25;
   display: flex; align-items: center; gap: .55rem; flex-wrap: wrap;
 }
-/* Svislý proužek v barvě oddílu místo prázdného nadpisu — nejlevnější
+/* Svislý proužek v barvě aplikaceu místo prázdného nadpisu — nejlevnější
    možný grafický prvek a drží stránku pohromadě. Nadpisy s ikonou ho
    nemají (dvě značky vedle sebe už jsou zdobení). */
 h2::before {
@@ -828,7 +815,7 @@ code { font-size: .92em; background: var(--bg-soft); padding: .05rem .3rem; bord
   flex: 0 0 auto; width: .6rem; height: .6rem; border-radius: 50%;
   background: var(--flag-c);
   animation: tep 2.4s ease-in-out infinite;
-  /* Prstenec kolem tečky se míchá z barvy oddílu, aby se nemuselo
+  /* Prstenec kolem tečky se míchá z výchozí barvy, aby se nemuselo
      hádat, jaká ta barva je. Když prohlížeč `color-mix` neumí, platí
      předchozí deklarace a zůstane samotná tečka. */
   box-shadow: none;
@@ -925,7 +912,7 @@ th {
 th[data-sort]::after { content: " ⇅"; color: var(--muted); font-size: .82em; opacity: .65; }
 th[data-sort]:hover::after { opacity: 1; }
 /* Aktivní řazení musí být vidět na první pohled — hlavička v barvě
-   oddílu a celý sloupec lehce podbarvený (třídu dává _sort.html). */
+   aplikaceu a celý sloupec lehce podbarvený (třídu dává _sort.html). */
 th[aria-sort] { background: var(--brand); color: var(--on-brand); }
 th[aria-sort="ascending"]::after { content: " ↑"; color: var(--on-brand); opacity: 1; }
 th[aria-sort="descending"]::after { content: " ↓"; color: var(--on-brand); opacity: 1; }
@@ -1015,7 +1002,7 @@ td.znacky, th.znacky { text-align: center; width: 1.4rem; padding-left: .2rem; p
 .stav-nc { color: var(--barva-stav-nc); }
 /* Nedokončeno: teplý odstín, pořád ale jen jako podbarvení. */
 .stav-dnf, .stav-mp, .stav-disk, .stav-ot { color: var(--bronz); border-color: var(--bronz); }
-/* Stav před startem (závod teprve běží) je v barvě oddílu. */
+/* Stav před startem (závod teprve běží) je v barvě aplikaceu. */
 .stav-prihlasen { color: var(--brand-svetla); border-color: var(--brand-svetla); }
 /* Postup do finálové části u kvalifikačních závodů. */
 .advance {
@@ -1089,7 +1076,7 @@ footer.site {
 .headmeta .ted-cas { font-size: .88rem; font-weight: 600; min-height: 1.35em; }
 .headmeta .headverze { font-size: .78em; opacity: .75; }
 /* Přepínač světlý/tmavý režim (zadal Jakub 22. 8.). Leží na barvě
-   oddílu, takže bere barvu textu hlavičky a jen jemný obrys — tokeny
+   aplikaceu, takže bere barvu textu hlavičky a jen jemný obrys — tokeny
    podkladu by se s ní tloukly. Do provozu ho pouští skript pod
    hlavičkou (odkryje `hidden`): bez JS by tlačítko nic nepřepnulo
    a jen mátlo. Vlastní pravidlo pro `[hidden]` je nutnost — `display`
@@ -1164,7 +1151,7 @@ footer.site {
   /* Měřidlo na úzkém displeji jen zabírá místo, číslo stačí. */
   .mericka .drah { display: none; }
 }
-/* Na mobilu je menu v hamburgeru, takže se plný název oddílu vejde vždy;
+/* Na mobilu je menu v hamburgeru, takže se plný název aplikaceu vejde vždy;
    na užších displejích se obětuje jen přívlastek „závodní centrum".
    Mez 29rem je změřená: h1 s přívlastkem potřebuje ~452 px (nowrap),
    takže dřívějších 26rem nechávalo mezi 416–460 px vodorovné
@@ -1183,7 +1170,7 @@ footer.site {
   .menu { display: none; }
   .sidemenu { display: block; }
   /* Ve sloupci je na podbarvení místo — v úzkém hamburgeru by rušilo.
-     Bílý nádech místo --bg-soft: položka leží na panelu v barvě oddílu. */
+     Bílý nádech místo --bg-soft: položka leží na panelu v barvě aplikaceu. */
   .sidemenu a[aria-current] { background: rgba(255, 255, 255, .18); }
   main { padding: 1.75rem 1.5rem 4rem; }
   /* Sekce kalendáře (/nadchazejici) dvousloupcově: vlevo mřížka měsíce,
@@ -1383,7 +1370,7 @@ footer.site {
 }
 /* Tenká tlumená spojnice závodů — jen naznačuje pořadí; trend čte
    silnější medián sezóny (krivka-median, ve fialové `--vtisk`, ať se
-   od bodů v barvě oddílu liší i tvarem čáry, ne jen sytostí).
+   od bodů v barvě aplikaceu liší i tvarem čáry, ne jen sytostí).
    Do v31 to byla barva odkazů; od v32 jsou odkazy zelené, takže by
    medián s body splynul — proto vlastní token. */
 .krivka-cara { fill: none; stroke: var(--brand-svetla); stroke-width: 1; opacity: .45; }
@@ -1479,7 +1466,7 @@ footer.site {
 /* Obrysový styl jako u zbylých dvou tlačítek (zadal Jakub 24. 8. 2026:
    „Detaily závodu vizuálně nepasuje ke zbylým dvěma, která mají barevné
    jen obrysy a text" — dřívější plná výplň ve stylu `.badge` mezi nimi
-   vyčnívala). Sekundární barva oddílu (`--c-secondary`) je na tenký
+   vyčnívala). Sekundární barva aplikaceu (`--c-secondary`) je na tenký
    obrys moc pastelová (doloženo dřív: světlost 77 % i na plné barvě,
    po ztmavení hnědne), proto obrys nese VLAJKOVOU oranžovou `--flag-b`
    a text token `--oranz-cit` (ve světlém režimu ztmavená kvůli
@@ -1563,7 +1550,7 @@ footer.site {
 /* Uvedení zdroje geodat (CC BY 4.0). Drobné schválně — je to povinný
    údaj, ne sdělení pro čtenáře. */
 .mapka-zdroj { fill: var(--muted); font-size: 8px; }
-/* Špendlík v barvě oddílu (v tmavém režimu se `--brand-svetla` sama
+/* Špendlík v barvě aplikaceu (v tmavém režimu se `--brand-svetla` sama
    rozsvítí); světlý střed ho odliší i na tmavé výplni obrysu. */
 .mapka-spendlik { fill: var(--brand-svetla); }
 .mapka-spendlik-stred { fill: var(--bg-elev); }
@@ -1680,7 +1667,7 @@ td.den.den-vybrany {
 /* Dlouhodobý žebříček je průběžné POŘADÍ, ne závod: nemá čas ani
    ztrátu, takže si vystačí s úzkou tabulkou uvnitř karty. Barvy jsou
    všechny z tokenů (§11) — žádný hex natvrdo, jinak by přebarvení
-   oddílu (`branding --set`) tuhle sekci minulo. */
+   aplikaceu (`branding --set`) tuhle sekci minulo. */
 .zebricek { margin-bottom: var(--s4); }
 .zebricek-nazev { margin: 0 0 var(--s3); font-size: 1rem; }
 /* Datum vedle názvu: pořadí je průběžné a musí být poznat, k čemu se
@@ -1745,7 +1732,7 @@ td.den.den-vybrany {
 .zeb-vyber .zeb-tab.aktivni { background: var(--bg-soft); }
 
 /* ⭐ TŘI KARTY UVNITŘ VYBRANÉHO ŽEBŘÍČKU (v32): aktuální ročník ·
-   předchozí roky · oddílové srovnání. Od v34 stojí POD ZÁLOŽKAMI
+   předchozí roky · aplikaceové srovnání. Od v34 stojí POD ZÁLOŽKAMI
    (zadal Jakub 25. 8. 2026) — tři plné tabulky pod sebou dělaly
    z každé řady zase dlouhou stránku, kvůli které se sekce od v17
    dvakrát předělávala. Lišta je táž jako lišta řad (`.zeb-tab`),
@@ -1919,7 +1906,7 @@ td.den.den-vybrany {
    Vše z tokenů, takže tmavý režim i tisk drží samy a v souboru
    nepřibývá žádná druhá kopie k udržování. */
 
-/* Hláška nad formulářem: neutrální (pruh v barvě oddílu) nebo chybová
+/* Hláška nad formulářem: neutrální (pruh v barvě aplikaceu) nebo chybová
    (`.chyba`, pruh v barvě upozornění). `pre-wrap` patří JEN chybové
    variantě — jejím obsahem je výpis z CLI, který chodí i víceřádkový
    a nesmí se slít do jednoho odstavce. Neutrální hlášku píše šablona,
@@ -1935,7 +1922,7 @@ td.den.den-vybrany {
 /* Nevratná akce (smazat, zamítnout): obrys v barvě upozornění, plná
    výplň až při najetí. Text na plné barvě bere `--on-brand` jako
    `.btn-hlavni` a `.badge` — natvrdo zapsané `#fff` by přebarvení
-   oddílu (`branding --set`) minulo (§11). */
+   aplikaceu (`branding --set`) minulo (§11). */
 .btn.nebezpecna { border-color: var(--accent); color: var(--accent); }
 .btn.nebezpecna:hover { background: var(--accent); color: var(--on-brand); }
 

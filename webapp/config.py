@@ -7,9 +7,7 @@ OB_SECRET_KEY    Flask session key (default: a random one, generated once and ke
 OB_MAX_UPLOAD_MB largest upload accepted (default 4096, a whole Garmin export is big)
 OB_ORIS_URL      ORIS API endpoint
 OB_URL_PREFIX    path the app is served under (default /ob, next to the club site; empty = at the root)
-OB_CLUB_URL      the club site the pages link to (default https://skobfm.vzdyonline.cz)
-OB_CLUB_NAME     name of the club in the title and header of every page (default SKOB Frýdek-Místek)
-OB_CLUB_LOGO     file name of the club logo in webapp/static (default skob-logo.svg)
+OB_CLUB_URL      optional external club site for race/member links (unset by default)
 OB_DEM           elevation source: auto (ČÚZK DMR 5G for Czech maps, AWS tiles elsewhere and as fallback),
                  aws (AWS tiles only, as before), cuzk (ČÚZK only, fail when it does not answer); default auto
 OB_OSM           1 = fetch railways, motorways and fences from OpenStreetMap as barriers (default 1), 0 = never

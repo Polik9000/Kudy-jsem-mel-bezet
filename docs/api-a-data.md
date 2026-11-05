@@ -38,7 +38,7 @@ Aplikace běží pod předponou `OB_URL_PREFIX` (výchozí `/ob`); všechny adre
 | `/account/delete` | POST | zrušení vlastního účtu, potvrzené polem `password`; smaže totéž co příkaz `delete-account` |
 | `/forgot` | GET, POST | zapomenuté heslo: `oris_regno`, `code` (jednorázový kód z příkazu `reset-code`), `password`, `password2`; bez přihlášení |
 | `/login`, `/register`, `/logout` | GET, POST | účet: registrace registračním číslem ORIS a kódem od správce (`oris_regno`, `code`, `password`, `password2`; jedno číslo = jeden účet; `/register?regno=…&kod=…` formulář předvyplní), přihlášení registračkou nebo původním jménem |
-| `/ob-static/…` | GET | `skob.css`, `ob.css`, `ob.js`, `map.js`, logo, Leaflet. Stránky je odkazují s otiskem obsahu (`?v=…`) a prohlížeč si je pak smí nechat rok; bez otisku se ptá pokaždé |
+| `/ob-static/…` | GET | `base.css`, `ob.css`, `les.css`, `app-icons.svg`, `ob-logo.svg`, `ob.js`, `map.js`, Leaflet. Stránky je odkazují s otiskem obsahu (`?v=…`) a prohlížeč si je pak smí nechat rok; bez otisku se ptá pokaždé |
 
 ### Odkazy na klubový web (`webapp/club.py`, `OB_CLUB_URL`)
 
@@ -114,9 +114,7 @@ Soubory ve složce `OB_INSTANCE`: `fit/user_<id>/`, `maps/event_<id>/` (KMZ a ve
 |---|---|---|
 | `OB_INSTANCE` | `./instance` (v Dockeru `/data`) | databáze a soubory |
 | `OB_URL_PREFIX` | `/ob` | cesta, pod kterou aplikace běží (prázdné = kořen) |
-| `OB_CLUB_URL` | `https://skobfm.vzdyonline.cz` | kam vedou odkazy na klubový web |
-| `OB_CLUB_NAME` | `SKOB Frýdek-Místek` | název klubu v titulku a hlavičce každé stránky |
-| `OB_CLUB_LOGO` | `skob-logo.svg` | soubor loga klubu ve `webapp/static` (hlavička a ikona) |
+| `OB_CLUB_URL` | nenastaveno | kam vedou odkazy na klubový web |
 | `OB_PROXY` | `0` | `1` = věřit hlavičkám `X-Forwarded-*` jedné proxy před aplikací; přihlašovací cookie se pak posílá jen přes https (`Secure`) |
 | `OB_SECRET_KEY` | náhodný, uložený v instanci | klíč relací; počítají se z něj i kódy k registraci |
 | `OB_REGISTRATION` | `1` | `0` zavře registraci; jinak je otevřená těm, kdo mají kód své registračky |

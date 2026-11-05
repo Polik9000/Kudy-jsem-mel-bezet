@@ -1,6 +1,5 @@
-/* Rozbor postupů: jen to, co klubový skob.css nemá (formuláře, mapa, úseky, grafy).
-   Barvy a rozměry výhradně přes jeho proměnné, aby seděl světlý i tmavý režim.
-   skob.css se tu nepřepisuje a ručně se neupravuje (je to kopie z repozitáře skob-results). */
+/* Specifické komponenty aplikace: formuláře, mapa, úseky a grafy.
+   Barvy a rozměry používají tokeny definované v základním a tematickém CSS. */
 
 :root {
   /* trať, nejlepší postup, chyba: podle docs/design-klubovy-web.md */

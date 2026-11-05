@@ -1,13 +1,9 @@
-"""The club: its name, logo and the links to its site (skob-results). Its pages are keyed by ORIS ids, the same
+"""The external club site integration. Its pages are keyed by ORIS ids, the same
 ids we keep in events.oris_id and users.oris_user_id; the mapping is the table in docs/pruzkum.md."""
 import os
 from urllib.parse import urlencode
 
-BASE = os.environ.get("OB_CLUB_URL", "https://skobfm.vzdyonline.cz").rstrip("/")
-NAME = os.environ.get("OB_CLUB_NAME", "SKOB Frýdek-Místek")   # in the title and the header of every page
-LOGO = os.environ.get("OB_CLUB_LOGO", "skob-logo.svg")       # a file in webapp/static: header and icon
-# "les": dark look "Lesní klid" (les.css, default), "kudy": petrol look (kudy.css), "skob": the club site's
-THEME = os.environ.get("OB_THEME", "les")
+BASE = os.environ.get("OB_CLUB_URL", "").rstrip("/")
 ENABLED = bool(BASE)  # OB_CLUB_URL="" (the app on one's own computer): no links to a club site at all
 
 

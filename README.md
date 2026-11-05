@@ -66,8 +66,7 @@ docker compose run --rm web pytest -m slow                                      
 docker compose run --rm web ruff check .                                             # linter
 ```
 
-Flask + SQLite in `webapp/`, in the look of the club site (its `skob.css` unchanged, own styles in `ob.css`, light
-and dark mode), served under `/ob` so it can run next to the club site as a separate process. A second container,
+Flask + SQLite in `webapp/`, with the app’s own Lesní klid appearance (`base.css`, `ob.css`, `les.css`), served under `/ob` so it can run next to another site as a separate process. A second container,
 `python -m webapp.worker`, runs the analysis in the background with the scripts below; no calculation lives in
 `webapp/`. Uploaded maps and .fit files stay in a Docker volume, never in the repo.
 

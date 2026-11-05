@@ -39,12 +39,13 @@ Nástroj `tools/shot.mjs` (screenshoty) potřebuje Node 22+ a Chrome; do aplikac
 
 ## Vzhled
 
-| Soubor | Původ | Poznámka |
-|---|---|---|
-| `webapp/static/skob.css` | kopie `/static/skob.css` klubového webu (repozitář `skob-results`, píše táta) | nesmí se upravovat ručně; test hlídá shodu s `docs/reference/skob-klubovy-web.css` |
-| `webapp/static/skob-logo.svg`, `skob-ikony-sprite.svg` | logo a ikony klubového webu | totéž |
-
-Jak se kopie udržuje při změně klubového webu, je otázka na tátu (`docs/co-zbyva.md`).
+| Soubor | Účel |
+|---|---|
+| `webapp/static/base.css` | Obecná kostra a rozložení aplikace |
+| `webapp/static/ob.css` | Komponenty rozboru postupů |
+| `webapp/static/les.css` | Jediný podporovaný vzhled „Lesní klid“ |
+| `webapp/static/app-icons.svg` | SVG symboly používané v rozhraní |
+| `webapp/static/ob-logo.svg` | Logo aplikace |
 
 ## Data z cizích služeb
 
