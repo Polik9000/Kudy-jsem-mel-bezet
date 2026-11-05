@@ -213,6 +213,19 @@ CREATE TABLE IF NOT EXISTS screens (
     PRIMARY KEY (class_id, user_id)
 );
 
+-- Livelox screenshots may arrive separately, even before the FIT or ORIS splits. Keep them here until
+-- there is a screenshot with the course and the runner's track plus official punch times.
+CREATE TABLE IF NOT EXISTS pending_screens (
+    class_id     INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    course_file  TEXT,
+    maponly_file TEXT,
+    queued       INTEGER NOT NULL DEFAULT 0,
+    uploaded_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (class_id, user_id),
+    CHECK (course_file IS NOT NULL OR maponly_file IS NOT NULL)
+);
+
 CREATE TABLE IF NOT EXISTS speed_models (
     id        INTEGER PRIMARY KEY,
     user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
