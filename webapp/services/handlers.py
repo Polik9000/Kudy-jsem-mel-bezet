@@ -17,7 +17,9 @@ from . import jobs, matching, personal, plans, results, runner, storage, sync_or
 
 @jobs.handler("sync_oris")
 def _sync_oris(ctx, job):
-    return sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"])
+    message = sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"])
+    matching.queue_waiting_photos(ctx.con, job["user_id"])
+    return message
 
 
 @jobs.handler("import_upload")
@@ -279,6 +281,7 @@ def _georef_map(ctx, job):
     if p.get("screens") is not None:            # two screenshots of Livelox (services/screens.py)
         from . import screens
         return screens.place(ctx, job, p)
+    stored_photo = bool(p.get("stored_photo"))
     path = ctx.conf.path(p["file"]) if p.get("file") else None
     by_hand = p.get("points") is not None
     try:
@@ -288,10 +291,10 @@ def _georef_map(ctx, job):
         before = storage.course_source(ctx.conf, cls)
         if before == "kmz":
             return _("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila.")
-        if by_hand:
+        if by_hand or stored_photo:
             row = ctx.con.execute("SELECT file FROM photos WHERE entry_id = ?", (job["entry_id"],)).fetchone()
             if row is None or not os.path.exists(ctx.conf.path(row["file"])):
-                raise jobs.Refused(_("Fotka k ručnímu usazení už tu není; nahraj ji znovu."))
+                raise jobs.Refused(_("Uložená fotka mapy už tu není; nahraj ji znovu."))
             image = georef.open_image(ctx.conf.path(row["file"]))
         else:
             try:
@@ -347,7 +350,7 @@ def _georef_map(ctx, job):
         return (_("Mapa usazena %(how)s, odchylka %(rms).0f m, na okraji mapy asi %(edge_m).0f m.%(replaced)s "
                     "Analýza je ve frontě.", how=how, rms=fit['rms'], edge_m=fit['edge_m'], replaced=replaced))
     finally:
-        if path and os.path.exists(path):
+        if path and not stored_photo and os.path.exists(path):
             os.remove(path)
 
 
