@@ -87,9 +87,24 @@ def drop_pending(con, conf, class_id, user_id):
                     (class_id, user_id))
 
 
+def drop_class_pending(con, conf, class_id):
+    """A KMZ with course supersedes all waiting screenshots of this class. Not committed."""
+    for r in con.execute("SELECT * FROM pending_screens WHERE class_id = ?", (class_id,)).fetchall():
+        for f in (r["course_file"], r["maponly_file"]):
+            if f and os.path.exists(conf.path(f)):
+                os.remove(conf.path(f))
+        con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?", (class_id, r["user_id"]))
+
+
 def drop_event(con, conf, event_id):
     """A KMZ without course came for the race: the screenshots kept for its classes are of no more use. Not
     committed."""
+    for r in con.execute("SELECT p.* FROM pending_screens p JOIN classes c ON c.id = p.class_id WHERE c.event_id = ?",
+                         (event_id,)).fetchall():
+        for f in (r["course_file"], r["maponly_file"]):
+            if f and os.path.exists(conf.path(f)):
+                os.remove(conf.path(f))
+        con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?", (r["class_id"], r["user_id"]))
     for r in con.execute("SELECT s.* FROM screens s JOIN classes c ON c.id = s.class_id WHERE c.event_id = ?",
                          (event_id,)).fetchall():
         for f in (r["course_file"], r["maponly_file"], preview_path(r["course_file"])):
@@ -138,7 +153,15 @@ def place(ctx, job, p):
     from .handlers import photo_track
     con, conf = ctx.con, ctx.conf
     sc = p["screens"]
-    new = {k: conf.path(sc[k]) for k in ("course", "maponly") if sc.get(k)}
+    if sc.get("stored_pending"):
+        info0 = runner.entry_info(con, job["entry_id"])
+        waiting = pending_row(con, info0["cid"], job["user_id"])
+        if waiting is None:
+            raise jobs.Refused(_("Čekající snímky Livelox už tu nejsou; nahraj je znovu."))
+        new = {k: conf.path(waiting[k + "_file"]) for k in ("course", "maponly")
+               if waiting[k + "_file"] and os.path.exists(conf.path(waiting[k + "_file"]))}
+    else:
+        new = {k: conf.path(sc[k]) for k in ("course", "maponly") if sc.get(k)}
     try:
         info = runner.entry_info(con, job["entry_id"])
         track, start_s, cumulative = photo_track(conf, info)
@@ -230,6 +253,8 @@ def place(ctx, job, p):
         x0, y0, x1, y1 = r["box"]
         _store(con, conf, cid, uid, course_p, maponly_p, kept, course.size, crop,
                dict(box=[x0, y0, x1, y1], reliable=r["reliable"], notes=r["notes"], res=round(r["res"], 3)))
+        if sc.get("stored_pending"):
+            drop_pending(con, conf, cid, uid)
         con.commit()
         if event_changed:
             who = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id WHERE c.event_id = ?",
