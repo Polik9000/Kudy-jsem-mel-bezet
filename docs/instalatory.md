@@ -88,3 +88,8 @@ Neověřeno (cloud nemá Windows ani macOS), musí se vyzkoušet **na čistém p
 5. nahrát celý export z Garminu (zip) → běhy se spárují, model kopců se spočítá (ověří paralelní výpočet
    `oroute.slopefit` v zabalené aplikaci);
 6. zavřít okno, spustit znovu → závody tam jsou; odinstalovat → složka s daty zůstane.
+
+
+## Microsoft Store (MSIX)
+
+Pro Microsoft Store se vedle původního EXE sestavuje také x64 MSIX. Podrobnosti, konfigurace Publisher identity a povinné testy migrace dat jsou v [MSIX a Microsoft Store](msix-microsoft-store.md). MSIX se v Actions ukládá jako samostatný artefact; nepřidává se automaticky do veřejného GitHub Release.

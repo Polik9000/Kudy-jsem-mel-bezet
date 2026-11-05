@@ -1,11 +1,11 @@
-# Instalátory lokální aplikace: Windows (.exe, Inno Setup) a macOS (.dmg, Apple Silicon).
+# Instalátory lokální aplikace: Windows (.exe, Inno Setup, MSIX) a macOS (.dmg, Apple Silicon).
 #
 # - ručně (Actions -> Instalátory -> Run workflow) nebo pull request, který mění balení: jen sestaví a otestuje, instalátory jsou ke stažení
 #   u běhu workflow (Artifacts), nic se nezveřejní;
 # - tag v* (např. git tag v0.1.0 && git push origin v0.1.0): navíc založí KONCEPT vydání (draft) v Releases
-#   s oběma instalátory. Zveřejní ho až autor tlačítkem Publish, po vyzkoušení na čistém počítači.
+#   s EXE a DMG. MSIX je samostatný Store artefact, nepublikuje se v GitHub Release.
 #
-# Názvy souborů jsou bez verze, takže stránka ke stažení (docs/index.html) může odkazovat napořád na
+# Názvy EXE a DMG jsou bez verze, takže stránka ke stažení (docs/index.html) může odkazovat napořád na
 # https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/<soubor>.
 # Balíček obsahuje jen kód (desktop/kudy.spec): žádné mapy, běhy ani závody.
 name: Instalátory
@@ -14,12 +14,13 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-  # pull request, který mění balení: jen sestavit a vyzkoušet
   pull_request:
     paths:
       - "desktop/**"
       - ".github/workflows/instalatory.yml"
       - "requirements*.txt"
+      - "docs/instalatory.md"
+      - "docs/msix-microsoft-store.md"
 
 permissions:
   contents: read
@@ -57,7 +58,7 @@ jobs:
       - name: Verze
         shell: bash
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.0"; fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.${GITHUB_RUN_NUMBER}"; fi
           echo "APP_VERSION=$v" >> "$GITHUB_ENV"
           echo "VERSION = \"$v\"" > webapp/_version.py     # shown in the page footer and in About
           echo "verze $v"
@@ -73,20 +74,48 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # okenní aplikace: PowerShell na ni sám nepočká, proto Start-Process -Wait
           $p = Start-Process -FilePath "dist\KudyJsemMelBezet\KudyJsemMelBezet.exe" -ArgumentList "--smoke-test" `
                -Wait -PassThru -NoNewWindow -RedirectStandardOutput smoke.txt -RedirectStandardError smoke-err.txt
           Get-Content smoke.txt, smoke-err.txt
           if ($p.ExitCode -ne 0) { throw "zkouška spuštění selhala ($($p.ExitCode))" }
 
-      - name: Instalátor (Windows)
+      - name: MSIX (Windows Store)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          MSIX_PUBLISHER: ${{ secrets.MSIX_PUBLISHER }}
+          MSIX_IDENTITY_NAME: ${{ secrets.MSIX_IDENTITY_NAME }}
+        run: |
+          python desktop/msix/build_msix.py --source dist/KudyJsemMelBezet --output dist/KudyJsemMelBezet.msix --version "$env:APP_VERSION"
+          Get-Item dist/KudyJsemMelBezet.msix
+
+      - name: Podepsat testovací MSIX (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          MSIX_PUBLISHER: ${{ secrets.MSIX_PUBLISHER }}
+          MSIX_IDENTITY_NAME: ${{ secrets.MSIX_IDENTITY_NAME }}
+        run: |
+          $testDir = "dist/msix-test"
+          New-Item -ItemType Directory -Force -Path $testDir | Out-Null
+          Copy-Item dist/KudyJsemMelBezet.msix "$testDir/KudyJsemMelBezet-test.msix"
+          ./desktop/msix/sign_msix_for_testing.ps1 -PackagePath "$testDir/KudyJsemMelBezet-test.msix" -CertificatePath "$testDir/KudyJsemMelBezet-test.cer"
+          Copy-Item docs/msix-test-install.txt "$testDir/README.txt"
+          Get-ChildItem $testDir
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: windows-msix-test-package
+          path: dist/msix-test/
+          if-no-files-found: error
+
+      - name: Instalátor EXE (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          if (-not (Test-Path $iscc)) {
-            choco install innosetup -y --no-progress
-          }
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
           & $iscc "/DAppVersion=$env:APP_VERSION" desktop\kudy.iss
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup selhal" }
           Get-Item dist\KudyJsemMelBezet-windows-setup.exe
@@ -96,6 +125,13 @@ jobs:
         with:
           name: windows
           path: dist/KudyJsemMelBezet-windows-setup.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: windows-msix-store-package
+          path: dist/KudyJsemMelBezet.msix
           if-no-files-found: error
 
       # --- macOS ---
@@ -151,6 +187,8 @@ jobs:
 
             Data jsou ve složce %LOCALAPPDATA%\KudyJsemMelBezet (Windows) nebo
             ~/Library/Application Support/KudyJsemMelBezet (macOS); odinstalace je nemaže.
+
+            MSIX pro Microsoft Store se ukládá jako samostatný artefact v Actions a není součástí tohoto vydání.
           files: |
             out/KudyJsemMelBezet-windows-setup.exe
             out/KudyJsemMelBezet-macos.dmg

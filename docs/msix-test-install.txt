@@ -1,0 +1,48 @@
+KUDY JSEM MEL BEZET – TESTOVACI MSIX
+====================================
+
+Tento balicek slouzi pouze k lokalnimu vyzkouseni aplikace. Nejde o balicek pro
+Microsoft Store.
+
+OBSAH
+- KudyJsemMelBezet-test.msix: testovaci aplikacni balicek
+- KudyJsemMelBezet-test.cer: verejny certifikat, ktery podepsal tento konkretni MSIX
+
+INSTALACE
+1. Rozbal cely archiv do jedne slozky.
+2. Otevri PowerShell v teto slozce.
+3. Importuj certifikat do duveryhodnych certifikatu aktualniho uzivatele:
+
+   Import-Certificate -FilePath .\KudyJsemMelBezet-test.cer -CertStoreLocation Cert:\CurrentUser\TrustedPeople
+
+4. Nainstaluj aplikaci:
+
+   Add-AppxPackage -Path .\KudyJsemMelBezet-test.msix
+
+5. Aplikaci spust z nabidky Start.
+
+Certifikat je self-signed a duveruj mu pouze proto, ze pochazi z artefaktu
+stazeneho primo z duveryhodneho repozitare Kudy jsem mel bezet. Soukromy klic
+(.pfx) v archivu neni.
+
+POZNAMKY K BEZPECNOSTI
+DULEZITE – SMART APP CONTROL
+Self-signed certifikat slouzi k otestovani instalace MSIX, ale neni vydany
+certifikacni autoritou z Microsoft Trusted Root Programu. Smart App Control
+proto muze aplikaci i po instalaci zablokovat. MSIX neni zpusob, jak Smart App
+Control obejit. Kvuli testu nevypinej Smart App Control ani jinou ochranu
+Windows. Pro distribuci, ktera ma spolehlive fungovat se Smart App Control,
+bude potreba Microsoft Store (kde Microsoft balicek znovu podepise), nebo
+kodovy podpis certifikatem od podporovane duveryhodne CA.
+
+Pokud instalace nebo spusteni selze, poznamenej si presnou chybovou hlasku.
+
+ODINSTALACE A UKLID
+Aplikaci odinstaluj v Nastaveni Windows > Aplikace > Nainstalovane aplikace.
+Testovaci certifikat lze odstranit takto:
+
+   $cert = Get-PfxCertificate -FilePath .\KudyJsemMelBezet-test.cer
+   Remove-Item "Cert:\CurrentUser\TrustedPeople\$($cert.Thumbprint)"
+
+Pri dalsim CI behu vznikne novy certifikat. Vzdy pouzij .cer ze stejneho
+artefaktu jako testovaci .msix.
