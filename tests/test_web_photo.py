@@ -37,11 +37,12 @@ def jpeg_bytes(size=(1000, 800), pad=0):
     return buf.getvalue() + b"\0" * pad
 
 
-def test_heic_photo_gets_a_sentence_on_what_to_do(app, client, user):
+def test_heic_extension_is_not_accepted_as_a_map_image(app, client, user):
     con, mine = entry(app, client, user, run=False)
     html = send(client, mine, "IMG_0042.HEIC", b"\0\0\0\x18ftypheic\0\0\0\0mif1heic")
-    assert "formátu HEIC" in html and "Nejkompatibilnější" in html
+    assert "KMZ" in html
     assert not con.execute("SELECT 1 FROM jobs WHERE kind = 'georef_map'").fetchone()
+    assert not con.execute("SELECT 1 FROM photos WHERE entry_id = ?", (mine,)).fetchone()
 
 
 @pytest.mark.needs_data
