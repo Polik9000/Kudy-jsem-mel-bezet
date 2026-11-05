@@ -258,11 +258,21 @@ def test_glare_over_some_controls_lands_over_most_it_does_not(app, client, user,
 
 
 @pytest.mark.needs_data
-def test_photo_before_the_run_from_the_watch(app, client, user, pohora):
+def test_photo_before_the_run_from_the_watch_is_kept_and_placed_later(app, client, user, pohora):
     con, mine = entry(app, client, user, run=False)
     data, _ = made_photo(pohora)
-    assert "Nahraj nejdřív běh z hodinek" in send(client, mine, "IMG_1.jpg", data)
+    assert "Fotka je uložená" in send(client, mine, "IMG_1.jpg", data)
+    saved = con.execute("SELECT file FROM photos WHERE entry_id = ?", (mine,)).fetchone()
+    assert saved and os.path.exists(app.config["OB"].path(saved["file"]))
     assert not job(con)
+
+    with open(inputs("pohora")[2], "rb") as f:
+        client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
+                    content_type="multipart/form-data")
+    work(app)
+    queued = job(con)
+    assert queued and queued["status"] == "done" and "Mapa usazena" in queued["message"], queued["error"]
+    assert course_of(con, mine)["course_source"] == "photo"
 
 
 @pytest.mark.needs_data
