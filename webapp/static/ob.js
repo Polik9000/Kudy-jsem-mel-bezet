@@ -1,6 +1,5 @@
 /* Shared behaviour of every page: light/dark switch, clock, header height, menu, job counter, table sorting.
-   Same conventions as the club site (th[data-sort], data-value). The light/dark mode is kept under
-   "ob-rezim"; until it is set, the value of the club site's key "skob-rezim" counts (left untouched for that site). */
+   The light/dark mode is kept under the application-specific "ob-rezim" key. */
 (function () {
   "use strict";
   var root = document.documentElement;
@@ -16,11 +15,10 @@
 
   // light / dark: no value = follow the device
   var btn = document.getElementById("rezim"), SIGN = { "": "◐", svetly: "☀", tmavy: "☾" };
-  var KEY = "ob-rezim", OLD_KEY = "skob-rezim";
+  var KEY = "ob-rezim";
   function mode() {
     try {
       var m = localStorage.getItem(KEY);
-      if (m === null) { m = localStorage.getItem(OLD_KEY) || ""; if (m) { localStorage.setItem(KEY, m); } }
       return m || "";
     } catch (e) { return ""; }
   }
