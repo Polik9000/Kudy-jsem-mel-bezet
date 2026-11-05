@@ -94,6 +94,25 @@ def queue_waiting_photos(con, user_id):
     return queued
 
 
+def queue_waiting_screens(con, user_id):
+    """Queue Livelox screenshots uploaded before the FIT or official ORIS splits arrived."""
+    rows = con.execute(
+        "SELECT e.id, p.class_id FROM entries e JOIN pending_screens p"
+        " ON p.class_id = e.class_id AND p.user_id = e.user_id"
+        " WHERE e.user_id = ? AND e.activity_id IS NOT NULL AND e.splits IS NOT NULL"
+        " AND p.course_file IS NOT NULL AND p.queued = 0",
+        (user_id,)).fetchall()
+    queued = []
+    for row in rows:
+        if loads(con.execute("SELECT splits FROM entries WHERE id = ?", (row["id"],)).fetchone()["splits"], []):
+            queued.append(jobs.enqueue(con, "georef_map", user_id=user_id, entry_id=row["id"],
+                                       payload=dict(screens=dict(stored_pending=True))))
+            con.execute("UPDATE pending_screens SET queued = 1 WHERE class_id = ? AND user_id = ?",
+                        (row["class_id"], user_id))
+    con.commit()
+    return queued
+
+
 def queue_analysis(con, entry_id, refit=True):
     """Queue the analysis when the entry has an activity and the map with the course."""
     has_act, has_course, _ = ready(con, entry_id)
