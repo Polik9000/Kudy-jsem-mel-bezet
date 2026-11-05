@@ -263,8 +263,8 @@ def test_photo_before_the_run_from_the_watch_is_kept_and_placed_later(app, clien
     con, mine = entry(app, client, user, run=False)
     data, _ = made_photo(pohora)
     assert "Fotka je uložená" in send(client, mine, "IMG_1.jpg", data)
-    saved = con.execute("SELECT file FROM photos WHERE entry_id = ?", (mine,)).fetchone()
-    assert saved and os.path.exists(app.config["OB"].path(saved["file"]))
+    saved = con.execute("SELECT file, waiting_for_run FROM photos WHERE entry_id = ?", (mine,)).fetchone()
+    assert saved and saved["waiting_for_run"] == 1 and os.path.exists(app.config["OB"].path(saved["file"]))
     assert not job(con)
 
     with open(inputs("pohora")[2], "rb") as f:
@@ -274,6 +274,7 @@ def test_photo_before_the_run_from_the_watch_is_kept_and_placed_later(app, clien
     queued = job(con)
     assert queued and queued["status"] == "done" and "Mapa usazena" in queued["message"], queued["error"]
     assert course_of(con, mine)["course_source"] == "photo"
+    assert con.execute("SELECT waiting_for_run FROM photos WHERE entry_id = ?", (mine,)).fetchone()[0] == 0
 
 
 @pytest.mark.needs_data
