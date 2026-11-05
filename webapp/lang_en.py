@@ -2047,4 +2047,6 @@ EN_JS = {
         "Photograph the whole map from above, in daylight and without flash; lay it flat and make sure nothing covers the controls. The photo is placed using the controls and your track at the official punch times. You can upload it at any time; if the run or ORIS splits are missing, it will wait until they are available.",
     "Ke každému závodu appka potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě. Časy a mezičasy si načte z ORIS sama. KMZ a fotku mapy můžeš nahrát kdykoliv; fotka počká, než bude k dispozici běh a mezičasy. Snímky obrazovky z Livelox můžeš také nahrát kdykoliv a každý zvlášť; aplikace počká na oba snímky, běh a mezičasy z ORIS.":
         "For each race the app needs three things: a watch run, a map with the course and a map without the course. It loads times and splits from ORIS. You can upload a KMZ or map photo at any time; the photo waits until the run and split times are available. Livelox screenshots can also be uploaded at any time, separately; the app waits for both screenshots, the run and the ORIS split times.",
+    "Uložená fotka mapy už tu není; nahraj ji znovu.":
+        "The saved map photo is no longer here; upload it again.",
 }
