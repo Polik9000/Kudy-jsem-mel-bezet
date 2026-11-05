@@ -194,6 +194,7 @@ CREATE TABLE IF NOT EXISTS photos (
     entry_id    INTEGER PRIMARY KEY REFERENCES entries(id) ON DELETE CASCADE,
     file        TEXT NOT NULL,       -- upright, at most georef.MAX_SIDE_PX
     points      TEXT,                -- JSON [{control, u, v}] clicked so far
+    waiting_for_run INTEGER NOT NULL DEFAULT 0, -- uploaded before FIT/ORIS splits; place when they arrive
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
