@@ -271,6 +271,8 @@ def place(ctx, job, p):
             said.append(_("Analýza je ve frontě."))
         return " ".join(said)
     finally:
-        for path in new.values():
-            if os.path.exists(path):
-                os.remove(path)
+        # Uploaded files live in incoming/; deferred files are durable and must survive a failed attempt.
+        if not sc.get("stored_pending"):
+            for path in new.values():
+                if os.path.exists(path):
+                    os.remove(path)
