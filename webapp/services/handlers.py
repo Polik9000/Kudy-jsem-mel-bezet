@@ -296,6 +296,9 @@ def _georef_map(ctx, job):
             row = ctx.con.execute("SELECT file FROM photos WHERE entry_id = ?", (job["entry_id"],)).fetchone()
             if row is None or not os.path.exists(ctx.conf.path(row["file"])):
                 raise jobs.Refused(_("Uložená fotka mapy už tu není; nahraj ji znovu."))
+            if stored_photo:
+                ctx.con.execute("UPDATE photos SET waiting_for_run = 0 WHERE entry_id = ?", (job["entry_id"],))
+                ctx.con.commit()
             image = georef.open_image(ctx.conf.path(row["file"]))
         else:
             try:
