@@ -1,7 +1,13 @@
-# Instalátory lokální aplikace: Windows (EXE/Inno Setup + MSIX) a macOS (DMG, Apple Silicon).
+# Instalátory lokální aplikace: Windows (.exe, Inno Setup, MSIX) a macOS (.dmg, Apple Silicon).
 #
-# - ručně nebo pull request: sestaví a otestuje balíčky, nic se nezveřejní;
-# - tag v*: navíc založí koncept vydání (draft) s EXE a DMG. MSIX je samostatný Store artefact.
+# - ručně (Actions -> Instalátory -> Run workflow) nebo pull request, který mění balení: jen sestaví a otestuje, instalátory jsou ke stažení
+#   u běhu workflow (Artifacts), nic se nezveřejní;
+# - tag v* (např. git tag v0.1.0 && git push origin v0.1.0): navíc založí KONCEPT vydání (draft) v Releases
+#   s EXE a DMG. MSIX je samostatný Store artefact, nepublikuje se v GitHub Release.
+#
+# Názvy EXE a DMG jsou bez verze, takže stránka ke stažení (docs/index.html) může odkazovat napořád na
+# https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/<soubor>.
+# Balíček obsahuje jen kód (desktop/kudy.spec): žádné mapy, běhy ani závody.
 name: Instalátory
 
 on:
@@ -23,6 +29,7 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    # jen ve veřejném repu: v soukromém by macOS stroje rychle spotřebovaly minuty Actions zdarma
     if: github.repository == 'Polik9000/Kudy-jsem-mel-bezet'
     strategy:
       fail-fast: false
@@ -31,7 +38,7 @@ jobs:
           - name: Windows
             os: windows-latest
           - name: macOS
-            os: macos-latest
+            os: macos-latest   # Apple Silicon (M1 a novější)
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +60,8 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.0"; fi
           echo "APP_VERSION=$v" >> "$GITHUB_ENV"
-          echo "VERSION = \"$v\"" > webapp/_version.py
+          echo "VERSION = \"$v\"" > webapp/_version.py     # shown in the page footer and in About
+          echo "verze $v"
 
       - name: Ikony
         run: python desktop/icons.py build/icons
@@ -93,7 +101,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows'
         with:
-          name: windows-exe-installer
+          name: windows
           path: dist/KudyJsemMelBezet-windows-setup.exe
           if-no-files-found: error
 
@@ -109,6 +117,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           app="dist/Kudy jsem měl běžet.app"
+          # bez certifikátu Apple: podpis ad hoc (Apple Silicon nespustí nepodepsaný kód vůbec)
           codesign --force --deep --sign - "$app"
           codesign --verify --deep --strict "$app"
           "$app/Contents/MacOS/KudyJsemMelBezet" --smoke-test
@@ -147,10 +156,17 @@ jobs:
           draft: true
           name: Kudy jsem měl běžet ${{ github.ref_name }}
           body: |
-            Instalátory aplikace Kudy jsem měl běžet. MSIX pro Microsoft Store je samostatný artefact v Actions.
-            - Windows: KudyJsemMelBezet-windows-setup.exe (Inno Setup, nepodepsaný).
-            - macOS: KudyJsemMelBezet-macos.dmg (Apple Silicon, ad-hoc podpis).
-            Data zůstávají v uživatelské datové složce; odinstalace je nemaže.
+            Instalátory aplikace Kudy jsem měl běžet. Mapy a běhy z hodinek si nahraješ vlastní, nikam se neposílají.
+
+            - **Windows 10/11:** KudyJsemMelBezet-windows-setup.exe. Instalátor není podepsaný, Windows SmartScreen
+              proto ukáže varování: Další informace -> Přesto spustit.
+            - **macOS (Apple Silicon, M1 a novější):** KudyJsemMelBezet-macos.dmg. Aplikace není podepsaná u Applu:
+              po prvním pokusu o spuštění otevři Nastavení systému -> Soukromí a zabezpečení -> Přesto otevřít.
+
+            Data jsou ve složce %LOCALAPPDATA%\\KudyJsemMelBezet (Windows) nebo
+            ~/Library/Application Support/KudyJsemMelBezet (macOS); odinstalace je nemaže.
+
+            MSIX pro Microsoft Store se ukládá jako samostatný artefact v Actions a není součástí tohoto vydání.
           files: |
             out/KudyJsemMelBezet-windows-setup.exe
             out/KudyJsemMelBezet-macos.dmg
