@@ -46,6 +46,10 @@ def main() -> int:
     executable = source / "KudyJsemMelBezet.exe"
     if not executable.is_file():
         raise SystemExit(f"Chybí PyInstaller executable: {executable}")
+    env_publisher = os.environ.get("MSIX_PUBLISHER", "").strip()
+    env_identity_name = os.environ.get("MSIX_IDENTITY_NAME", "").strip()
+    if bool(env_publisher) != bool(env_identity_name):
+        raise SystemExit("Nastav buď obě hodnoty MSIX_PUBLISHER a MSIX_IDENTITY_NAME, nebo ani jednu.")
     if not args.publisher.strip() or "__" in args.publisher:
         raise SystemExit("MSIX Publisher musí být neprázdný a musí odpovídat Partner Center.")
     if not args.identity_name.strip() or "__" in args.identity_name:

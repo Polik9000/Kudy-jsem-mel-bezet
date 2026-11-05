@@ -58,7 +58,7 @@ jobs:
       - name: Verze
         shell: bash
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.0"; fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.${GITHUB_RUN_NUMBER}"; fi
           echo "APP_VERSION=$v" >> "$GITHUB_ENV"
           echo "VERSION = \"$v\"" > webapp/_version.py     # shown in the page footer and in About
           echo "verze $v"
@@ -88,6 +88,27 @@ jobs:
         run: |
           python desktop/msix/build_msix.py --source dist/KudyJsemMelBezet --output dist/KudyJsemMelBezet.msix --version "$env:APP_VERSION"
           Get-Item dist/KudyJsemMelBezet.msix
+
+      - name: Podepsat testovací MSIX (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          MSIX_PUBLISHER: ${{ secrets.MSIX_PUBLISHER }}
+          MSIX_IDENTITY_NAME: ${{ secrets.MSIX_IDENTITY_NAME }}
+        run: |
+          $testDir = "dist/msix-test"
+          New-Item -ItemType Directory -Force -Path $testDir | Out-Null
+          Copy-Item dist/KudyJsemMelBezet.msix "$testDir/KudyJsemMelBezet-test.msix"
+          ./desktop/msix/sign_msix_for_testing.ps1 -PackagePath "$testDir/KudyJsemMelBezet-test.msix" -CertificatePath "$testDir/KudyJsemMelBezet-test.cer"
+          Copy-Item docs/msix-test-install.txt "$testDir/README.txt"
+          Get-ChildItem $testDir
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: windows-msix-test-package
+          path: dist/msix-test/
+          if-no-files-found: error
 
       - name: Instalátor EXE (Windows)
         if: runner.os == 'Windows'

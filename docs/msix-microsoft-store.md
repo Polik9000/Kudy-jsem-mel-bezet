@@ -1,8 +1,10 @@
 # MSIX a Microsoft Store
 
-Workflow `.github/workflows/instalatory.yml` nově vedle stávajícího EXE a DMG sestavuje také
-nepodepsaný x64 balíček `KudyJsemMelBezet.msix`. MSIX je zabalený z existujícího výstupu PyInstaller
-(`dist/KudyJsemMelBezet`); nejde o novou implementaci aplikace. Balíček používá
+Workflow `.github/workflows/instalatory.yml` nově vedle stávajícího EXE a DMG sestavuje dva x64 MSIX artefakty:
+- `windows-msix-store-package`: nepodepsaný `KudyJsemMelBezet.msix`, připravený pro další krok publikování v Partner Center;
+- `windows-msix-test-package`: podepsaný `KudyJsemMelBezet-test.msix`, veřejný testovací certifikát `.cer` a návod `README.txt`. Ten lze stáhnout z konkrétního běhu GitHub Actions, přidat certifikát do důvěryhodných certifikátů aktuálního uživatele a nainstalovat.
+
+Oba balíčky vycházejí ze stejného výstupu PyInstaller (`dist/KudyJsemMelBezet`); nejde o novou implementaci aplikace. Testovací podpis je vytvořený při každém CI běhu novým dočasným certifikátem. Soukromý klíč (.pfx) se do artefaktu nikdy nepřidává a po podpisu se z CI runneru odstraní. Proto je potřeba vždy použít .cer stažený společně s konkrétním MSIX. Balíček používá
 `runFullTrust`, protože aplikace spouští lokální Flask server, výpočetní podprocesy a pracuje se soubory.
 
 ## Publisher identity – nutné před Store submission
@@ -16,8 +18,23 @@ Partner Center → Settings → Account settings → Identity details. Hodnota m
 identitě přiřazené aplikaci v Partner Center. Po nastavení obou secrets vytvoří další běh workflow balíček
 s touto identitou. Před podáním zkontroluj také rezervované Package/Identity Name a verzi v Partner Center.
 
-Balíček se záměrně nepodepisuje vlastním certifikátem. Odeslání do Store, validace a podpis distribučního
+Store artefakt se záměrně nepodepisuje vlastním certifikátem. Odeslání do Store, validace a podpis distribučního
 balíčku jsou samostatný krok v Partner Center; tento PR nic do Store neposílá a nic nevydává.
+
+## Stažení a instalace testovací verze
+
+1. Otevři [Pull Request #30](https://github.com/Polik9000/Kudy-jsem-mel-bezet/pull/30), v části **Checks** otevři úspěšný běh workflow **Instalátory** a stáhni artefakt `windows-msix-test-package`.
+2. Rozbal ZIP. V něm jsou pouze `KudyJsemMelBezet-test.msix`, odpovídající veřejný certifikát `KudyJsemMelBezet-test.cer` a `README.txt`.
+3. V PowerShellu otevřeném v této složce spusť:
+   ```powershell
+   Import-Certificate -FilePath .\KudyJsemMelBezet-test.cer -CertStoreLocation Cert:\CurrentUser\TrustedPeople
+   Add-AppxPackage -Path .\KudyJsemMelBezet-test.msix
+   ```
+4. Aplikaci spusť z nabídky Start. Případně lze po importu certifikátu otevřít MSIX dvojklikem.
+
+Certifikát je self-signed a je určený pouze pro tento test. Importuj ho pouze z artefaktu staženého z tohoto důvěryhodného repozitáře. Smart App Control nebo firemní zásady Windows mohou i tak instalaci nepovolit; kvůli testu nevypínej bezpečnostní ochrany. Při potížích pošli přesné znění chyby.
+
+Testovací certifikát se při každém běhu Actions mění. Nový testovací balíček proto vyžaduje i nový soubor `.cer`. Testovací balíček používá stejnou Publisher/Identity konfiguraci jako Store balíček daného běhu. Pokud v repozitáři nejsou nastavené secrets `MSIX_PUBLISHER` a `MSIX_IDENTITY_NAME`, používá se výchozí identita `KudyJsemMelBezet.TestOnly`; takový build netestuje budoucí Store identitu. Pro skutečný test stejné identity nastav obě hodnoty podle Partner Center.
 
 ## Sestavení lokálně
 
