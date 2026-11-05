@@ -415,7 +415,8 @@ def _take_map(db, e, kind, f):
             storage.check_image(tmp)
             from oroute import georef
             image = georef.open_image(tmp)
-            storage.save_photo(db, cfg(), e["id"], image, waiting_for_run=True)
+            storage.save_photo(db, cfg(), e["id"], image,
+                               waiting_for_run=not (e["activity_id"] and loads(e["splits"])))
         except (ValueError, OSError) as err:
             if os.path.exists(tmp):
                 os.remove(tmp)
