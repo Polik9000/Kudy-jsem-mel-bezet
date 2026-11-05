@@ -47,6 +47,14 @@ python desktop/msix/build_msix.py --source dist/KudyJsemMelBezet --output dist/K
 
 Předtím je nutné vytvořit PyInstaller výstup jako u běžného instalátoru. Bez parametrů `--publisher` a `--identity-name` skript použije testovací identity.
 
+
+
+## Smart App Control (SAC)
+
+Testovací .cer je self-signed. Jeho import do `LocalMachine\\TrustedPeople` může vyřešit důvěru App Installeru při instalaci, ale **neznamená, že Smart App Control aplikaci povolí spustit**. SAC posuzuje spouštěný kód a podle dokumentace Microsoftu, pokud cloudová služba nedokáže aplikaci vyhodnotit jako bezpečnou, vyžaduje podpis certifikátem vydaným CA v Microsoft Trusted Root Programu. Náš dočasný self-signed certifikát tuto podmínku nesplňuje; aplikace může být i po instalaci zablokována. MSIX není obcházení SAC.
+
+Kvůli testu SAC nevypínej. Pokud je SAC zapnutý a aplikaci zablokuje, je to očekávané omezení testovacího podpisu, ne důkaz, že Store varianta bude také blokována. Microsoft Store po certifikaci balíček automaticky znovu podepíše svým certifikátem; pro přímou distribuci mimo Store by byl potřeba odpovídající podpis od důvěryhodné CA.
+
 ## Data a upgrade
 
 Desktopová aplikace aktuálně používá `%LOCALAPPDATA%\KudyJsemMelBezet`; Inno Setup při odinstalaci
