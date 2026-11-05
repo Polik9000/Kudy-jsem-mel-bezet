@@ -11,7 +11,7 @@ Manifest má Publisher identity. Pro CI sestavení bez nakonfigurovaného tajems
 `CN=KudyJsemMelBezet.TestOnly`. Takový balíček je pouze pro kontrolu sestavení a **nelze jej odeslat
 do Microsoft Store**.
 
-V GitHub repozitáři nastav secret `MSIX_PUBLISHER na přesnou hodnotu **Publisher** z
+V GitHub repozitáři nastav secret `MSIX_PUBLISHER` na přesnou hodnotu **Publisher** z
 Partner Center → Settings → Account settings → Identity details. Hodnota musí přesně odpovídat
 identitě přiřazené aplikaci v Partner Center. Po nastavení secretu vytvoří další běh workflow balíček
 s touto identitou. Před podáním zkontroluj také rezervované Package/Identity Name a verzi v Partner Center.
