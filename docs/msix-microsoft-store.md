@@ -1,5 +1,8 @@
 # MSIX a Microsoft Store
 
+Zásady ochrany osobních údajů pro Store listing: [Privacy Policy (CZ/EN)](privacy.html). Po sloučení tohoto PR a nasazení GitHub Pages bude veřejná adresa:
+`https://polik9000.github.io/Kudy-jsem-mel-bezet/privacy.html`.
+
 Workflow `.github/workflows/instalatory.yml` nově vedle stávajícího EXE a DMG sestavuje dva x64 MSIX artefakty:
 - `windows-msix-store-package`: nepodepsaný `KudyJsemMelBezet.msix`, připravený pro další krok publikování v Partner Center;
 - `windows-msix-test-package`: podepsaný `KudyJsemMelBezet-test.msix`, veřejný testovací certifikát `.cer` a návod `README.txt`. Ten lze stáhnout z konkrétního běhu GitHub Actions, přidat certifikát do důvěryhodných certifikátů aktuálního uživatele a nainstalovat.

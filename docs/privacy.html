@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Zásady ochrany osobních údajů aplikace Kudy jsem měl běžet / Privacy Policy for Kudy jsem měl běžet.">
+<meta name="color-scheme" content="light dark">
+<title>Zásady ochrany osobních údajů · Kudy jsem měl běžet</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:light dark;--brand:#1F5A43;--brand-ink:#fff;--accent:#C2185B;--ink:#15281F;--muted:#566B5E;--line:#D5DECB;--page:#F1F3E9;--card:#fff;--soft:#EAEFE3}
+@media(prefers-color-scheme:dark){:root{--brand:#66A883;--brand-ink:#10251E;--accent:#f06292;--ink:#F1F3E9;--muted:#8FA593;--line:#2B5240;--page:#10251E;--card:#19382C;--soft:#214535}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--brand);text-underline-offset:2px}
+a:hover{text-decoration-thickness:2px}
+.wrap{max-width:900px;margin:0 auto;padding:22px 18px 56px}
+header{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px}
+.brand{font-weight:700;text-decoration:none;color:var(--ink)}
+.lang{display:flex;gap:12px;flex-wrap:wrap;font-size:.93rem}
+.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:clamp(19px,4vw,30px);margin-bottom:18px}
+.hero{border-top:5px solid var(--brand)}
+h1{font-size:clamp(1.85rem,5vw,2.6rem);line-height:1.15;letter-spacing:-.02em;margin:0 0 12px}
+h2{font-size:1.3rem;line-height:1.25;margin:0 0 12px}
+h3{font-size:1.02rem;margin:19px 0 6px}
+p{margin:0 0 12px}
+p:last-child{margin-bottom:0}
+ul{margin:8px 0 14px;padding-left:22px}
+li{margin:4px 0}
+table{width:100%;border-collapse:collapse;margin:12px 0 15px;font-size:.94rem}
+th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{background:var(--soft)}
+.small{font-size:.91rem;color:var(--muted)}
+.note{background:var(--soft);border-left:4px solid var(--accent);border-radius:9px;padding:12px 14px;margin:12px 0}
+code{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 4px;overflow-wrap:anywhere}
+footer{color:var(--muted);font-size:.9rem;text-align:center;padding:10px}
+section[lang=en]{border-top:3px solid var(--accent)}
+@media(max-width:620px){header{align-items:flex-start;flex-direction:column}table{font-size:.87rem}th,td{padding:7px 6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="brand" href="./">← Kudy jsem měl běžet</a>
+  <nav class="lang" aria-label="Jazyk">
+    <a href="#cs">Čeština</a>
+    <a href="#en">English</a>
+  </nav>
+</header>
+
+<section class="hero" id="cs" lang="cs">
+  <h1>Zásady ochrany osobních údajů</h1>
+  <p><strong>Kudy jsem měl běžet</strong> · účinnost od 5. listopadu 2026</p>
+  <p>Tyto zásady popisují, jak aplikace Kudy jsem měl běžet pro Windows a macOS a její informační web pracují s údaji. Desktopová aplikace je navržená tak, aby běžela na tvém počítači; autor neprovozuje centrální účet ani server, na který by se nahrávaly tvoje běhy a mapy.</p>
+  <div class="note"><strong>Hlavní pravidlo:</strong> soubory FIT, GPS stopa, mapy, poznámky a výsledky analýzy zůstávají v úložišti tvého počítače. Aplikace je neposílá autorovi. Některým veřejným službám ale posílá dotazy popsané níže; tyto služby při tom mohou vidět tvoji IP adresu a požadovanou oblast mapy.</div>
+</section>
+
+<section class="card" lang="cs">
+  <h2>1. Kdo odpovídá za projekt a jak nás kontaktovat</h2>
+  <p>Autorem a vydavatelem aplikace je <strong>Tobiáš Otta</strong>, Česká republika. Pro dotazy k soukromí, uplatnění práv nebo hlášení problému napiš na <a href="mailto:tobiasotta@seznam.cz">tobiasotta@seznam.cz</a>.</p>
+  <p>Pro zpracování údajů, které mi pošleš e-mailem, jsem správcem já. Údaje uložené pouze v desktopové aplikaci na tvém zařízení ke mně nejsou automaticky přenášeny a nemám k nim vzdálený přístup. Pověřenec pro ochranu osobních údajů nebyl ustanoven.</p>
+
+  <h2>2. Rozsah těchto zásad</h2>
+  <p>Zásady se vztahují na desktopovou aplikaci pro Windows a macOS a na statický informační web projektu. Nevztahují se na samostatné služby třetích stran ani na vlastní serverové nasazení (například Docker), které provozuje klub nebo jiný správce. V takovém případě odpovídá za zpracování provozovatel daného serveru a měl by mít vlastní informace o ochraně osobních údajů.</p>
+
+  <h2>3. Jaké údaje aplikace zpracovává lokálně</h2>
+  <p>Desktopová aplikace nemá registraci ani vzdálený uživatelský účet. Na tvém zařízení může podle toho, jaké funkce použiješ, ukládat:</p>
+  <ul>
+    <li><strong>Běhy a GPS údaje:</strong> importované soubory Garmin FIT nebo export ZIP, čas a datum aktivity, souřadnice GPS, vzdálenost, rychlost a další údaje obsažené v souboru.</li>
+    <li><strong>Mapy a podklady:</strong> importované soubory KMZ, JPG nebo PNG, trať, kontrolní body a souřadnice potřebné k usazení mapy.</li>
+    <li><strong>Údaje o závodech:</strong> ručně zadané údaje nebo veřejné informace načtené z ORIS, například název, datum, místo, kategorie a oficiální mezičasy.</li>
+    <li><strong>Profil a vlastní obsah:</strong> volitelné jméno, případně registrační číslo ORIS, nastavení, poznámky k postupům a osobní rychlostní model odvozený z tvých aktivit.</li>
+    <li><strong>Výsledky výpočtů:</strong> analyzovaná trasa, navržené postupy, časové ztráty, grafy, cache výškopisu a dat OpenStreetMap.</li>
+  </ul>
+  <p>Tyto údaje se ukládají do databáze a souborů na tvém zařízení. Aplikace spouští místní webové rozhraní pouze na adrese <code>127.0.0.1</code>; nejde o veřejný server přístupný z internetu.</p>
+
+  <h2>4. Jaká data aplikace odesílá externím službám</h2>
+  <p>Aplikace některé informace potřebuje získat z veřejných datových zdrojů. Při internetovém požadavku daná služba obvykle obdrží také IP adresu zařízení, čas požadavku a běžné technické údaje spojení.</p>
+  <table>
+    <thead><tr><th>Služba</th><th>Co se jí posílá a proč</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ORIS</strong><br><a href="https://oris.ceskyorientak.cz/">oris.ceskyorientak.cz</a></td><td>Když v profilu zadáš registrační číslo ORIS, aplikace ho pošle veřejnému API ORIS k vyhledání běžce a jeho závodů. Dále posílá identifikátory závodů a kategorií pro načtení údajů a mezičasů. ORIS tak může obdržet tvoje registrační číslo a IP adresu. Stažené informace se ukládají lokálně.</td></tr>
+      <tr><td><strong>ČÚZK – DMR 5G</strong><br><a href="https://ags.cuzk.gov.cz/">ags.cuzk.gov.cz</a></td><td>U map v České republice může aplikace požádat o výškopis. Požadavek obsahuje obdélníkovou oblast mapy a parametry výřezu, nikoliv tvoji GPS stopu nebo soubor FIT.</td></tr>
+      <tr><td><strong>AWS Terrain Tiles</strong><br><a href="https://aws.amazon.com/">Amazon Web Services</a></td><td>U map mimo ČR nebo jako záložní zdroj aplikace stahuje výškové dlaždice. Požadavek prozrazuje identifikátory dlaždic odpovídající oblasti mapy, nikoliv tvoji GPS stopu.</td></tr>
+      <tr><td><strong>OpenStreetMap – Overpass</strong><br><a href="https://www.openstreetmap.org/">OpenStreetMap</a></td><td>Aplikace posílá obdélník oblasti mapy, aby získala údaje o železnicích, hlavních silnicích, přejezdech, mostech, podchodech a případně plotech. Při nedostupnosti hlavního serveru může použít záložní veřejný Overpass server. Neposílá mu nahranou GPS stopu.</td></tr>
+      <tr><td><strong>GitHub</strong><br><a href="https://github.com/">GitHub</a></td><td>Informační web si z veřejného GitHub API načítá metadata vydání, aby zobrazil aktuální verzi a správné odkazy ke stažení. GitHub při tom obdrží běžné technické údaje webového požadavku.</td></tr>
+      <tr><td><strong>Microsoft Store</strong><br><a href="https://privacy.microsoft.com/">Microsoft</a></td><td>Pokud aplikaci instaluješ přes Microsoft Store, Microsoft zpracovává údaje související s účtem, stažením, instalací a aktualizacemi podle vlastních zásad ochrany osobních údajů. Tato data nejsou obsahem tvých FIT souborů ani map.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Aplikace neposílá autorovi ani uvedeným datovým službám samotné FIT soubory, celé GPS trasy, importované mapy, poznámky ani osobní rychlostní model.</strong> U výškopisu a OpenStreetMap se odesílá pouze oblast mapy. Výjimkou je registrační číslo, které se při dobrovolném použití funkce ORIS posílá přímo ORIS.</p>
+  <p>Aplikace nepoužívá reklamní identifikátory, analytické SDK, reklamní síť ani automatické odesílání chybových hlášení. Pro import map aplikace nepoužívá API Livelox; mapu si stáhneš sám a importuješ ji ze souboru.</p>
+
+  <h2>5. Kde jsou údaje uložené a jak dlouho</h2>
+  <p>Údaje z desktopové aplikace zůstávají na tvém zařízení, dokud je nesmažeš. Výchozí datová složka je:</p>
+  <ul>
+    <li><strong>Windows:</strong> <code>%LOCALAPPDATA%\KudyJsemMelBezet</code></li>
+    <li><strong>macOS:</strong> <code>~/Library/Application Support/KudyJsemMelBezet</code></li>
+  </ul>
+  <p>Aktualizace ani běžná odinstalace aplikace nemají sloužit ke smazání tvých dat. Chceš-li odstranit i uložené běhy, mapy, poznámky a databázi, aplikaci ukonči a příslušnou datovou složku smaž ručně. Před smazáním si případně vytvoř zálohu.</p>
+  <p>Údaje, které mi pošleš e-mailem, uchovávám po dobu potřebnou k vyřízení zprávy a případného navazujícího požadavku; déle pouze tehdy, pokud je to nutné k ochraně nebo uplatnění právních nároků.</p>
+
+  <h2>6. Cookies a podobné technologie</h2>
+  <p><strong>Desktopová aplikace:</strong> používá nezbytnou lokální cookie <code>ob_session</code> pro uložení podepsaných údajů relace, zejména CSRF tokenu, který chrání formuláře před podvrženými požadavky. Cookie neslouží k reklamě, analytice ani sledování napříč weby.</p>
+  <p><strong>Informační web:</strong> nepoužívá cookies ani analytické měření návštěvnosti. Volbu jazyka může uložit do <code>localStorage</code> v tvém prohlížeči; tato volba neopouští zařízení.</p>
+
+  <h2>7. Odkazy na další weby</h2>
+  <p>Aplikace a informační web mohou obsahovat odkazy na ORIS, OResults, Livelox, Garmin Connect a další weby. Pokud na takový odkaz klikneš, přejdeš na službu třetí strany, která zpracovává údaje podle vlastních zásad. Za její postupy autor aplikace neodpovídá.</p>
+
+  <h2>8. Tvoje práva a jak je uplatnit</h2>
+  <p>V rozsahu, v jakém zpracovávám tvoje osobní údaje jako správce (zejména e-mailovou komunikaci), můžeš požádat o přístup, opravu, výmaz, omezení zpracování nebo vznést námitku; v případech stanovených právními předpisy také požádat o přenositelnost. Napiš na <a href="mailto:tobiasotta@seznam.cz">tobiasotta@seznam.cz</a>.</p>
+  <p>Obsah, který je uložený pouze ve tvém počítači, nemohu na dálku zobrazit, opravit ani smazat. Spravuješ ho přímo v aplikaci nebo ve výše uvedené datové složce. Údaje vedené v ORIS je potřeba řešit také s provozovatelem ORIS.</p>
+  <p>Máš rovněž právo podat stížnost u českého Úřadu pro ochranu osobních údajů: <a href="https://uoou.gov.cz/">uoou.gov.cz</a>.</p>
+
+  <h2>9. Zabezpečení</h2>
+  <p>Aplikace uchovává pracovní data lokálně a místní webový server naslouchá pouze na loopback adrese <code>127.0.0.1</code>. Síťové dotazy na uvedené externí služby používají HTTPS. Zabezpečení zařízení, uživatelského účtu, záloh a přístupu dalších osob k počítači je na jeho uživateli.</p>
+
+  <h2>10. Změny těchto zásad</h2>
+  <p>Tyto zásady mohou být upraveny, pokud se změní funkce aplikace, její datové toky nebo právní požadavky. Aktuální verze bude zveřejněna na této adrese; datum účinnosti je uvedeno nahoře.</p>
+</section>
+
+<section class="hero" id="en" lang="en">
+  <h1>Privacy Policy</h1>
+  <p><strong>Kudy jsem měl běžet</strong> · effective 5 November 2026</p>
+  <p>This policy describes how the Kudy jsem měl běžet desktop application for Windows and macOS and the project's information website handle data. The desktop application is designed to run on your computer. The developer does not operate a central user account or a server to which your activities and maps are uploaded.</p>
+  <div class="note"><strong>In brief:</strong> FIT files, GPS tracks, maps, notes and analysis results stay in your computer's storage. The application does not send them to the developer. It does make the public-service requests described below; those services may see your IP address and the map area being requested.</div>
+</section>
+
+<section class="card" lang="en">
+  <h2>1. Who is responsible and how to contact us</h2>
+  <p>The application author and publisher is <strong>Tobiáš Otta</strong>, Czech Republic. For privacy questions, data-rights requests or issue reports, contact <a href="mailto:tobiasotta@seznam.cz">tobiasotta@seznam.cz</a>.</p>
+  <p>I am the controller of personal data you send to me by email. Data stored only in the desktop application on your device are not automatically transferred to me, and I have no remote access to them. No Data Protection Officer has been appointed.</p>
+
+  <h2>2. Scope</h2>
+  <p>This policy covers the desktop application for Windows and macOS and the project's static information website. It does not cover third-party services or a separately operated server deployment (for example, Docker) run by a club or another operator. In that case, the server operator determines the processing and should provide its own privacy information.</p>
+
+  <h2>3. Data processed locally by the application</h2>
+  <p>The desktop application has no registration process or remote user account. Depending on the features you use, it may store the following on your device:</p>
+  <ul>
+    <li><strong>Activities and GPS data:</strong> imported Garmin FIT files or ZIP exports, activity date and time, GPS coordinates, distance, speed and other information contained in the files.</li>
+    <li><strong>Maps and course data:</strong> imported KMZ, JPG or PNG files, courses, control points and coordinates used to georeference maps.</li>
+    <li><strong>Event information:</strong> data entered manually or public information retrieved from ORIS, such as event name, date, location, class and official split times.</li>
+    <li><strong>Profile and user content:</strong> optional name, optional ORIS registration number, settings, route notes and a personal speed model derived from your activities.</li>
+    <li><strong>Analysis output:</strong> analysed track, suggested routes, time losses, charts, elevation cache and OpenStreetMap data.</li>
+  </ul>
+  <p>This information is stored in a database and files on your device. The application runs its local web interface only on <code>127.0.0.1</code>; it is not a public server accessible from the internet.</p>
+
+  <h2>4. Data sent to external services</h2>
+  <p>The application needs public data sources for some features. When an internet request is made, the relevant service will normally also receive your device's IP address, the request time and ordinary technical connection information.</p>
+  <table>
+    <thead><tr><th>Service</th><th>Information sent and purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ORIS</strong><br><a href="https://oris.ceskyorientak.cz/">oris.ceskyorientak.cz</a></td><td>If you enter an ORIS registration number in your profile, the application sends it to ORIS's public API to look up the runner and their events. It also sends event and class identifiers to retrieve event information and split times. ORIS may therefore receive your registration number and IP address. Retrieved information is stored locally.</td></tr>
+      <tr><td><strong>ČÚZK – DMR 5G</strong><br><a href="https://ags.cuzk.gov.cz/">ags.cuzk.gov.cz</a></td><td>For maps in the Czech Republic, the application may request elevation data. The request contains a rectangular map area and image parameters, not your GPS track or FIT file.</td></tr>
+      <tr><td><strong>AWS Terrain Tiles</strong><br><a href="https://aws.amazon.com/">Amazon Web Services</a></td><td>For maps outside the Czech Republic or as a fallback, the application downloads elevation tiles. The request reveals tile identifiers corresponding to the map area, not your GPS track.</td></tr>
+      <tr><td><strong>OpenStreetMap – Overpass</strong><br><a href="https://www.openstreetmap.org/">OpenStreetMap</a></td><td>The application sends the rectangular map area to retrieve information about railways, major roads, crossings, bridges, underpasses and, where enabled, fences. If the primary server is unavailable, it may use a public fallback Overpass server. The uploaded GPS track is not sent.</td></tr>
+      <tr><td><strong>GitHub</strong><br><a href="https://github.com/">GitHub</a></td><td>The information website retrieves release metadata from the public GitHub API to show the current version and correct download links. GitHub receives ordinary technical information about that web request.</td></tr>
+      <tr><td><strong>Microsoft Store</strong><br><a href="https://privacy.microsoft.com/">Microsoft</a></td><td>If you install the application through Microsoft Store, Microsoft processes information related to your account, downloads, installation and updates under its own privacy statement. This is not the content of your FIT files or maps.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>The application does not send FIT files, complete GPS tracks, imported maps, notes or the personal speed model to the developer or to the data services listed above.</strong> For elevation and OpenStreetMap requests, only the map area is sent. The exception is the ORIS registration number, which is sent directly to ORIS when you voluntarily use the ORIS feature.</p>
+  <p>The application does not use advertising identifiers, analytics SDKs, advertising networks or automatic crash-report uploads. It does not use the Livelox API to import maps; you export a map yourself and import the resulting file.</p>
+
+  <h2>5. Storage and retention</h2>
+  <p>Desktop-app data remain on your device until you delete them. The default data folder is:</p>
+  <ul>
+    <li><strong>Windows:</strong> <code>%LOCALAPPDATA%\KudyJsemMelBezet</code></li>
+    <li><strong>macOS:</strong> <code>~/Library/Application Support/KudyJsemMelBezet</code></li>
+  </ul>
+  <p>Application updates and ordinary uninstallers are not intended to delete your data. To remove the stored activities, maps, notes and database as well, quit the application and manually delete the relevant data folder. Make a backup first if needed.</p>
+  <p>Information you send to me by email is kept for as long as needed to respond to the message and any related request, and longer only where necessary to establish, exercise or defend legal claims.</p>
+
+  <h2>6. Cookies and similar technologies</h2>
+  <p><strong>Desktop application:</strong> it uses an essential local cookie named <code>ob_session</code> to store signed session data, in particular a CSRF token that protects forms against forged requests. It is not used for advertising, analytics or cross-site tracking.</p>
+  <p><strong>Information website:</strong> it does not use cookies or visitor analytics. It may store your language choice in your browser's <code>localStorage</code>; this preference remains on your device.</p>
+
+  <h2>7. Links to other websites</h2>
+  <p>The application and information website may link to ORIS, OResults, Livelox, Garmin Connect and other websites. When you follow a link, you visit a third-party service that handles data under its own policies. The application author is not responsible for those services' practices.</p>
+
+  <h2>8. Your rights and how to exercise them</h2>
+  <p>For personal data I process as controller (in particular email correspondence), you may request access, rectification, erasure or restriction, or object to processing. Where applicable, you may also request data portability. Contact <a href="mailto:tobiasotta@seznam.cz">tobiasotta@seznam.cz</a>.</p>
+  <p>I cannot remotely view, correct or delete content stored only on your computer. You manage it in the application or in the data folder listed above. Requests concerning records held by ORIS should also be directed to ORIS.</p>
+  <p>You may also lodge a complaint with the Czech Office for Personal Data Protection: <a href="https://uoou.gov.cz/">uoou.gov.cz</a>.</p>
+
+  <h2>9. Security</h2>
+  <p>The application stores working data locally and its local web server listens only on the loopback address <code>127.0.0.1</code>. Network requests to the external services listed above use HTTPS. Securing your device, user account, backups and access by other people is your responsibility.</p>
+
+  <h2>10. Changes to this policy</h2>
+  <p>This policy may be updated when application features, data flows or legal requirements change. The current version will be published at this address; its effective date is shown at the top.</p>
+</section>
+
+<footer>
+  <p><a href="./">Kudy jsem měl běžet</a> · <a href="mailto:tobiasotta@seznam.cz">tobiasotta@seznam.cz</a></p>
+  <p>© 2026 Tobiáš Otta</p>
+</footer>
+</div>
+</body>
+</html>
