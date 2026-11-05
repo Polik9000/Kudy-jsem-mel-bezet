@@ -470,44 +470,51 @@ def _take_map(db, e, kind, f):
 
 
 def _take_screens(db, e, course, maponly):
-    """Two screenshots of Livelox (course: with the course, maponly: the same view without it; either may be
-    missing): checked here as far as it goes without opening them, then handed to the worker (job georef_map with
-    payload.screens, services/screens.py). Returns [] when a job was queued, None when refused (flashed)."""
+    """Keep either Livelox screenshot (or both) in any order; place them when FIT and ORIS splits exist."""
     for f in (course, maponly):
         if f is not None and os.path.splitext(f.filename)[1].lower() not in storage.IMAGE_EXT:
             flash(_("%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).", filename=f.filename), "error")
             return None
-    if not e["activity_id"] or not loads(e["splits"]):
-        flash(_("Snímek z Livelox se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí běh z "
-                  "hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij KMZ z Livelox."), "error")
-        return None
-    if maponly is not None and course is None and screens.row(db, cfg(), e["class_id"], g.user["id"]) is None:
-        flash(_("Snímek bez tratě se usazuje podle snímku s tratí ze stejného pohledu. Nahraj nejdřív oba "
-                  "snímky najednou (nebo mapu bez tratě jako KMZ z Livelox)."), "error")
-        return None
     if maponly is not None and e["maponly_file"] and (e["maponly_source"] or "kmz") == "kmz":
         flash(_("Pro závod už je mapa bez tratě z KMZ, která je přesnější. Snímek bez tratě se nepoužil."), "error")
         maponly = None
-        if course is None:
-            return None
     sent = {}
-    for key, f in (("course", course), ("maponly", maponly)):
-        if f is None:
-            continue
-        rel, tmp = storage.incoming(cfg(), os.path.splitext(f.filename)[1].lower())
-        f.save(tmp)
-        try:
-            storage.check_image(tmp)
-        except ValueError as err:
-            os.remove(tmp)
-            for other in sent.values():
-                os.remove(cfg().path(other))
-            flash(f"{f.filename}: {err}", "error")
-            return None
-        sent[key] = rel
-    jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"],
-                 payload=dict(screens=dict(course=sent.get("course"), maponly=sent.get("maponly"))))
-    flash(_("Snímky jsou nahrané. Usazují se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách."), "ok")
+    try:
+        for key, f in (("course", course), ("maponly", maponly)):
+            if f is None:
+                continue
+            rel, tmp = storage.incoming(cfg(), os.path.splitext(f.filename)[1].lower())
+            f.save(tmp)
+            try:
+                storage.check_image(tmp)
+            except ValueError as err:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+                raise ValueError(f"{f.filename}: {err}") from err
+            sent[key] = tmp
+        if not sent:
+            return []
+        screens.save_pending(db, cfg(), e["class_id"], g.user["id"],
+                             course_path=sent.get("course"), maponly_path=sent.get("maponly"))
+    except ValueError as err:
+        for path in sent.values():
+            if os.path.exists(path):
+                os.remove(path)
+        flash(str(err), "error")
+        return None
+    finally:
+        for path in sent.values():
+            if os.path.exists(path):
+                os.remove(path)
+    waiting = screens.pending_row(db, e["class_id"], g.user["id"])
+    if not waiting or not waiting["course_file"]:
+        flash(_("Snímek bez tratě je uložený. Až nahraješ snímek s tratí ze stejného pohledu, zpracují se společně."), "ok")
+        return []
+    queued = matching.queue_waiting_screens(db, g.user["id"])
+    if queued:
+        flash(_("Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů. Výsledek uvidíš v úlohách."), "ok")
+    else:
+        flash(_("Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS, usadí se automaticky."), "ok")
     return []
 
 
