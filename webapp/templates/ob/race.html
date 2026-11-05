@@ -281,7 +281,8 @@
     snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>. <a href="{{ help }}#livelox">Jak na to</a>{% endtrans %}</p>
   <div class="ob-radek">
     <div class="karta">
-      <h3>{% trans name=e.class_name %}1. Mapa s tratí (KMZ) <span class="badge badge-tichy">kategorie {{ name }}</span>{% endtrans %}</h3>
+      <h3>{% trans %}1. KMZ z Livelox <span class="badge badge-tichy">nejpřesnější podklady</span>{% endtrans %}</h3>
+      <h4>{% trans name=e.class_name %}Mapa s tratí · kategorie {{ name }}{% endtrans %}</h4>
       <p>{% if e.course_file %}<span class="stav ob-ok">{{ _('nahraná') }}</span>{% else %}<span class="stav">{{ _('chybí') }}</span>{% endif %}
         {% if course_acc %}<span class="badge">{% trans src={'image': _('z obrázku'), 'photo': _('z fotky'), 'manual': _('z fotky usazené ručně'), 'screen': _('ze snímku Livelox')}[course_src], acc=course_acc %}{{ src }},
           přesnost asi ±{{ acc }} m{% endtrans %}</span>{% endif %}
@@ -297,9 +298,7 @@
       {% if e.activity_id and course_src in ('kmz', 'screen') %}<p class="hint">{% trans fix=url_for('ob.map_fix_page', entry_id=e.id) %}Leží celá mapa vedle tvé stopy (všechny
         kontroly posunuté stejně)? <a href="{{ fix }}">Usadit mapu ručně podle
         kontrol</a>. Když zlobí GPS jen na pár úsecích, oprav si stopu u úseku.{% endtrans %}</p>{% endif %}
-    </div>
-    <div class="karta">
-      <h3>{% trans %}1. Mapa bez tratě (KMZ) <span class="badge badge-tichy">sdílená pro celý závod</span>{% endtrans %}</h3>
+      <h4>{% trans %}Mapa bez tratě · sdílená pro celý závod{% endtrans %}</h4>
       <p>{% if e.maponly_file %}<span class="stav ob-ok">{{ _('nahraná') }}</span>{% else %}<span class="stav">{{ _('chybí') }}</span>{% endif %}
         {% if maponly_acc %}<span class="badge">{% trans acc=maponly_acc, res=num(e.maponly_res_m, 1) %}ze snímku Livelox, přesnost asi ±{{ acc }} m,
           {{ res }} m na pixel{% endtrans %}</span>
@@ -319,8 +318,7 @@
         <input type="file" name="screen_course" accept=".png,.jpg,.jpeg"></label>
       <label class="ob-pole">{{ _('Snímek z Livelox bez tratě (stejný pohled)') }}
         <input type="file" name="screen_maponly" accept=".png,.jpg,.jpeg"></label>
-      <p class="hint">{% trans help=url_for('ob.help_page') %}Snímky se usazují podle běhu a mezičasů, proto je nahraj až po doplnění FIT a ORIS.
-        Jak je udělat v Chromu: <a href="{{ help }}#snimky">Jak na to</a>. Jen pro vlastní rozbor, nesdílej je dál.{% endtrans %}</p>
+      <p class="hint">{% trans help=url_for('ob.help_page') %}Oba snímky můžeš nahrát najednou, nebo každý zvlášť a klidně před během. Aplikace je uloží a počká na FIT i mezičasy z ORIS. Musí jít o stejný pohled. <a href="{{ help }}#snimky">Jak je udělat v Chromu</a>. Jen pro vlastní rozbor, nesdílej je dál.{% endtrans %}</p>
     </div>
     <div class="karta">
       <h3>{% trans %}3. Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span>{% endtrans %}</h3>
