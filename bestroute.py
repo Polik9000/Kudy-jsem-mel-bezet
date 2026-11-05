@@ -575,7 +575,7 @@ def main():
         full.save(os.path.join(args.out, "best_routes.jpg"), quality=88)
 
     # --- csv + report ----------------------------------------------------------
-    with open(os.path.join(args.out, "best_legs.csv"), "w", newline="") as fcsv:
+    with open(os.path.join(args.out, "best_legs.csv"), "w", newline="", encoding="utf-8") as fcsv:
         w = csv.writer(fcsv)
         w.writerow(["leg", "actual", "your_line_model", "best_model", "loss_total", "loss_route", "loss_execution",
                     "your_m", "best_m", "straight_m", "your_climb", "best_climb", "straight_climb",
@@ -699,7 +699,7 @@ def main():
         "race often matters more (a path detour can be the better choice even when it is a few seconds slower).",
         "- Differences under ~20 s per leg are within the noise of the model.",
     ]
-    with open(os.path.join(args.out, "best_routes.md"), "w") as fmd:
+    with open(os.path.join(args.out, "best_routes.md"), "w", encoding="utf-8") as fmd:
         fmd.write("\n".join(L) + "\n")
 
 

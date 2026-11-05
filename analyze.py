@@ -142,7 +142,7 @@ def main():
         print(f"no GPS data on {len(gone)} of {n} legs: " + ", ".join(leg_name(k, n) for k in sorted(gone)))
 
     # CSV
-    with open(os.path.join(args.out, "legs.csv"), "w", newline="") as f:
+    with open(os.path.join(args.out, "legs.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["leg", "split", "elapsed", "straight_m", "run_m", "route_ratio", "speed_kmh",
                     "climb_m", "time_last100m_s", "entries_100m", "stopped_s", "expected", "est_loss_s",
@@ -199,7 +199,7 @@ def main():
     if official is not None:
         lines += ["", "Punch times: official split times." if official["used"] else
                   f"Punch times: from GPS; the official times were not used ({official['reason']})."]
-    with open(os.path.join(args.out, "report.md"), "w") as f:
+    with open(os.path.join(args.out, "report.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     print("\n".join(lines))
 
