@@ -83,7 +83,7 @@
       <img src="{{ url_for('ob.static', filename='ob-logo.svg') }}" alt="" width="40" height="40">
       <span><b>{{ _('Kudy jsem měl běžet') }}</b><small>{{ _('Analýza orientačního běhu') }}</small></span></a>
     {{ menu() }}
-    <p class="side-stav">{% if local_app %}<span class="tecka"></span>{{ _('Lokální režim · data v zařízení') }}{% else %}<span class="tecka"></span>{{ club.NAME }}{% endif %}</p>
+    <p class="side-stav">{% if local_app %}<span class="tecka"></span>{{ _('Lokální režim · data v zařízení') }}{% else %}<span class="tecka"></span>{{ _('Webový režim') }}{% endif %}</p>
   </nav>
   <div class="obsah">
     <main>
