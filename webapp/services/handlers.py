@@ -62,6 +62,7 @@ def _import_upload(ctx, job):
             before = _paired(ctx.con, job["user_id"])
             msg += " " + _races_from_oris(ctx, job["user_id"])
             matching.match_user(ctx.con, job["user_id"])
+            matching.queue_waiting_photos(ctx.con, job["user_id"])
             changed = _paired(ctx.con, job["user_id"]) - before
             msg += " " + fit_slope(ctx, job["user_id"], path)
             # privacy: ordinary runs show where the runner lives. Once the hill model is fitted only the runs
