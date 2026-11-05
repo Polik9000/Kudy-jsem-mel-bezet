@@ -32,9 +32,6 @@
         Square44x44Logo="Assets\Square44x44Logo.png">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
       </uap:VisualElements>
-      <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess" Executable="app\KudyJsemMelBezet.exe" EntryPoint="Windows.FullTrustApplication" />
-      </Extensions>
     </Application>
   </Applications>
   <Capabilities>

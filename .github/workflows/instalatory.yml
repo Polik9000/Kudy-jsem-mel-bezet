@@ -163,7 +163,7 @@ jobs:
             - **macOS (Apple Silicon, M1 a novější):** KudyJsemMelBezet-macos.dmg. Aplikace není podepsaná u Applu:
               po prvním pokusu o spuštění otevři Nastavení systému -> Soukromí a zabezpečení -> Přesto otevřít.
 
-            Data jsou ve složce %LOCALAPPDATA%\\KudyJsemMelBezet (Windows) nebo
+            Data jsou ve složce %LOCALAPPDATA%\KudyJsemMelBezet (Windows) nebo
             ~/Library/Application Support/KudyJsemMelBezet (macOS); odinstalace je nemaže.
 
             MSIX pro Microsoft Store se ukládá jako samostatný artefact v Actions a není součástí tohoto vydání.
