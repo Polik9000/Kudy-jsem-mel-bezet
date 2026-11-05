@@ -3,7 +3,7 @@ ids we keep in events.oris_id and users.oris_user_id; the mapping is the table i
 import os
 from urllib.parse import urlencode
 
-BASE = os.environ.get("OB_CLUB_URL", "https://skobfm.vzdyonline.cz").rstrip("/")
+BASE = os.environ.get("OB_CLUB_URL", "").rstrip("/")
 ENABLED = bool(BASE)  # OB_CLUB_URL="" (the app on one's own computer): no links to a club site at all
 
 
