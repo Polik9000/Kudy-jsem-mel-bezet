@@ -56,12 +56,13 @@ def save_pending(con, conf, class_id, user_id, course_path=None, maponly_path=No
     """Keep either Livelox screenshot (or both) until the run and ORIS splits are available.
     Paths are absolute incoming files; existing counterpart is retained when only one is uploaded."""
     old = pending_row(con, class_id, user_id)
-    course_rel = old["course_file"] if old else None
-    maponly_rel = old["maponly_file"] if old else None
+    kept = row(con, conf, class_id, user_id) if old is None else None
+    course_rel = old["course_file"] if old else (kept["course_file"] if kept else None)
+    maponly_rel = old["maponly_file"] if old else (kept["maponly_file"] if kept else None)
     if course_path:
         course_rel = _keep(conf, course_path, class_id, user_id, "cekaj_trat")
-        # A new course screenshot is a different view; never pair it with the old map-only image.
-        if maponly_path is None:
+        # A new course screenshot is a different view from a previously stored pair.
+        if old and old["course_file"] and maponly_path is None:
             if maponly_rel and os.path.exists(conf.path(maponly_rel)):
                 os.remove(conf.path(maponly_rel))
             maponly_rel = None
