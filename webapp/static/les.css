@@ -1,8 +1,7 @@
 /* Vzhled „Lesní klid“ (návrh z PDF „Kudy jsem měl běžet – Návrh uživatelského rozhraní“, 3. 11. 2026).
-   Načítá se jako POSLEDNÍ (za skob.css i ob.css): přepíše barvy přes jejich proměnné, přidá levý panel,
+   Načítá se jako poslední (za base.css a ob.css): přepíše barvy přes jejich proměnné, přidá levý panel,
    spodní lištu na telefonu a komponenty nového návrhu. Nic z toho nemění výpočty ani data.
    Výchozí je tmavý režim (les); světlý je volba tlačítkem ◐ v hlavičce (venku na slunci).
-   OB_THEME=kudy (petrolejová) nebo OB_THEME=skob (klubový vzhled) tenhle soubor vůbec nenačte.
 
    Barvy mapy se nemění: stopa podle ztráty (zelená, oranžová, červená), nejlepší postup modrý čárkovaný,
    trať fialová jako přetisk. Linky na mapě mají bílé lemování (drop-shadow), ať je vidět na každé mapě. */
