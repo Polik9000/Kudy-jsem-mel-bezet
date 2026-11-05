@@ -1,4 +1,4 @@
-"""The look of the club site, the /ob mount, security headers and the links between the two sites."""
+"""The app layout, the /ob mount, security headers and optional external club links."""
 import datetime as dt
 import importlib
 import os
@@ -71,14 +71,18 @@ def test_only_pages_about_jobs_load_themselves_again(client, user):
         assert "data-obnovit" not in client.get(page).get_data(as_text=True), page
 
 
-def test_club_links():
-    assert club.event(9827) == "https://skobfm.vzdyonline.cz/zavod/oris-9827"
-    assert club.member(45118) == "https://skobfm.vzdyonline.cz/clen/45118"
-    assert club.archive(45118, 2026) == "https://skobfm.vzdyonline.cz/archiv?clen=45118&season=2026"
+def test_club_links(monkeypatch):
+    monkeypatch.setattr(club, "BASE", "https://example.org")
+    monkeypatch.setattr(club, "ENABLED", True)
+    assert club.event(9827) == "https://example.org/zavod/oris-9827"
+    assert club.member(45118) == "https://example.org/clen/45118"
+    assert club.archive(45118, 2026) == "https://example.org/archiv?clen=45118&season=2026"
     assert club.event(None) is None and club.member(None) is None
 
 
-def test_pages_link_to_the_club_site_and_back(app, client, user):
+def test_pages_link_to_the_club_site_and_back(app, client, user, monkeypatch):
+    monkeypatch.setattr(club, "BASE", "https://skobfm.vzdyonline.cz")
+    monkeypatch.setattr(club, "ENABLED", True)
     con = dbm.connect(app.config["OB"].db_path)
     sync_oris.sync_user(con, app.config["OB"], user, client=FakeOris(), today=dt.date(2026, 10, 6), pause=0)
     html = client.get("/").get_data(as_text=True)
