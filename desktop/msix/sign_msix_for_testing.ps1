@@ -52,6 +52,11 @@ try {
         throw "SignTool nedokázal podepsat testovací MSIX (exit code $LASTEXITCODE)."
     }
 
+    & $signTool.FullName verify /pa /v $package
+    if ($LASTEXITCODE -ne 0) {
+        throw "Ověření podpisu testovacího MSIX selhalo (exit code $LASTEXITCODE)."
+    }
+
     if (-not (Test-Path -LiteralPath $CertificatePath) -or (Get-Item -LiteralPath $package).Length -eq 0) {
         throw "Testovací MSIX nebo veřejný certifikát nebyl vytvořen."
     }
