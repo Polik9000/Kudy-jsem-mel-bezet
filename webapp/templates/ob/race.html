@@ -289,7 +289,7 @@
       {% if has_photo %}<p><a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id) }}">{{ _('Usadit fotku ručně') }}</a>
         <span class="hint">{{ _('když se fotka neusadila, nebo sedí špatně') }}</span></p>{% endif %}
       <label class="ob-pole">{{ _('KMZ z Livelox: Mapa s tratí') }}
-        <input type="file" name="course" accept=".kmz,.jpg,.jpeg,.png"></label>
+        <input type="file" name="course" accept=".kmz"></label>
       {% if moved %}<form method="post" action="{{ url_for('ob.map_fix_revert', entry_id=e.id) }}" class="nota">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% trans m='%.0f' | format(moved.shift_m) %}Mapa závodu je posunutá ručně o {{ m }} m.{% endtrans %}
@@ -326,7 +326,7 @@
       <h3>{% trans %}3. Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span>{% endtrans %}</h3>
       <p>{{ _('Z fotky se čtou jen kontroly; nejlepší postupy z ní nebudou (terén se z ní spolehlivě přečíst nedá).') }}</p>
       <label class="ob-pole">{{ _('Fotka nebo obrázek mapy s tratí (jpg, png)') }}
-        <input type="file" name="course_photo" accept=".jpg,.jpeg,.png,.heic,.heif"></label>
+        <input type="file" name="course_photo" accept=".jpg,.jpeg,.png"></label>
       <p class="hint">{% trans %}Celou mapu shora, za světla a bez blesku, mapu polož rovně a nic ať nezakrývá kontroly. Fotka se na
         místo usadí sama podle kontrol a tvé stopy v oficiálních časech ražení (potřebuje běh z hodinek a mezičasy
         z ORIS).{% endtrans %}</p>
