@@ -62,7 +62,7 @@ def save_pending(con, conf, class_id, user_id, course_path=None, maponly_path=No
     if course_path:
         course_rel = _keep(conf, course_path, class_id, user_id, "cekaj_trat")
         # A new course screenshot is a different view from a previously stored pair.
-        if old and old["course_file"] and maponly_path is None:
+        if maponly_path is None and ((old and old["course_file"]) or (old is None and kept)):
             if maponly_rel and os.path.exists(conf.path(maponly_rel)):
                 os.remove(conf.path(maponly_rel))
             maponly_rel = None
@@ -195,6 +195,8 @@ def place(ctx, job, p):
                 # maybe the page of Livelox was taken for the map: kept, so that it can be cut out by hand
                 _store(con, conf, cid, uid, course_p, maponly_p, kept, course.size, crop,
                        dict(box=[0, 0, course.size[0], course.size[1]], reliable=False, notes=[], res=None))
+                if sc.get("stored_pending"):
+                    drop_pending(con, conf, cid, uid)
                 con.commit()
                 text += " " + texts.screen_crop()
             raise jobs.Refused(text) from e
