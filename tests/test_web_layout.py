@@ -23,7 +23,7 @@ def test_app_base_stylesheet_and_brand_assets_exist():
     assert read("webapp", "static", "app-icons.svg")
 
 
-def test_own_stylesheet_only_builds_on_the_club_variables():
+def test_app_stylesheet_uses_shared_design_tokens():
     css = read("webapp", "static", "ob.css").decode("utf-8")
     for name in ("--brand:", "--accent:", "--support:", "--vtisk:", "--ink:", "--bg-page:"):
         assert name not in css, f"ob.css must not redefine {name}"
@@ -40,6 +40,7 @@ def test_page_has_the_app_layout_and_headers(client):
                   "ob-logo.svg", "<title>Přihlášení · Kudy jsem měl běžet</title>"):
         assert piece in html, piece
     assert html.index("base.css") < html.index("ob.css") < html.index("les.css")
+    assert "skobfm.vzdyonline.cz" not in html
     csp = r.headers["Content-Security-Policy"]
     assert "default-src 'self'" in csp and "frame-ancestors 'none'" in csp and "http" not in csp
     assert r.headers["X-Frame-Options"] == "DENY"
@@ -50,6 +51,8 @@ def test_page_has_the_app_layout_and_headers(client):
 def test_static_files_are_served(client):
     for name in ("base.css", "ob.css", "les.css", "ob.js", "map.js", "ob-logo.svg", "app-icons.svg", "vendor/leaflet/leaflet.js"):
         assert client.get("/ob-static/" + name).status_code == 200, name
+    for name in ("skob.css", "skob-logo.svg", "skob-ikony-sprite.svg", "kudy.css"):
+        assert client.get("/ob-static/" + name).status_code == 404, name
 
 
 def test_static_files_are_kept_by_the_browser(client):
