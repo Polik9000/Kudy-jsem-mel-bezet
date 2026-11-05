@@ -17,9 +17,10 @@ def read(*path):
         return f.read().replace(b"\r\n", b"\n")
 
 
-def test_club_stylesheet_is_an_unchanged_copy():
-    assert read("webapp", "static", "skob.css") == read("docs", "reference", "skob-klubovy-web.css")
-    assert read("webapp", "static", "skob-logo.svg") == read("docs", "reference", "skob-logo.svg")
+def test_app_base_stylesheet_and_brand_assets_exist():
+    assert read("webapp", "static", "base.css")
+    assert read("webapp", "static", "ob-logo.svg")
+    assert read("webapp", "static", "app-icons.svg")
 
 
 def test_own_stylesheet_only_builds_on_the_club_variables():
@@ -30,15 +31,15 @@ def test_own_stylesheet_only_builds_on_the_club_variables():
         assert name in css
 
 
-def test_page_has_the_club_layout_and_headers(client):
+def test_page_has_the_app_layout_and_headers(client):
     r = client.get("/login")
     html = r.get_data(as_text=True)
     for piece in ('class="sitehead"', '<header class="site">', 'class="flagstrip"', 'class="sidemenu"',
                   '<details class="menu">', 'class="rezim-prepinac"', '<footer class="site">', 'id="i-kontrola"',
-                  'localStorage.getItem("ob-rezim")||localStorage.getItem("skob-rezim")', "skob.css", "ob.css",
-                  "ob-logo.svg", "<title>Přihlášení · SKOB Frýdek-Místek</title>"):
+                  'localStorage.getItem("ob-rezim")', "base.css", "ob.css",
+                  "ob-logo.svg", "<title>Přihlášení · Kudy jsem měl běžet</title>"):
         assert piece in html, piece
-    assert html.index("skob.css") < html.index("ob.css")
+    assert html.index("base.css") < html.index("ob.css") < html.index("les.css")
     csp = r.headers["Content-Security-Policy"]
     assert "default-src 'self'" in csp and "frame-ancestors 'none'" in csp and "http" not in csp
     assert r.headers["X-Frame-Options"] == "DENY"
@@ -46,18 +47,8 @@ def test_page_has_the_club_layout_and_headers(client):
     assert 'src="http' not in html and "url(http" not in html and '<link rel="stylesheet" href="http' not in html
 
 
-def test_club_name_and_logo_come_from_the_settings(client, monkeypatch):
-    from webapp import club
-    monkeypatch.setattr(club, "THEME", "kudy")      # the club's own name and logo are in the header of the other looks
-    monkeypatch.setattr(club, "NAME", "OK Jiný klub")
-    monkeypatch.setattr(club, "LOGO", "ob.css")      # any file in static/ will do
-    html = client.get("/login").get_data(as_text=True)
-    assert "<title>Přihlášení · OK Jiný klub</title>" in html and "<span>OK Jiný klub <span" in html
-    assert "SKOB Frýdek-Místek" not in html and "skob-logo.svg" not in html
-
-
 def test_static_files_are_served(client):
-    for name in ("skob.css", "ob.css", "ob.js", "map.js", "skob-logo.svg", "vendor/leaflet/leaflet.js"):
+    for name in ("base.css", "ob.css", "les.css", "ob.js", "map.js", "ob-logo.svg", "app-icons.svg", "vendor/leaflet/leaflet.js"):
         assert client.get("/ob-static/" + name).status_code == 200, name
 
 
@@ -128,7 +119,7 @@ def test_app_is_mounted_under_ob(tmp_path, monkeypatch):
     r = c.get("/ob/")
     assert r.status_code == 302 and "/ob/login" in r.headers["Location"]
     html = c.get("/ob/login").get_data(as_text=True)
-    assert 'href="/ob/ob-static/skob.css?v=' in html and 'href="/ob/register"' in html
+    assert 'href="/ob/ob-static/base.css?v=' in html and 'href="/ob/register"' in html
     assert c.get("/login").status_code == 302          # outside the prefix: sent to /ob/
 
 
@@ -350,25 +341,16 @@ def test_hatched_areas_are_kept_per_class_and_switched_per_event(app, client, us
     assert post(client, url).status_code == 400                             # nothing to set
 
 
-def test_own_look_sits_after_the_club_and_the_app_styles(client, monkeypatch):
-    """Default look "Lesní klid": les.css (dark palette, own panel) comes last, after the unchanged club sheet and
-    ob.css; its fonts are served by the app itself. OB_THEME=kudy / skob leave it out."""
+def test_only_lesni_klid_theme_is_loaded(client):
+    """The app has one supported appearance; its own base and app styles load before Lesní klid."""
     html = client.get("/login").get_data(as_text=True)
-    assert html.index("/skob.css") < html.index("/ob.css") < html.index("/les.css")
-    assert "/kudy.css" not in html and 'content="#10251E"' in html and 'class="tema-les"' in html
+    assert html.index("/base.css") < html.index("/ob.css") < html.index("/les.css")
+    assert "/kudy.css" not in html and "/skob.css" not in html
+    assert 'content="#10251E"' in html and "Kudy jsem měl běžet" in html
     assert client.get("/ob-static/les.css").status_code == 200
     for name in ("manrope-latin-wght-normal.woff2", "jetbrains-mono-latin-ext-wght-normal.woff2", "OFL-Manrope.txt"):
         assert client.get("/ob-static/fonts/" + name).status_code == 200, name
-    assert 'class="bottomnav"' not in html  # not logged in: no bottom bar
-    monkeypatch.setattr(club, "THEME", "kudy")
-    html = client.get("/login").get_data(as_text=True)
-    assert html.index("/skob.css") < html.index("/kudy.css") < html.index("/ob.css") and "/les.css" not in html
-    assert client.get("/ob-static/kudy.css").status_code == 200
-    for name in ("barlow-semi-condensed-600-latin.woff2", "barlow-semi-condensed-700-latin-ext.woff2", "OFL.txt"):
-        assert client.get("/ob-static/fonts/" + name).status_code == 200, name
-    monkeypatch.setattr(club, "THEME", "skob")
-    html = client.get("/login").get_data(as_text=True)
-    assert "kudy.css" not in html and "les.css" not in html and 'content="#0E7A1C"' in html
+    assert 'class="bottomnav"' not in html
 
 
 def test_about_page_and_bottom_navigation(client, user):
