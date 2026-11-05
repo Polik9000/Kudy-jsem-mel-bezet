@@ -26,9 +26,10 @@ no English yet; `tests/test_i18n.py` fails when one is missing. The docs in `doc
 
 ## Download (Windows, macOS)
 
-Installers without Docker or Python: the GitHub Releases of this repository (Windows 10/11, macOS on Apple
-Silicon). One runner, no login; the data is in your own user folder. How they are built and what still needs a
-test on a clean computer: `docs/instalatory.md` (in Czech).
+Install without Docker or Python: **Windows 10/11 via [Microsoft Store](https://apps.microsoft.com/detail/9NQ6JF6VB7FP)**;
+macOS on Apple Silicon via the DMG in [GitHub Releases](https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases).
+The Windows EXE remains only as a fallback/test artifact, not the recommended installation route. One runner,
+no login; the data is in your own user folder. How the installers are built: `docs/instalatory.md` (in Czech).
 
 ## Your data stays on your computer
 
