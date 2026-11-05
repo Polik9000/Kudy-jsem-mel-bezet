@@ -81,13 +81,16 @@ def queue_waiting_photos(con, user_id):
     """Queue map photos uploaded before the runner's FIT or ORIS splits became available."""
     rows = con.execute(
         "SELECT e.id FROM entries e JOIN photos p ON p.entry_id = e.id JOIN classes c ON c.id = e.class_id"
-        " WHERE e.user_id = ? AND e.activity_id IS NOT NULL AND e.splits IS NOT NULL AND c.course_file IS NULL",
+        " WHERE e.user_id = ? AND e.activity_id IS NOT NULL AND e.splits IS NOT NULL"
+        " AND p.waiting_for_run = 1 AND c.course_source IS NOT 'kmz'",
         (user_id,)).fetchall()
     queued = []
     for row in rows:
         if loads(con.execute("SELECT splits FROM entries WHERE id = ?", (row["id"],)).fetchone()["splits"], []):
             queued.append(jobs.enqueue(con, "georef_map", user_id=user_id, entry_id=row["id"],
                                        payload=dict(stored_photo=True)))
+            con.execute("UPDATE photos SET waiting_for_run = 0 WHERE entry_id = ?", (row["id"],))
+    con.commit()
     return queued
 
 
