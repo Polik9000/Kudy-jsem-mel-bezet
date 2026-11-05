@@ -17,6 +17,7 @@ datas = [
     (os.path.join(ROOT, "analyze.py"), "."),
     (os.path.join(ROOT, "bestroute.py"), "."),
     (os.path.join(ROOT, "LICENSE"), "."),
+    (os.path.join(ROOT, "docs", "THIRD_PARTY_NOTICES.md"), "."),
 ]
 # webapp: the pages, styles, scripts and the database schema; oroute: the default speed model and slope shape.
 # Their .py go along as files too: the analysis reads its own source (runner.SAMPLE_CODE) and Flask finds the
