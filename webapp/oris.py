@@ -78,7 +78,7 @@ def parse_event(data):
     return dict(
         oris_id=int(d["ID"]), name=d["Name"], date=d["Date"], place=d.get("Place") or None,
         discipline=(d.get("Discipline") or {}).get("NameCZ") if isinstance(d.get("Discipline"), dict) else None,
-        livelox_id=(d.get("LiveloxID") or None), lat=_num(d.get("GPSLat")), lon=_num(d.get("GPSLon")),
+        livelox_id=_valid_livelox_id(d.get("LiveloxID")), lat=_num(d.get("GPSLat")), lon=_num(d.get("GPSLon")),
         cancelled=str(d.get("Cancelled", "0")) == "1",
         links=_links(d.get("Links")), locations=_locations(d.get("Locations")),
         classes=[dict(oris_id=int(c["ID"]), name=c["Name"], distance_km=_num(c.get("Distance")),
@@ -154,7 +154,16 @@ def start_utc(date, start_local):
     return local.astimezone(dt.timezone.utc)
 
 
+def _valid_livelox_id(value):
+    """Return a usable Livelox event ID, treating ORIS's 0 / "0" as missing."""
+    if value is None:
+        return None
+    value = str(value).strip()
+    return value if value and value != "0" else None
+
+
 def livelox_url(livelox_id):
+    livelox_id = _valid_livelox_id(livelox_id)
     return f"https://www.livelox.com/Events/Show/{livelox_id}" if livelox_id else None
 
 

@@ -33,6 +33,21 @@ def test_event():
     assert oris.livelox_url(ev["livelox_id"]) == "https://www.livelox.com/Events/Show/182468"
 
 
+def test_livelox_missing_id_is_not_linked():
+    for value in (None, "", " ", 0, "0", " 0 "):
+        assert oris.livelox_url(value) is None
+
+    event = oris_fixture("getEvent_9827.json")
+    for value in (None, "", " ", 0, "0", " 0 "):
+        event["LiveloxID"] = value
+        assert oris.parse_event(event)["livelox_id"] is None
+
+
+def test_livelox_valid_id_is_preserved():
+    assert oris.livelox_url("182468") == "https://www.livelox.com/Events/Show/182468"
+    assert oris.livelox_url(182468) == "https://www.livelox.com/Events/Show/182468"
+
+
 def test_splits_pohora():
     s = oris.parse_splits(oris_fixture("getSplits_202420.json"), "bfm0903")
     assert s["time_s"] == 50 * 60 + 22 and s["start_local"] == "13:18:00"
