@@ -47,6 +47,46 @@ def _keep(conf, src, class_id, user_id, which):
     return rel
 
 
+def pending_row(con, class_id, user_id):
+    return con.execute("SELECT * FROM pending_screens WHERE class_id = ? AND user_id = ?",
+                        (class_id, user_id)).fetchone()
+
+
+def save_pending(con, conf, class_id, user_id, course_path=None, maponly_path=None):
+    """Keep either Livelox screenshot (or both) until the run and ORIS splits are available.
+    Paths are absolute incoming files; existing counterpart is retained when only one is uploaded."""
+    old = pending_row(con, class_id, user_id)
+    course_rel = old["course_file"] if old else None
+    maponly_rel = old["maponly_file"] if old else None
+    if course_path:
+        course_rel = _keep(conf, course_path, class_id, user_id, "cekaj_trat")
+        # A new course screenshot is a different view; never pair it with the old map-only image.
+        if maponly_path is None:
+            if maponly_rel and os.path.exists(conf.path(maponly_rel)):
+                os.remove(conf.path(maponly_rel))
+            maponly_rel = None
+    if maponly_path:
+        maponly_rel = _keep(conf, maponly_path, class_id, user_id, "cekaj_bez")
+    if not course_rel and not maponly_rel:
+        return
+    con.execute("INSERT INTO pending_screens (class_id, user_id, course_file, maponly_file, queued)"
+                " VALUES (?, ?, ?, ?, 0) ON CONFLICT (class_id, user_id) DO UPDATE SET"
+                " course_file = excluded.course_file, maponly_file = excluded.maponly_file, queued = 0,"
+                " uploaded_at = datetime('now')",
+                (class_id, user_id, course_rel, maponly_rel))
+    con.commit()
+
+
+def drop_pending(con, conf, class_id, user_id):
+    row = pending_row(con, class_id, user_id)
+    if row:
+        for rel in (row["course_file"], row["maponly_file"]):
+            if rel and os.path.exists(conf.path(rel)):
+                os.remove(conf.path(rel))
+        con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?",
+                    (class_id, user_id))
+
+
 def drop_event(con, conf, event_id):
     """A KMZ without course came for the race: the screenshots kept for its classes are of no more use. Not
     committed."""
