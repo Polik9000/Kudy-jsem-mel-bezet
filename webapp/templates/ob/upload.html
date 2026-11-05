@@ -8,10 +8,11 @@
     <input type="file" name="files" multiple accept=".fit,.zip" required></label>
   <p class="hint">{% trans %}Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect,
     Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu.
-    Z celého exportu se navíc spočítá tvůj model kopců; nahraný zip se potom smaže a zůstanou jen běhy
+    Z celého exportu se navíc spočítá tvůj model kopců. Po zpracování aplikace smaže pouze nahranou dočasnou
+    kopii ZIPu ze svého úložiště; původní soubor ve tvém počítači zůstává beze změny. V aplikaci zůstanou běhy
     spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže).
-    Před párováním se z ORIS načtou tvoje závody. Smazané běhy se vrátí jen opětovným nahráním exportu.
-    Velký export se nahrává i několik minut.{% endtrans %}</p>
+    Ostatní běhy se z aplikace smažou kvůli ochraně soukromí a vrátí se jen opětovným nahráním exportu.
+    Před párováním se z ORIS načtou tvoje závody. Velký export se nahrává i několik minut.{% endtrans %}</p>
   <div class="controls">
     <button type="submit" class="btn btn-hlavni">{{ _('Nahrát') }}</button>
     <span class="hint ob-nahravani-stav" role="status"></span>
