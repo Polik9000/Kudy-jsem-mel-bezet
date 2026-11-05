@@ -18,6 +18,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE = Path(__file__).with_name("Package.appxmanifest.in")
 TEST_PUBLISHER = "CN=KudyJsemMelBezet.TestOnly"
+TEST_IDENTITY_NAME = "KudyJsemMelBezet.TestOnly"
 
 
 def find_makeappx() -> Path:
@@ -37,6 +38,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True, help="Output .msix path")
     parser.add_argument("--version", required=True, help="Three-part app version, e.g. 0.1.0")
     parser.add_argument("--publisher", default=os.environ.get("MSIX_PUBLISHER") or TEST_PUBLISHER)
+    parser.add_argument("--identity-name", default=os.environ.get("MSIX_IDENTITY_NAME") or TEST_IDENTITY_NAME)
     args = parser.parse_args()
 
     source = args.source.resolve()
@@ -46,6 +48,8 @@ def main() -> int:
         raise SystemExit(f"Chybí PyInstaller executable: {executable}")
     if not args.publisher.strip() or "__" in args.publisher:
         raise SystemExit("MSIX Publisher musí být neprázdný a musí odpovídat Partner Center.")
+    if not args.identity_name.strip() or "__" in args.identity_name:
+        raise SystemExit("MSIX Identity Name musí být neprázdný a musí odpovídat Partner Center.")
 
     parts = args.version.split(".")
     if len(parts) == 3:
@@ -76,6 +80,7 @@ def main() -> int:
 
         manifest = TEMPLATE.read_text(encoding="utf-8")
         manifest = manifest.replace("__MSIX_PUBLISHER__", args.publisher.strip())
+        manifest = manifest.replace("__MSIX_IDENTITY_NAME__", args.identity_name.strip())
         manifest = manifest.replace("__APP_VERSION__", version)
         manifest_path = staging / "AppxManifest.xml"
         manifest_path.write_text(manifest, encoding="utf-8")
@@ -89,7 +94,7 @@ def main() -> int:
         )
         subprocess.run([str(makeappx), "validate", "/p", str(output)], check=True)
     print(f"MSIX vytvořen: {output}")
-    if args.publisher == TEST_PUBLISHER:
+    if args.publisher == TEST_PUBLISHER or args.identity_name == TEST_IDENTITY_NAME:
         print("POZOR: balíček používá TESTOVACÍ Publisher identity a není určený k odeslání do Store.")
     else:
         print("Publisher je převzatý z konfigurace; před odesláním ověř identitu a verzi v Partner Center.")

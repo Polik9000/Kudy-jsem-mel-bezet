@@ -8,12 +8,12 @@ nepodepsaný x64 balíček `KudyJsemMelBezet.msix`. MSIX je zabalený z existuj�
 ## Publisher identity – nutné před Store submission
 
 Manifest má Publisher identity. Pro CI sestavení bez nakonfigurovaného tajemství se používá
-`CN=KudyJsemMelBezet.TestOnly`. Takový balíček je pouze pro kontrolu sestavení a **nelze jej odeslat
+`CN=KudyJsemMelBezet.TestOnly` a `KudyJsemMelBezet.TestOnly`. Takový balíček je pouze pro kontrolu sestavení a **nelze jej odeslat
 do Microsoft Store**.
 
-V GitHub repozitáři nastav secret `MSIX_PUBLISHER` na přesnou hodnotu **Publisher** z
+V GitHub repozitáři nastav secrets `MSIX_PUBLISHER` a `MSIX_IDENTITY_NAME` na přesné hodnoty **Publisher** a **Package/Identity Name** z
 Partner Center → Settings → Account settings → Identity details. Hodnota musí přesně odpovídat
-identitě přiřazené aplikaci v Partner Center. Po nastavení secretu vytvoří další běh workflow balíček
+identitě přiřazené aplikaci v Partner Center. Po nastavení obou secrets vytvoří další běh workflow balíček
 s touto identitou. Před podáním zkontroluj také rezervované Package/Identity Name a verzi v Partner Center.
 
 Balíček se záměrně nepodepisuje vlastním certifikátem. Odeslání do Store, validace a podpis distribučního
@@ -25,11 +25,10 @@ Na Windows s Pythonem 3.12, Pillow a Windows 10/11 SDK:
 
 ```powershell
 python desktop/icons.py build/icons
-python desktop/msix/build_msix.py --source dist/KudyJsemMelBezet --output dist/KudyJsemMelBezet.msix --version 0.1.0 --publisher "CN=HODNOTA_Z_PARTNER_CENTER"
+python desktop/msix/build_msix.py --source dist/KudyJsemMelBezet --output dist/KudyJsemMelBezet.msix --version 0.1.0 --publisher "CN=HODNOTA_Z_PARTNER_CENTER" --identity-name "PACKAGE_IDENTITY_NAME"
 ```
 
-Předtím je nutné vytvořit PyInstaller výstup jako u běžného instalátoru. Bez parametru
-`--publisher` skript použije testovací identitu.
+Předtím je nutné vytvořit PyInstaller výstup jako u běžného instalátoru. Bez parametrů `--publisher` a `--identity-name` skript použije testovací identity.
 
 ## Data a upgrade
 
