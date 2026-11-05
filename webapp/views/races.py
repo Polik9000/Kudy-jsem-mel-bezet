@@ -456,6 +456,7 @@ def _take_map(db, e, kind, f):
         path = storage.save_map(cfg(), tmp, e["event_id"], e["class_id"])
         # a KMZ replaces a photo: the photos kept for placing by hand and the course read from them go too
         storage.drop_photos(db, cfg(), e["class_id"])
+        screens.drop_class_pending(db, cfg(), e["class_id"])
         db.execute("UPDATE classes SET course_file = ?, course_by = ?, course_at = datetime('now'),"
                    " course_source = 'kmz', course_rms = NULL, course_n = NULL, course_edge_m = NULL WHERE id = ?",
                    (path, g.user["id"], e["class_id"]))
@@ -579,6 +580,7 @@ def race_files(entry_id):
     if "screen_course" in sent or "screen_maponly" in sent:
         _take_screens(db, e, sent.get("screen_course"), sent.get("screen_maponly"))
     matching.queue_waiting_photos(db, g.user["id"])
+    matching.queue_waiting_screens(db, g.user["id"])
     for i in sorted(again):
         matching.queue_analysis(db, i)
     return go(url_for("ob.race", entry_id=entry_id) + ("" if again else "#podklady"))
@@ -595,6 +597,8 @@ def race_activity(entry_id):
         db.execute("UPDATE entries SET match_confidence = NULL, activity_id = NULL WHERE id = ?", (entry_id,))
         db.commit()
         matching.match_user(db, g.user["id"])
+        matching.queue_waiting_photos(db, g.user["id"])
+        matching.queue_waiting_screens(db, g.user["id"])
     else:
         if not aid.isdigit() or not db.execute("SELECT 1 FROM activities WHERE id = ? AND user_id = ?",
                                                (aid, g.user["id"])).fetchone():
@@ -602,6 +606,8 @@ def race_activity(entry_id):
         db.execute("UPDATE entries SET activity_id = ?, match_confidence = 'manual', match_note = NULL WHERE id = ?",
                    (int(aid), entry_id))
         db.commit()
+        matching.queue_waiting_photos(db, g.user["id"])
+        matching.queue_waiting_screens(db, g.user["id"])
         matching.queue_analysis(db, entry_id)
     return redirect(url_for("ob.race", entry_id=entry_id))
 
