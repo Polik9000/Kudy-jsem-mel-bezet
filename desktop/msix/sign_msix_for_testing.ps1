@@ -56,7 +56,7 @@ try {
         throw "Testovací MSIX nebo veřejný certifikát nebyl vytvořen."
     }
 
-    Write-Host "Testovací MSIX byl podepsán certifikátem s Publisher: $publisher"
+    Write-Host "Test MSIX signed. Publisher: $publisher"
 }
 finally {
     if (Test-Path -LiteralPath $pfxPath) {

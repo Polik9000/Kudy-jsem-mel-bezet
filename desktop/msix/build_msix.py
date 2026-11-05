@@ -9,6 +9,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -33,6 +34,13 @@ def find_makeappx() -> Path:
 
 
 def main() -> int:
+    # GitHub-hosted Windows runners may default to cp1252; CI logs and Czech paths are UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError):
+            pass
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, required=True, help="PyInstaller onedir folder")
     parser.add_argument("--output", type=Path, required=True, help="Output .msix path")
@@ -96,7 +104,17 @@ def main() -> int:
             [str(makeappx), "pack", "/d", str(staging), "/p", str(output), "/o"],
             check=True,
         )
-        subprocess.run([str(makeappx), "validate", "/p", str(output)], check=True)
+        # MakeAppx has no "validate" subcommand. Unpack the result to verify
+        # that the package is readable and contains a valid manifest.
+        verification = Path(temp) / "verification"
+        subprocess.run(
+            [str(makeappx), "unpack", "/p", str(output), "/d", str(verification)],
+            check=True,
+        )
+        extracted_manifest = verification / "AppxManifest.xml"
+        if not extracted_manifest.is_file():
+            raise SystemExit("The generated MSIX is missing AppxManifest.xml.")
+        ET.parse(extracted_manifest)
     print(f"MSIX vytvořen: {output}")
     if args.publisher == TEST_PUBLISHER or args.identity_name == TEST_IDENTITY_NAME:
         print("POZOR: balíček používá TESTOVACÍ Publisher identity a není určený k odeslání do Store.")
