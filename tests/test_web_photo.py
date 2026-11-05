@@ -258,7 +258,7 @@ def test_glare_over_some_controls_lands_over_most_it_does_not(app, client, user,
     assert j["status"] == "failed" and "odlesk nebo prst" in j["error"] and "usadit ručně" in j["error"]
 
 
-def test_livelox_screens_can_be_uploaded_separately_before_the_run(app, client, user):
+def test_livelox_screens_can_be_uploaded_separately_before_the_run(app, client, user, monkeypatch):
     con, mine = entry(app, client, user, run=False)
     page = f"/races/{mine}/files"
 
@@ -285,12 +285,14 @@ def test_livelox_screens_can_be_uploaded_separately_before_the_run(app, client, 
     assert os.path.exists(app.config["OB"].path(pending["maponly_file"]))
     assert not job(con)
 
+    from webapp.services import screens
+    monkeypatch.setattr(screens, "place", lambda ctx, job, payload: "deferred screenshots processed")
     with open(inputs("pohora")[2], "rb") as f:
         client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
                     content_type="multipart/form-data")
-    work(app)  # the FIT import pairs the run and queues the stored screenshots
+    work(app)  # the FIT import pairs the run and the deferred screenshot job is picked up
     queued = job(con)
-    assert queued and queued["status"] == "queued" and "stored_pending" in queued["payload"]
+    assert queued and queued["status"] == "done" and queued["message"] == "deferred screenshots processed"
     assert con.execute("SELECT queued FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
                        (mine,)).fetchone()[0] == 1
 
