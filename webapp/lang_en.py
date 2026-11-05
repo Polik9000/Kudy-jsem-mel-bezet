@@ -2029,4 +2029,22 @@ EN_JS = {
         "The screenshot with the course is waiting for the run and split times, or for processing.",
     "Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.":
         "The screenshot without the course is waiting for the course screenshot from the same view.",
+    "Obrázek jde nahrát jen jako mapu s tratí. Mapu bez tratě nahraj jako KMZ z Livelox.":
+        "An image can only be uploaded as a map with the course. Upload the map without the course as a KMZ from Livelox.",
+    "Fotka je uložená. Až doplníš běh z hodinek a mezičasy z ORIS, usadí se automaticky.":
+        "The photo is saved. It will be placed automatically once you add the watch run and ORIS split times.",
+    "Fotka je uložená a usazuje se na pozadí; výsledek uvidíš v úlohách.":
+        "The photo is saved and is being placed in the background; see the result in Jobs.",
+    "1. KMZ z Livelox <span class=\"badge badge-tichy\">nejpřesnější podklady</span>":
+        "1. KMZ from Livelox <span class=\"badge badge-tichy\">most accurate source</span>",
+    "Mapa s tratí · kategorie %(name)s":
+        "Map with course · class %(name)s",
+    "Mapa bez tratě · sdílená pro celý závod":
+        "Map without course · shared for the whole race",
+    "Oba snímky můžeš nahrát najednou, nebo každý zvlášť a klidně před během. Aplikace je uloží a počká na FIT i mezičasy z ORIS. Musí jít o stejný pohled. <a href=\"%(help)s#snimky\">Jak je udělat v Chromu</a>. Jen pro vlastní rozbor, nesdílej je dál.":
+        "You can upload both screenshots together or separately, even before the run. The app saves them and waits for the FIT file and ORIS split times. They must show the same view. <a href=\"%(help)s#snimky\">How to make them in Chrome</a>. For your own analysis only; do not share them.",
+    "Celou mapu shora, za světla a bez blesku, mapu polož rovně a nic ať nezakrývá kontroly. Fotka se na místo usadí podle kontrol a tvé stopy v oficiálních časech ražení. Můžeš ji nahrát kdykoliv; pokud ještě chybí běh nebo mezičasy z ORIS, počká uložená na jejich doplnění.":
+        "Photograph the whole map from above, in daylight and without flash; lay it flat and make sure nothing covers the controls. The photo is placed using the controls and your track at the official punch times. You can upload it at any time; if the run or ORIS splits are missing, it will wait until they are available.",
+    "Ke každému závodu appka potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě. Časy a mezičasy si načte z ORIS sama. KMZ a fotku mapy můžeš nahrát kdykoliv; fotka počká, než bude k dispozici běh a mezičasy. Snímky obrazovky z Livelox můžeš také nahrát kdykoliv a každý zvlášť; aplikace počká na oba snímky, běh a mezičasy z ORIS.":
+        "For each race the app needs three things: a watch run, a map with the course and a map without the course. It loads times and splits from ORIS. You can upload a KMZ or map photo at any time; the photo waits until the run and split times are available. Livelox screenshots can also be uploaded at any time, separately; the app waits for both screenshots, the run and the ORIS split times.",
 }
