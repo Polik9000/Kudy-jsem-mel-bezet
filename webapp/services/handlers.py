@@ -19,6 +19,7 @@ from . import jobs, matching, personal, plans, results, runner, storage, sync_or
 def _sync_oris(ctx, job):
     message = sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"])
     matching.queue_waiting_photos(ctx.con, job["user_id"])
+    matching.queue_waiting_screens(ctx.con, job["user_id"])
     return message
 
 
@@ -81,6 +82,8 @@ def _import_upload(ctx, job):
         if os.path.exists(path):
             os.remove(path)
     changed = matching.match_user(ctx.con, job["user_id"])
+    matching.queue_waiting_photos(ctx.con, job["user_id"])
+    matching.queue_waiting_screens(ctx.con, job["user_id"])
     return msg + (_(" Spárováno se závody: %(len)s.", len=len(changed)) if changed else "")
 
 
