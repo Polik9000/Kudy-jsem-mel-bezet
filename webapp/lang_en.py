@@ -2017,4 +2017,16 @@ EN_JS = {
         "The placement comes out with a deviation of %(rms)s m, accuracy about ±%(acc)s m.",
     "Spojení se serverem selhalo, zkus bod posunout znovu.":
         "The connection to the server failed, try moving the point again.",
+    "Čekající snímky Livelox už tu nejsou; nahraj je znovu.":
+        "The waiting Livelox screenshots are no longer here; upload them again.",
+    "Snímek bez tratě je uložený. Až nahraješ snímek s tratí ze stejného pohledu, zpracují se společně.":
+        "The screenshot without the course is saved. Upload the course screenshot from the same view and they will be processed together.",
+    "Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů. Výsledek uvidíš v úlohách.":
+        "The Livelox screenshots are saved and are being placed in the background using the run and split times. See the result in Jobs.",
+    "Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS, usadí se automaticky.":
+        "The Livelox screenshots are saved. They will be placed automatically once the watch run and ORIS split times are available.",
+    "Snímek s tratí čeká na běh a mezičasy, nebo na zpracování.":
+        "The screenshot with the course is waiting for the run and split times, or for processing.",
+    "Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.":
+        "The screenshot without the course is waiting for the course screenshot from the same view.",
 }
