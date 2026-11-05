@@ -76,11 +76,11 @@ def create_app(instance=None):
                       TEMPLATES_AUTO_RELOAD=bool(os.environ.get("OB_DEV")))
     app.teardown_appcontext(_close_db)
 
-    with open(os.path.join(STATIC, "skob-ikony-sprite.svg"), encoding="utf-8") as f:
+    with open(os.path.join(STATIC, "app-icons.svg"), encoding="utf-8") as f:
         sprite = Markup(f.read())
 
     def ikona(name, cls=""):
-        """An icon of the club site's sprite (the <svg> with the symbols is at the top of every page)."""
+        """An application icon from the inline SVG sprite (the <svg> with the symbols is at the top of every page)."""
         return Markup('<svg class="ikona %s" aria-hidden="true"><use href="#i-%s"></use></svg>') % (cls, name)
 
     @app.context_processor
