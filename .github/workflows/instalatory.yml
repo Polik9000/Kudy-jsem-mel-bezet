@@ -84,6 +84,7 @@ jobs:
         shell: pwsh
         env:
           MSIX_PUBLISHER: ${{ secrets.MSIX_PUBLISHER }}
+          MSIX_IDENTITY_NAME: ${{ secrets.MSIX_IDENTITY_NAME }}
         run: |
           python desktop/msix/build_msix.py --source dist/KudyJsemMelBezet --output dist/KudyJsemMelBezet.msix --version "$env:APP_VERSION"
           Get-Item dist/KudyJsemMelBezet.msix
