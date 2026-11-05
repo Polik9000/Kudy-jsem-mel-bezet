@@ -102,10 +102,16 @@ def drop_event(con, conf, event_id):
     committed."""
     for r in con.execute("SELECT p.* FROM pending_screens p JOIN classes c ON c.id = p.class_id WHERE c.event_id = ?",
                          (event_id,)).fetchall():
-        for f in (r["course_file"], r["maponly_file"]):
-            if f and os.path.exists(conf.path(f)):
-                os.remove(conf.path(f))
-        con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?", (r["class_id"], r["user_id"]))
+        # The KMZ replaces only the map without course. Keep a pending course screenshot: it may still
+        # be needed to build the class map, or to align the map-only screenshot.
+        if r["maponly_file"] and os.path.exists(conf.path(r["maponly_file"])):
+            os.remove(conf.path(r["maponly_file"]))
+        if r["course_file"]:
+            con.execute("UPDATE pending_screens SET maponly_file = NULL, queued = 0"
+                        " WHERE class_id = ? AND user_id = ?", (r["class_id"], r["user_id"]))
+        else:
+            con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?",
+                        (r["class_id"], r["user_id"]))
     for r in con.execute("SELECT s.* FROM screens s JOIN classes c ON c.id = s.class_id WHERE c.event_id = ?",
                          (event_id,)).fetchall():
         for f in (r["course_file"], r["maponly_file"], preview_path(r["course_file"])):
