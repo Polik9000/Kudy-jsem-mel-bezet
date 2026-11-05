@@ -319,8 +319,8 @@
         <input type="file" name="screen_course" accept=".png,.jpg,.jpeg"></label>
       <label class="ob-pole">{{ _('Snímek z Livelox bez tratě (stejný pohled)') }}
         <input type="file" name="screen_maponly" accept=".png,.jpg,.jpeg"></label>
-      <p class="hint">{% trans help=url_for('ob.help_page') %}Jak snímky udělat v Chromu (6 kroků): <a href="{{ help }}#snimky">Jak na to</a>.
-        Jen pro vlastní rozbor, nesdílej je dál.{% endtrans %}</p>
+      <p class="hint">{% trans help=url_for('ob.help_page') %}Snímky se usazují podle běhu a mezičasů, proto je nahraj až po doplnění FIT a ORIS.
+        Jak je udělat v Chromu: <a href="{{ help }}#snimky">Jak na to</a>. Jen pro vlastní rozbor, nesdílej je dál.{% endtrans %}</p>
     </div>
     <div class="karta">
       <h3>{% trans %}3. Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span>{% endtrans %}</h3>
