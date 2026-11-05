@@ -1,21 +1,15 @@
 <!doctype html>
-<html lang="{{ lang }}" class="tema-{{ club.THEME }}">
+<html lang="{{ lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="{{ {'les': '#10251E', 'kudy': '#0F5C6E'}.get(club.THEME, '#0E7A1C') }}">
-  <title>{% block title %}{{ _('Rozbor postupů') }}{% endblock %} · {{ club.NAME }}</title>
-  {# the chosen light/dark mode goes on <html> before the styles load (key ob-rezim; without it the one the
-     club site keeps, skob-rezim, see ob.js) #}
-  <script>(function(){try{var r=localStorage.getItem("ob-rezim")||localStorage.getItem("skob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
-  <link rel="stylesheet" href="{{ url_for('ob.static', filename='skob.css') }}">
-  {# own look on top of the club layout (colours, type, header); OB_THEME=skob keeps the club site's look #}
-  {% if club.THEME == 'kudy' %}<link rel="stylesheet" href="{{ url_for('ob.static', filename='kudy.css') }}">{% endif %}
+  <meta name="theme-color" content="#10251E">
+  <title>{% block title %}{{ _('Rozbor postupů') }}{% endblock %} · Kudy jsem měl běžet</title>
+  <script>(function(){try{var r=localStorage.getItem("ob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
+  <link rel="stylesheet" href="{{ url_for('ob.static', filename='base.css') }}">
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='ob.css') }}">
-  {# "Lesní klid" (default): dark look from the design brief, on top of everything above #}
-  {% if club.THEME == 'les' %}<link rel="stylesheet" href="{{ url_for('ob.static', filename='les.css') }}">{% endif %}
-  {% set ikona_soubor = 'ob-logo.svg' if club.THEME == 'les' else club.LOGO %}
-  <link rel="icon" href="{{ url_for('ob.static', filename=ikona_soubor) }}"{% if ikona_soubor.endswith('.svg') %} type="image/svg+xml"{% endif %}>
+  <link rel="stylesheet" href="{{ url_for('ob.static', filename='les.css') }}">
+  <link rel="icon" href="{{ url_for('ob.static', filename='ob-logo.svg') }}" type="image/svg+xml">
   {% block head %}{% endblock %}
 </head>
 {# data-obnovit: the page shows the state of the background jobs and loads itself again when they finish (ob.js) #}
@@ -64,10 +58,8 @@
   <header class="site">
     <div class="inner">
       <h1><a class="brandlink" href="{{ url_for('ob.races') }}">
-        {% if club.THEME == 'les' %}<img src="{{ url_for('ob.static', filename='ob-logo.svg') }}" alt="" width="40" height="40">
-        <span>{{ _('Kudy jsem měl běžet') }}</span>
-        {% else %}<img src="{{ url_for('ob.static', filename=club.LOGO) }}" alt="" width="269" height="233">
-        <span>{{ club.NAME }} <span class="suffix">— {{ _('rozbor postupů') }}</span></span>{% endif %}</a></h1>
+        <img src="{{ url_for('ob.static', filename='ob-logo.svg') }}" alt="" width="40" height="40">
+        <span>{{ _('Kudy jsem měl běžet') }}</span></a></h1>
       <details class="menu">
         <summary aria-label="{{ _('Nabídka') }}"><span></span><span></span><span></span></summary>
         <nav aria-label="{{ _('Nabídka') }}">{{ menu() }}</nav>
