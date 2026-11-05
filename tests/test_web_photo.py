@@ -258,6 +258,43 @@ def test_glare_over_some_controls_lands_over_most_it_does_not(app, client, user,
     assert j["status"] == "failed" and "odlesk nebo prst" in j["error"] and "usadit ručně" in j["error"]
 
 
+def test_livelox_screens_can_be_uploaded_separately_before_the_run(app, client, user):
+    con, mine = entry(app, client, user, run=False)
+    page = f"/races/{mine}/files"
+
+    # The map-only screenshot may arrive first; the course screenshot may arrive later.
+    r = client.post(page, data=dict(
+        csrf_token=csrf(client),
+        screen_maponly=(io.BytesIO(jpeg_bytes()), "without-course.jpg"),
+    ), content_type="multipart/form-data", follow_redirects=True)
+    assert r.status_code == 200
+    pending = con.execute("SELECT * FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
+                          (mine,)).fetchone()
+    assert pending and pending["maponly_file"] and not pending["course_file"]
+    assert os.path.exists(app.config["OB"].path(pending["maponly_file"]))
+
+    r = client.post(page, data=dict(
+        csrf_token=csrf(client),
+        screen_course=(io.BytesIO(jpeg_bytes()), "with-course.jpg"),
+    ), content_type="multipart/form-data", follow_redirects=True)
+    assert r.status_code == 200
+    pending = con.execute("SELECT * FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
+                          (mine,)).fetchone()
+    assert pending and pending["course_file"] and pending["maponly_file"]
+    assert os.path.exists(app.config["OB"].path(pending["course_file"]))
+    assert os.path.exists(app.config["OB"].path(pending["maponly_file"]))
+    assert not job(con)
+
+    with open(inputs("pohora")[2], "rb") as f:
+        client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
+                    content_type="multipart/form-data")
+    work(app)  # the FIT import pairs the run and queues the stored screenshots
+    queued = job(con)
+    assert queued and queued["status"] == "queued" and "stored_pending" in queued["payload"]
+    assert con.execute("SELECT queued FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
+                       (mine,)).fetchone()[0] == 1
+
+
 @pytest.mark.needs_data
 def test_photo_before_the_run_from_the_watch_is_kept_and_placed_later(app, client, user, pohora):
     con, mine = entry(app, client, user, run=False)
