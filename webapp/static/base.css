@@ -1,11 +1,7 @@
 /* ====================================================================
-   VZHLED SKOB — jediný zdroj pravdy o tom, jak vypadá web oddílu.
+   ZÁKLADNÍ STYLY APLIKACE — rozložení, tabulky, navigace a společné komponenty.
 
-   Sdílený soubor: používá ho skob-results (archiv výsledků) i
-   oris2sidroid (export přihlášek pro SI Droid), aby obě aplikace
-   oddílu vypadaly jako jedna rodina. Zdroj je repozitář
-   skob-results; kopie v druhé aplikaci se nesmí upravovat ručně —
-   je to kopie, ne originál.
+   Základní vrstva vzhledu aplikace. Barevné tokeny a typografii finálně nastavuje následující vrstva Lesní klid.
 
    Barvy oddílu jsou dole v `:root` jako VÝCHOZÍ hodnoty. Aplikace,
    která je má v databázi, je přepíše vlastním blokem `:root` za
@@ -18,11 +14,7 @@
 /*     už jen skládají hotové hodnoty.                                 */
 /* ================================================================== */
 :root {
-  /* --- barvy oddílu: VÝCHOZÍ hodnoty (§11) ---
-     Aplikace skob-results je přepisuje z databáze (`club_color`) druhým
-     blokem `:root`, který vkládá `layout.html` HNED ZA tenhle soubor.
-     Stojí tu proto, aby soubor fungoval i sám o sobě — v aplikaci bez
-     tabulky barev (oris2sidroid) nebo při otevření z disku. Pořadí
+  /* --- výchozí hodnoty tokenů; finální vzhled aplikace přepíše následující vrstva. Pořadí
      nevadí: `var()` se vyhodnocuje až při použití, ne při zápisu.
      Hodnoty musí souhlasit s `cli.DEFAULT_COLORS` (tím, co zakládá
      `init`) — hlídá test, jinak by se druhá aplikace tiše rozešla. */
