@@ -96,7 +96,17 @@ def main() -> int:
             [str(makeappx), "pack", "/d", str(staging), "/p", str(output), "/o"],
             check=True,
         )
-        subprocess.run([str(makeappx), "validate", "/p", str(output)], check=True)
+        # MakeAppx has no "validate" subcommand. Unpack the result to verify
+        # that the package can be read and its manifest is present and valid XML.
+        verification = Path(temp) / "verification"
+        subprocess.run(
+            [str(makeappx), "unpack", "/p", str(output), "/d", str(verification)],
+            check=True,
+        )
+        extracted_manifest = verification / "AppxManifest.xml"
+        if not extracted_manifest.is_file():
+            raise SystemExit("V hotovém MSIX chybí AppxManifest.xml.")
+        ET.parse(extracted_manifest)
     print(f"MSIX vytvořen: {output}")
     if args.publisher == TEST_PUBLISHER or args.identity_name == TEST_IDENTITY_NAME:
         print("POZOR: balíček používá TESTOVACÍ Publisher identity a není určený k odeslání do Store.")
