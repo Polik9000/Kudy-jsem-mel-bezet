@@ -38,7 +38,7 @@ Aplikace běží pod předponou `OB_URL_PREFIX` (výchozí `/ob`); všechny adre
 | `/account/delete` | POST | zrušení vlastního účtu, potvrzené polem `password`; smaže totéž co příkaz `delete-account` |
 | `/forgot` | GET, POST | zapomenuté heslo: `oris_regno`, `code` (jednorázový kód z příkazu `reset-code`), `password`, `password2`; bez přihlášení |
 | `/login`, `/register`, `/logout` | GET, POST | účet: registrace registračním číslem ORIS a kódem od správce (`oris_regno`, `code`, `password`, `password2`; jedno číslo = jeden účet; `/register?regno=…&kod=…` formulář předvyplní), přihlášení registračkou nebo původním jménem |
-| `/ob-static/…` | GET | `skob.css`, `ob.css`, `ob.js`, `map.js`, logo, Leaflet. Stránky je odkazují s otiskem obsahu (`?v=…`) a prohlížeč si je pak smí nechat rok; bez otisku se ptá pokaždé |
+| `/ob-static/…` | GET | `base.css`, `ob.css`, `les.css`, `app-icons.svg`, `ob-logo.svg`, `ob.js`, `map.js`, Leaflet. Stránky je odkazují s otiskem obsahu (`?v=…`) a prohlížeč si je pak smí nechat rok; bez otisku se ptá pokaždé |
 
 ### Odkazy na klubový web (`webapp/club.py`, `OB_CLUB_URL`)
 
