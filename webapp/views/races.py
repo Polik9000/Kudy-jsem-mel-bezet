@@ -298,6 +298,7 @@ def race(entry_id):
         moved=mapfix.shifted(cfg(), e["event_id"]),
         classes=oris_class.event_classes(db, e["event_id"]) if e["event_oris_id"] else [],
         screen=screens.row(db, cfg(), e["class_id"], g.user["id"]),
+        screen_pending=screens.pending_row(db, e["class_id"], g.user["id"]),
         maponly_acc=int(e["maponly_acc_m"] + 0.5) if e["maponly_source"] == "snimek" and e["maponly_acc_m"] else None,
         has_photo=bool(db.execute("SELECT 1 FROM photos WHERE entry_id = ?", (entry_id,)).fetchone()),
         status=status(e, job), analysis=analysis, summary=summary, lost_early=too_early(e),
