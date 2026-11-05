@@ -33,7 +33,7 @@ průchod webem dělá `tools/shot.mjs` přes Chrome DevTools, ne Playwright. HEI
 | Knihovna | Verze | Licence |
 |---|---|---|
 | Leaflet | 1.9.4 | BSD 2-Clause |
-| Leaflet.ImageOverlay.Rotated | 0.2.1 | Beerware podle repozitáře autora (Iván Sánchez Ortega). **Neověřeno tuto noc**: přibalený soubor licenci neobsahuje, knihovnu přidala už předchozí verze aplikace. Před nasazením otevřít `LICENSE` v jeho repozitáři. |
+| Leaflet.ImageOverlay.Rotated | 0.2.1 | Beerware; povinné oznámení je v `docs/THIRD_PARTY_NOTICES.md` a přibaluje se do desktopové aplikace. |
 
 Nástroj `tools/shot.mjs` (screenshoty) potřebuje Node 22+ a Chrome; do aplikace nepatří.
 
