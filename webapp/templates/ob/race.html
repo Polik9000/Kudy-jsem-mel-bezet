@@ -313,7 +313,8 @@
         terén pro nejlepší postupy (jako z KMZ bez tratě).{% endtrans %}</p>
       {% if screen %}<p>{% trans w=screen.width, h=screen.height %}<span class="stav ob-ok">snímek s tratí uložený</span> {{ w }} × {{ h }} px;
         snímek bez tratě ze stejného pohledu můžeš nahrát i sám.{% endtrans %}
-        <a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id, snimek=1) }}">{{ _('Oříznout snímek') }}</a></p>{% endif %}
+        <a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id, snimek=1) }}">{{ _('Oříznout snímek') }}</a></p>{% elif screen_pending %}
+        <p class="hint">{% if screen_pending.course_file %}{{ _('Snímek s tratí čeká na běh a mezičasy, nebo na zpracování.') }}{% else %}{{ _('Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.') }}{% endif %}</p>{% endif %}
       <label class="ob-pole">{{ _('Snímek z Livelox s tratí') }}
         <input type="file" name="screen_course" accept=".png,.jpg,.jpeg"></label>
       <label class="ob-pole">{{ _('Snímek z Livelox bez tratě (stejný pohled)') }}
