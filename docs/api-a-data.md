@@ -114,7 +114,7 @@ Soubory ve složce `OB_INSTANCE`: `fit/user_<id>/`, `maps/event_<id>/` (KMZ a ve
 |---|---|---|
 | `OB_INSTANCE` | `./instance` (v Dockeru `/data`) | databáze a soubory |
 | `OB_URL_PREFIX` | `/ob` | cesta, pod kterou aplikace běží (prázdné = kořen) |
-| `OB_CLUB_URL` | `https://skobfm.vzdyonline.cz` | kam vedou odkazy na klubový web |
+| `OB_CLUB_URL` | nenastaveno | kam vedou odkazy na klubový web |
 | `OB_CLUB_NAME` | `SKOB Frýdek-Místek` | název klubu v titulku a hlavičce každé stránky |
 | `OB_CLUB_LOGO` | `skob-logo.svg` | soubor loga klubu ve `webapp/static` (hlavička a ikona) |
 | `OB_PROXY` | `0` | `1` = věřit hlavičkám `X-Forwarded-*` jedné proxy před aplikací; přihlašovací cookie se pak posílá jen přes https (`Secure`) |
