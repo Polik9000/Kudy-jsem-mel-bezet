@@ -3,7 +3,20 @@
 {% block content %}
 <h2 class="s-ikonou">{{ ikona('plan', 'ikona-nadpis') }}{{ _('Jak na to') }}</h2>
 <p class="evhead">{% trans %}Ke každému závodu appka potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě.
-  Časy a mezičasy si načte z ORIS sama.{% endtrans %}</p>
+  Časy a mezičasy si načte z ORIS sama. KMZ a fotku mapy můžeš nahrát kdykoliv; fotka počká, než bude k dispozici
+  běh a mezičasy. Snímky obrazovky z Livelox můžeš také nahrát kdykoliv a každý zvlášť; aplikace počká na oba snímky,
+  běh a mezičasy z ORIS.{% endtrans %}</p>
+<nav class="karta" aria-label="{{ _('Obsah nápovědy') }}">
+  <b>{{ _('Rychlý obsah') }}</b>
+  <ul class="ob-obsah">
+    <li><a href="#garmin">{{ _('Běh z hodinek (Garmin)') }}</a></li>
+    <li><a href="#livelox">{{ _('Mapa z Livelox (KMZ)') }}</a></li>
+    <li><a href="#bez-livelox">{{ _('Když Livelox stažení nedovolí') }}</a></li>
+    <li><a href="#snimky">{{ _('Dva snímky z Livelox') }}</a></li>
+    <li><a href="#poznamky">{{ _('Poznámky u úseku') }}</a></li>
+    <li><a href="#ztraceny">{{ _('Ztratil jsem se u kontroly') }}</a></li>
+  </ul>
+</nav>
 
 <div class="karta" id="garmin">
   <h3>{% trans %}Běh z hodinek (Garmin){% endtrans %}</h3>
@@ -20,7 +33,7 @@
       dat účtu Garmin</a>.{% endtrans %}</li>
     <li>{% trans %}Klikni na <b>Export Your Data</b> a pak <b>Request Data Export</b>.{% endtrans %}</li>
     <li>{% trans %}Odkaz na zip přijde e-mailem, za 48 hodin až 30 dní.{% endtrans %}</li>
-    <li>{% if user %}{% trans url=url_for('ob.upload') %}Celý zip nahraj v <a href="{{ url }}">Nahrát běhy</a>. Appka si nechá jen běhy ze závodů a zip smaže.{% endtrans %}{% else %}{% trans %}Celý zip nahraj v Nahrát běhy. Appka si nechá jen běhy ze závodů a zip smaže.{% endtrans %}{% endif %}</li>
+    <li>{% if user %}{% trans url=url_for('ob.upload') %}Celý zip nahraj v <a href="{{ url }}">Nahrát běhy</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.{% endtrans %}{% else %}{% trans %}Celý zip nahraj v Nahrát běhy. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.{% endtrans %}{% endif %}</li>
   </ol>
   <p class="hint">{% trans %}Běhy se se závody spárují samy podle dne, času startu a místa. Jiný běh jde vybrat v Podkladech
     závodu.{% endtrans %}</p>

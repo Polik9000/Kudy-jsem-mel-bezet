@@ -298,6 +298,7 @@ def race(entry_id):
         moved=mapfix.shifted(cfg(), e["event_id"]),
         classes=oris_class.event_classes(db, e["event_id"]) if e["event_oris_id"] else [],
         screen=screens.row(db, cfg(), e["class_id"], g.user["id"]),
+        screen_pending=screens.pending_row(db, e["class_id"], g.user["id"]),
         maponly_acc=int(e["maponly_acc_m"] + 0.5) if e["maponly_source"] == "snimek" and e["maponly_acc_m"] else None,
         has_photo=bool(db.execute("SELECT 1 FROM photos WHERE entry_id = ?", (entry_id,)).fetchone()),
         status=status(e, job), analysis=analysis, summary=summary, lost_early=too_early(e),
@@ -400,19 +401,11 @@ def _take_map(db, e, kind, f):
     again, or None when the file was refused (the reason is flashed). A picture instead of a KMZ is handed to
     the worker, which places it and queues the analysis itself."""
     ext = os.path.splitext(f.filename)[1].lower()
-    if ext in storage.HEIC_EXT:
-        flash(_(storage.HEIC_TEXT), "error")
-        return None
     if ext in storage.IMAGE_EXT:
-        # a picture without a georeference: the worker places it by the controls and the runner's track
+        # A photo can be uploaded before the FIT: keep it in the user's data folder and place it once the
+        # activity and official ORIS splits are available. It is only a map with the course.
         if kind != "course":
-            flash(_("Obrázek jde nahrát jen jako mapu s tratí (usazuje se podle kontrol). Mapu bez tratě nahraj "
-                      "jako KMZ z Livelox."), "error")
-            return None
-        if not e["activity_id"] or not loads(e["splits"]):
-            flash(_("Obrázek nebo fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu "
-                      "chybí běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij "
-                      "KMZ z Livelox."), "error")
+            flash(_("Obrázek jde nahrát jen jako mapu s tratí. Mapu bez tratě nahraj jako KMZ z Livelox."), "error")
             return None
         if storage.course_source(cfg(), e) == "kmz":
             flash(_("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila."), "error")
@@ -421,12 +414,23 @@ def _take_map(db, e, kind, f):
         f.save(tmp)
         try:
             storage.check_image(tmp)
-        except ValueError as err:
-            os.remove(tmp)
+            from oroute import georef
+            image = georef.open_image(tmp)
+            storage.save_photo(db, cfg(), e["id"], image,
+                               waiting_for_run=not (e["activity_id"] and loads(e["splits"])))
+        except (ValueError, OSError) as err:
+            if os.path.exists(tmp):
+                os.remove(tmp)
             flash(str(err), "error")
             return None
-        jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"], payload=dict(file=rel))
-        flash(_("Obrázek je nahraný. Usazuje se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách."), "ok")
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        if not e["activity_id"] or not loads(e["splits"]):
+            flash(_("Fotka je uložená. Až doplníš běh z hodinek a mezičasy z ORIS, usadí se automaticky."), "ok")
+            return []
+        jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"], payload=dict(stored_photo=True))
+        flash(_("Fotka je uložená a usazuje se na pozadí; výsledek uvidíš v úlohách."), "ok")
         return []
     rel, tmp = storage.incoming(cfg(), ".kmz")
     f.save(tmp)
@@ -453,6 +457,7 @@ def _take_map(db, e, kind, f):
         path = storage.save_map(cfg(), tmp, e["event_id"], e["class_id"])
         # a KMZ replaces a photo: the photos kept for placing by hand and the course read from them go too
         storage.drop_photos(db, cfg(), e["class_id"])
+        screens.drop_class_pending(db, cfg(), e["class_id"])
         db.execute("UPDATE classes SET course_file = ?, course_by = ?, course_at = datetime('now'),"
                    " course_source = 'kmz', course_rms = NULL, course_n = NULL, course_edge_m = NULL WHERE id = ?",
                    (path, g.user["id"], e["class_id"]))
@@ -467,44 +472,51 @@ def _take_map(db, e, kind, f):
 
 
 def _take_screens(db, e, course, maponly):
-    """Two screenshots of Livelox (course: with the course, maponly: the same view without it; either may be
-    missing): checked here as far as it goes without opening them, then handed to the worker (job georef_map with
-    payload.screens, services/screens.py). Returns [] when a job was queued, None when refused (flashed)."""
+    """Keep either Livelox screenshot (or both) in any order; place them when FIT and ORIS splits exist."""
     for f in (course, maponly):
         if f is not None and os.path.splitext(f.filename)[1].lower() not in storage.IMAGE_EXT:
             flash(_("%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).", filename=f.filename), "error")
             return None
-    if not e["activity_id"] or not loads(e["splits"]):
-        flash(_("Snímek z Livelox se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí běh z "
-                  "hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit), nebo použij KMZ z Livelox."), "error")
-        return None
-    if maponly is not None and course is None and screens.row(db, cfg(), e["class_id"], g.user["id"]) is None:
-        flash(_("Snímek bez tratě se usazuje podle snímku s tratí ze stejného pohledu. Nahraj nejdřív oba "
-                  "snímky najednou (nebo mapu bez tratě jako KMZ z Livelox)."), "error")
-        return None
     if maponly is not None and e["maponly_file"] and (e["maponly_source"] or "kmz") == "kmz":
         flash(_("Pro závod už je mapa bez tratě z KMZ, která je přesnější. Snímek bez tratě se nepoužil."), "error")
         maponly = None
-        if course is None:
-            return None
     sent = {}
-    for key, f in (("course", course), ("maponly", maponly)):
-        if f is None:
-            continue
-        rel, tmp = storage.incoming(cfg(), os.path.splitext(f.filename)[1].lower())
-        f.save(tmp)
-        try:
-            storage.check_image(tmp)
-        except ValueError as err:
-            os.remove(tmp)
-            for other in sent.values():
-                os.remove(cfg().path(other))
-            flash(f"{f.filename}: {err}", "error")
-            return None
-        sent[key] = rel
-    jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"],
-                 payload=dict(screens=dict(course=sent.get("course"), maponly=sent.get("maponly"))))
-    flash(_("Snímky jsou nahrané. Usazují se na pozadí podle kontrol a tvé stopy; výsledek uvidíš v úlohách."), "ok")
+    try:
+        for key, f in (("course", course), ("maponly", maponly)):
+            if f is None:
+                continue
+            rel, tmp = storage.incoming(cfg(), os.path.splitext(f.filename)[1].lower())
+            f.save(tmp)
+            try:
+                storage.check_image(tmp)
+            except ValueError as err:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+                raise ValueError(f"{f.filename}: {err}") from err
+            sent[key] = tmp
+        if not sent:
+            return []
+        screens.save_pending(db, cfg(), e["class_id"], g.user["id"],
+                             course_path=sent.get("course"), maponly_path=sent.get("maponly"))
+    except ValueError as err:
+        for path in sent.values():
+            if os.path.exists(path):
+                os.remove(path)
+        flash(str(err), "error")
+        return None
+    finally:
+        for path in sent.values():
+            if os.path.exists(path):
+                os.remove(path)
+    waiting = screens.pending_row(db, e["class_id"], g.user["id"])
+    if not waiting or not waiting["course_file"]:
+        flash(_("Snímek bez tratě je uložený. Až nahraješ snímek s tratí ze stejného pohledu, zpracují se společně."), "ok")
+        return []
+    queued = matching.queue_waiting_screens(db, g.user["id"])
+    if queued:
+        flash(_("Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů. Výsledek uvidíš v úlohách."), "ok")
+    else:
+        flash(_("Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS, usadí se automaticky."), "ok")
     return []
 
 
@@ -568,6 +580,8 @@ def race_files(entry_id):
             e = get_entry(entry_id)
     if "screen_course" in sent or "screen_maponly" in sent:
         _take_screens(db, e, sent.get("screen_course"), sent.get("screen_maponly"))
+    matching.queue_waiting_photos(db, g.user["id"])
+    matching.queue_waiting_screens(db, g.user["id"])
     for i in sorted(again):
         matching.queue_analysis(db, i)
     return go(url_for("ob.race", entry_id=entry_id) + ("" if again else "#podklady"))
@@ -584,6 +598,8 @@ def race_activity(entry_id):
         db.execute("UPDATE entries SET match_confidence = NULL, activity_id = NULL WHERE id = ?", (entry_id,))
         db.commit()
         matching.match_user(db, g.user["id"])
+        matching.queue_waiting_photos(db, g.user["id"])
+        matching.queue_waiting_screens(db, g.user["id"])
     else:
         if not aid.isdigit() or not db.execute("SELECT 1 FROM activities WHERE id = ? AND user_id = ?",
                                                (aid, g.user["id"])).fetchone():
@@ -591,6 +607,8 @@ def race_activity(entry_id):
         db.execute("UPDATE entries SET activity_id = ?, match_confidence = 'manual', match_note = NULL WHERE id = ?",
                    (int(aid), entry_id))
         db.commit()
+        matching.queue_waiting_photos(db, g.user["id"])
+        matching.queue_waiting_screens(db, g.user["id"])
         matching.queue_analysis(db, entry_id)
     return redirect(url_for("ob.race", entry_id=entry_id))
 

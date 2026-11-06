@@ -47,9 +47,71 @@ def _keep(conf, src, class_id, user_id, which):
     return rel
 
 
+def pending_row(con, class_id, user_id):
+    return con.execute("SELECT * FROM pending_screens WHERE class_id = ? AND user_id = ?",
+                        (class_id, user_id)).fetchone()
+
+
+def save_pending(con, conf, class_id, user_id, course_path=None, maponly_path=None):
+    """Keep either Livelox screenshot (or both) until the run and ORIS splits are available.
+    Paths are absolute incoming files; existing counterpart is retained when only one is uploaded."""
+    old = pending_row(con, class_id, user_id)
+    kept = row(con, conf, class_id, user_id) if old is None else None
+    course_rel = old["course_file"] if old else (kept["course_file"] if kept else None)
+    maponly_rel = old["maponly_file"] if old else (kept["maponly_file"] if kept else None)
+    if course_path:
+        course_rel = _keep(conf, course_path, class_id, user_id, "cekaj_trat")
+        # A new course screenshot is a different view from a previously stored pair.
+        if maponly_path is None and ((old and old["course_file"]) or (old is None and kept)):
+            if maponly_rel and os.path.exists(conf.path(maponly_rel)):
+                os.remove(conf.path(maponly_rel))
+            maponly_rel = None
+    if maponly_path:
+        maponly_rel = _keep(conf, maponly_path, class_id, user_id, "cekaj_bez")
+    if not course_rel and not maponly_rel:
+        return
+    con.execute("INSERT INTO pending_screens (class_id, user_id, course_file, maponly_file, queued)"
+                " VALUES (?, ?, ?, ?, 0) ON CONFLICT (class_id, user_id) DO UPDATE SET"
+                " course_file = excluded.course_file, maponly_file = excluded.maponly_file, queued = 0,"
+                " uploaded_at = datetime('now')",
+                (class_id, user_id, course_rel, maponly_rel))
+    con.commit()
+
+
+def drop_pending(con, conf, class_id, user_id):
+    row = pending_row(con, class_id, user_id)
+    if row:
+        for rel in (row["course_file"], row["maponly_file"]):
+            if rel and os.path.exists(conf.path(rel)):
+                os.remove(conf.path(rel))
+        con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?",
+                    (class_id, user_id))
+
+
+def drop_class_pending(con, conf, class_id):
+    """A KMZ with course supersedes all waiting screenshots of this class. Not committed."""
+    for r in con.execute("SELECT * FROM pending_screens WHERE class_id = ?", (class_id,)).fetchall():
+        for f in (r["course_file"], r["maponly_file"]):
+            if f and os.path.exists(conf.path(f)):
+                os.remove(conf.path(f))
+        con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?", (class_id, r["user_id"]))
+
+
 def drop_event(con, conf, event_id):
     """A KMZ without course came for the race: the screenshots kept for its classes are of no more use. Not
     committed."""
+    for r in con.execute("SELECT p.* FROM pending_screens p JOIN classes c ON c.id = p.class_id WHERE c.event_id = ?",
+                         (event_id,)).fetchall():
+        # The KMZ replaces only the map without course. Keep a pending course screenshot: it may still
+        # be needed to build the class map, or to align the map-only screenshot.
+        if r["maponly_file"] and os.path.exists(conf.path(r["maponly_file"])):
+            os.remove(conf.path(r["maponly_file"]))
+        if r["course_file"]:
+            con.execute("UPDATE pending_screens SET maponly_file = NULL, queued = 0"
+                        " WHERE class_id = ? AND user_id = ?", (r["class_id"], r["user_id"]))
+        else:
+            con.execute("DELETE FROM pending_screens WHERE class_id = ? AND user_id = ?",
+                        (r["class_id"], r["user_id"]))
     for r in con.execute("SELECT s.* FROM screens s JOIN classes c ON c.id = s.class_id WHERE c.event_id = ?",
                          (event_id,)).fetchall():
         for f in (r["course_file"], r["maponly_file"], preview_path(r["course_file"])):
@@ -98,7 +160,15 @@ def place(ctx, job, p):
     from .handlers import photo_track
     con, conf = ctx.con, ctx.conf
     sc = p["screens"]
-    new = {k: conf.path(sc[k]) for k in ("course", "maponly") if sc.get(k)}
+    if sc.get("stored_pending"):
+        info0 = runner.entry_info(con, job["entry_id"])
+        waiting = pending_row(con, info0["cid"], job["user_id"])
+        if waiting is None:
+            raise jobs.Refused(_("Čekající snímky Livelox už tu nejsou; nahraj je znovu."))
+        new = {k: conf.path(waiting[k + "_file"]) for k in ("course", "maponly")
+               if waiting[k + "_file"] and os.path.exists(conf.path(waiting[k + "_file"]))}
+    else:
+        new = {k: conf.path(sc[k]) for k in ("course", "maponly") if sc.get(k)}
     try:
         info = runner.entry_info(con, job["entry_id"])
         track, start_s, cumulative = photo_track(conf, info)
@@ -131,6 +201,8 @@ def place(ctx, job, p):
                 # maybe the page of Livelox was taken for the map: kept, so that it can be cut out by hand
                 _store(con, conf, cid, uid, course_p, maponly_p, kept, course.size, crop,
                        dict(box=[0, 0, course.size[0], course.size[1]], reliable=False, notes=[], res=None))
+                if sc.get("stored_pending"):
+                    drop_pending(con, conf, cid, uid)
                 con.commit()
                 text += " " + texts.screen_crop()
             raise jobs.Refused(text) from e
@@ -190,6 +262,8 @@ def place(ctx, job, p):
         x0, y0, x1, y1 = r["box"]
         _store(con, conf, cid, uid, course_p, maponly_p, kept, course.size, crop,
                dict(box=[x0, y0, x1, y1], reliable=r["reliable"], notes=r["notes"], res=round(r["res"], 3)))
+        if sc.get("stored_pending"):
+            drop_pending(con, conf, cid, uid)
         con.commit()
         if event_changed:
             who = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id WHERE c.event_id = ?",
@@ -203,6 +277,8 @@ def place(ctx, job, p):
             said.append(_("Analýza je ve frontě."))
         return " ".join(said)
     finally:
-        for path in new.values():
-            if os.path.exists(path):
-                os.remove(path)
+        # Uploaded files live in incoming/; deferred files are durable and must survive a failed attempt.
+        if not sc.get("stored_pending"):
+            for path in new.values():
+                if os.path.exists(path):
+                    os.remove(path)

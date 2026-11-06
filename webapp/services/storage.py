@@ -141,9 +141,9 @@ def course_source(conf, row):
         return "kmz"
 
 
-def save_photo(con, conf, entry_id, image):
+def save_photo(con, conf, entry_id, image, waiting_for_run=False):
     """Keep the photo of an entry (upright, already made smaller) for placing it by hand; replaces the one before
-    and the points clicked on it."""
+    and the points clicked on it. waiting_for_run marks a photo uploaded before its FIT/ORIS splits."""
     rel = os.path.join("photos", f"entry_{entry_id}.jpg")
     os.makedirs(os.path.dirname(conf.path(rel)), exist_ok=True)
     tmp = conf.path(rel) + f".{secrets.token_hex(4)}.tmp"
@@ -153,8 +153,10 @@ def save_photo(con, conf, entry_id, image):
         exif.get_ifd(0x8769)[0xA405] = int(round(image.info["focal35"]))
     image.convert("RGB").save(tmp, "JPEG", quality=92, exif=exif.tobytes())
     os.replace(tmp, conf.path(rel))
-    con.execute("INSERT INTO photos (entry_id, file) VALUES (?, ?) ON CONFLICT (entry_id) DO UPDATE SET"
-                " file = excluded.file, points = NULL, uploaded_at = datetime('now')", (entry_id, rel))
+    con.execute("INSERT INTO photos (entry_id, file, waiting_for_run) VALUES (?, ?, ?)"
+                " ON CONFLICT (entry_id) DO UPDATE SET file = excluded.file, points = NULL,"
+                " waiting_for_run = excluded.waiting_for_run, uploaded_at = datetime('now')",
+                (entry_id, rel, int(waiting_for_run)))
     con.commit()
     return rel
 

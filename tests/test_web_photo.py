@@ -37,11 +37,12 @@ def jpeg_bytes(size=(1000, 800), pad=0):
     return buf.getvalue() + b"\0" * pad
 
 
-def test_heic_photo_gets_a_sentence_on_what_to_do(app, client, user):
+def test_heic_extension_is_not_accepted_as_a_map_image(app, client, user):
     con, mine = entry(app, client, user, run=False)
     html = send(client, mine, "IMG_0042.HEIC", b"\0\0\0\x18ftypheic\0\0\0\0mif1heic")
-    assert "formátu HEIC" in html and "Nejkompatibilnější" in html
+    assert "KMZ" in html
     assert not con.execute("SELECT 1 FROM jobs WHERE kind = 'georef_map'").fetchone()
+    assert not con.execute("SELECT 1 FROM photos WHERE entry_id = ?", (mine,)).fetchone()
 
 
 @pytest.mark.needs_data
@@ -257,12 +258,62 @@ def test_glare_over_some_controls_lands_over_most_it_does_not(app, client, user,
     assert j["status"] == "failed" and "odlesk nebo prst" in j["error"] and "usadit ručně" in j["error"]
 
 
+def test_livelox_screens_can_be_uploaded_separately_before_the_run(app, client, user, monkeypatch):
+    con, mine = entry(app, client, user, run=False)
+    page = f"/races/{mine}/files"
+
+    # The map-only screenshot may arrive first; the course screenshot may arrive later.
+    r = client.post(page, data=dict(
+        csrf_token=csrf(client),
+        screen_maponly=(io.BytesIO(jpeg_bytes()), "without-course.jpg"),
+    ), content_type="multipart/form-data", follow_redirects=True)
+    assert r.status_code == 200
+    pending = con.execute("SELECT * FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
+                          (mine,)).fetchone()
+    assert pending and pending["maponly_file"] and not pending["course_file"]
+    assert os.path.exists(app.config["OB"].path(pending["maponly_file"]))
+
+    r = client.post(page, data=dict(
+        csrf_token=csrf(client),
+        screen_course=(io.BytesIO(jpeg_bytes()), "with-course.jpg"),
+    ), content_type="multipart/form-data", follow_redirects=True)
+    assert r.status_code == 200
+    pending = con.execute("SELECT * FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
+                          (mine,)).fetchone()
+    assert pending and pending["course_file"] and pending["maponly_file"]
+    assert os.path.exists(app.config["OB"].path(pending["course_file"]))
+    assert os.path.exists(app.config["OB"].path(pending["maponly_file"]))
+    assert not job(con)
+
+    from webapp.services import screens
+    monkeypatch.setattr(screens, "place", lambda ctx, job, payload: "deferred screenshots processed")
+    with open(inputs("pohora")[2], "rb") as f:
+        client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
+                    content_type="multipart/form-data")
+    work(app)  # the FIT import pairs the run and the deferred screenshot job is picked up
+    queued = job(con)
+    assert queued and queued["status"] == "done" and queued["message"] == "deferred screenshots processed"
+    assert con.execute("SELECT queued FROM pending_screens WHERE class_id = (SELECT class_id FROM entries WHERE id = ?)",
+                       (mine,)).fetchone()[0] == 1
+
+
 @pytest.mark.needs_data
-def test_photo_before_the_run_from_the_watch(app, client, user, pohora):
+def test_photo_before_the_run_from_the_watch_is_kept_and_placed_later(app, client, user, pohora):
     con, mine = entry(app, client, user, run=False)
     data, _ = made_photo(pohora)
-    assert "Nahraj nejdřív běh z hodinek" in send(client, mine, "IMG_1.jpg", data)
+    assert "Fotka je uložená" in send(client, mine, "IMG_1.jpg", data)
+    saved = con.execute("SELECT file, waiting_for_run FROM photos WHERE entry_id = ?", (mine,)).fetchone()
+    assert saved and saved["waiting_for_run"] == 1 and os.path.exists(app.config["OB"].path(saved["file"]))
     assert not job(con)
+
+    with open(inputs("pohora")[2], "rb") as f:
+        client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
+                    content_type="multipart/form-data")
+    work(app)
+    queued = job(con)
+    assert queued and queued["status"] == "done" and "Mapa usazena" in queued["message"], queued["error"]
+    assert course_of(con, mine)["course_source"] == "photo"
+    assert con.execute("SELECT waiting_for_run FROM photos WHERE entry_id = ?", (mine,)).fetchone()[0] == 0
 
 
 @pytest.mark.needs_data

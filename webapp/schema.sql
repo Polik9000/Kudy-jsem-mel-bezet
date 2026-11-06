@@ -194,6 +194,7 @@ CREATE TABLE IF NOT EXISTS photos (
     entry_id    INTEGER PRIMARY KEY REFERENCES entries(id) ON DELETE CASCADE,
     file        TEXT NOT NULL,       -- upright, at most georef.MAX_SIDE_PX
     points      TEXT,                -- JSON [{control, u, v}] clicked so far
+    waiting_for_run INTEGER NOT NULL DEFAULT 0, -- uploaded before FIT/ORIS splits; place when they arrive
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -210,6 +211,19 @@ CREATE TABLE IF NOT EXISTS screens (
     info         TEXT,               -- JSON: what the last placing said (box, reliable, notes, res)
     uploaded_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (class_id, user_id)
+);
+
+-- Livelox screenshots may arrive separately, even before the FIT or ORIS splits. Keep them here until
+-- there is a screenshot with the course and the runner's track plus official punch times.
+CREATE TABLE IF NOT EXISTS pending_screens (
+    class_id     INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    course_file  TEXT,
+    maponly_file TEXT,
+    queued       INTEGER NOT NULL DEFAULT 0,
+    uploaded_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (class_id, user_id),
+    CHECK (course_file IS NOT NULL OR maponly_file IS NOT NULL)
 );
 
 CREATE TABLE IF NOT EXISTS speed_models (

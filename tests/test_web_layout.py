@@ -115,6 +115,23 @@ def test_race_list_filters(app, client, user):
     assert "Tomuhle filtru žádný závod neodpovídá" in client.get("/?jen=hotovo").get_data(as_text=True)
 
 
+def test_local_first_start_opens_profile_once_for_oris_setup(tmp_path, monkeypatch):
+    from webapp import create_app
+
+    monkeypatch.setenv("OB_LOCAL", "1")
+    monkeypatch.setenv("OB_INSTANCE", str(tmp_path / "local"))
+    app = create_app()
+    app.config["TESTING"] = True
+    client = app.test_client()
+
+    first = client.get("/")
+    assert first.status_code == 302 and first.headers["Location"].endswith("/profile")
+    profile = client.get("/profile").get_data(as_text=True)
+    assert "Registrační číslo ORIS" in profile
+    assert "bfm" in profile.lower() or "BFM0000" in profile
+    assert client.get("/").status_code == 200
+
+
 def test_app_is_mounted_under_ob(tmp_path, monkeypatch):
     monkeypatch.setenv("OB_INSTANCE", str(tmp_path / "instance"))
     monkeypatch.delenv("OB_URL_PREFIX", raising=False)
