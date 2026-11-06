@@ -198,12 +198,12 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
         and, for every leg, shows the route you ran, the fastest route for <em>you</em> and where you lost time.</p>
 
       <div class="dl">
-        <!-- STAHOVANI Windows -->
-        <a class="btn" id="dl-win" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/KudyJsemMelBezet-windows-setup.exe">
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.5 4.4v7.1H3zm8.5-1.2L21 3v8.5h-9.5zM3 12.5h7.5v7.1L3 18.5zm8.5 0H21V21l-9.5-1.3z"/></svg>
-          <span><span lang="cs">Stáhnout pro Windows</span><span lang="en">Download for Windows</span>
-            <small lang="cs">Windows 10 a 11</small><small lang="en">Windows 10 and 11</small></span>
-          <span class="sipka" aria-hidden="true">↓</span>
+        <!-- Microsoft Store – hlavní distribuce pro Windows -->
+        <a class="btn" id="dl-win" href="https://apps.microsoft.com/detail/9NQ6JF6VB7FP" target="_blank" rel="noopener">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+          <span><span lang="cs">Získat v Microsoft Store</span><span lang="en">Get it from Microsoft Store</span>
+            <small lang="cs">Windows 10 a 11 · bezpečná instalace a aktualizace</small><small lang="en">Windows 10 and 11 · easy installation and updates</small></span>
+          <span class="sipka" aria-hidden="true">↗</span>
         </a>
         <!-- STAHOVANI macOS -->
         <a class="btn" id="dl-mac" href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest/download/KudyJsemMelBezet-macos.dmg">
@@ -218,8 +218,8 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 18px; }
         <p lang="en"><strong>The program is for a computer, not a phone.</strong> Send yourself the link and open it on your computer.</p>
         <button type="button" class="btn ghost" id="share-link"><span lang="cs">Poslat si odkaz na počítač</span><span lang="en">Send link to computer</span></button>
       </div>
-      <p class="muted" lang="cs">Verze <span class="ver">0.2.0</span>. Může mít chyby, napiš mi o nich (<a href="#licence">kontakt</a>). Linux zatím instalátor nemá, viz <a href="#zdroj">spuštění přes Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Všechna vydání</a></p>
-      <p class="muted" lang="en">Version <span class="ver">0.2.0</span>. It may have bugs, please tell me about them (<a href="#licence">contact</a>). No installer for Linux yet, see <a href="#zdroj">running with Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">All releases</a></p>
+      <p class="muted" lang="cs">Verze <span class="ver">0.2.0</span>. Může mít chyby, napiš mi o nich (<a href="#licence">kontakt</a>). Windows se instalují přes Microsoft Store; Mac přes DMG níže. Linux zatím instalátor nemá, viz <a href="#zdroj">spuštění přes Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Starší vydání a soubory pro Mac</a></p>
+      <p class="muted" lang="en">Version <span class="ver">0.2.0</span>. It may have bugs, please tell me about them (<a href="#licence">contact</a>). Windows installs through Microsoft Store; Mac uses the DMG below. No Linux installer yet, see <a href="#zdroj">running with Docker</a>. <a href="https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases">Older releases and Mac downloads</a></p>
     </div>
 
     <figure>
@@ -474,7 +474,7 @@ docker compose up --build</code></pre>
         if (!rel) return;
         document.querySelectorAll(".ver").forEach(function (el) { el.textContent = rel.tag_name.replace(/^v/, ""); });
         (rel.assets || []).forEach(function (a) {
-          var id = /setup\.exe$/i.test(a.name) ? "dl-win" : /\.dmg$/i.test(a.name) ? "dl-mac" : null;
+          var id = /\.dmg$/i.test(a.name) ? "dl-mac" : null;
           var el = id && document.getElementById(id);
           if (el) el.href = a.browser_download_url;
         });

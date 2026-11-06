@@ -35,8 +35,11 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Soubory: `KudyJsemMelBezet-windows-setup.exe` (Inno Setup, instaluje se jen pro přihlášeného uživatele, bez
-správce) a `KudyJsemMelBezet-macos.dmg` (Apple Silicon, M1 a novější; Intel Mac zatím ne). Názvy jsou bez verze,
+Veřejná distribuce pro Windows nyní probíhá přes [Microsoft Store](https://apps.microsoft.com/detail/9NQ6JF6VB7FP)
+(Store ID: `9NQ6JF6VB7FP`). Běžným uživatelům doporučujeme instalaci a aktualizace přes Store; EXE zůstává
+jen jako záložní/testovací artefakt v GitHub Releases a na hlavní stránce webu se nenabízí.
+Soubor `KudyJsemMelBezet-macos.dmg` je určený pro Apple Silicon (M1 a novější; Intel Mac zatím ne).
+Názvy jsou bez verze,
 takže stránka ke stažení může odkazovat napořád na poslední vydání:
 
 ```
@@ -63,7 +66,7 @@ python -m desktop.app                              # nebo bez balení, rovnou ze
 
 Instalátory nejsou podepsané (podpis stojí peníze: Windows certifikát, Apple Developer 99 USD/rok).
 
-- Windows: SmartScreen ukáže „Systém Windows ochránil váš počítač“ → Další informace → Přesto spustit.
+- Windows EXE (pouze pokud ho někdo instaluje mimo Store): SmartScreen může ukázat „Systém Windows ochránil váš počítač“ → Další informace → Přesto spustit. Pro běžné uživatele je doporučený Microsoft Store.
 - macOS: aplikace je podepsaná jen ad hoc. Při prvním spuštění macOS řekne, že ji nelze ověřit → Nastavení
   systému → Soukromí a zabezpečení → dole „Přesto otevřít“. Potom už se spouští normálně.
 
