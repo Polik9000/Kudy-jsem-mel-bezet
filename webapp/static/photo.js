@@ -10,6 +10,7 @@
   var markers = {};
   var deviation = {};       // control name -> metres, from the last check
   var selected = null, track = null, sent = 0, shown = 0;
+  var orez = document.querySelector("[data-orez]"), cut = null, later = null;   // "Začátek a konec GPS stopy"
   OB.points.forEach(function (p) { points[p[0]] = [p[1], p[2]]; });
 
   var map = L.map("foto-mapa", { crs: L.CRS.Simple, minZoom: -5, maxZoom: 3, zoomSnap: 0.25, attributionControl: false });
@@ -105,7 +106,7 @@
     Object.keys(markers).forEach(place);
     check();
   });
-  $("foto-stopa").addEventListener("change", drawTrack);
+  $("foto-stopa").addEventListener("change", function () { drawTrack(); drawCut(); });
 
   function drawTrack() {
     if (track) { map.removeLayer(track); track = null; }
@@ -115,9 +116,55 @@
     }
   }
 
+  // The cut of the GPS track being tried: the server places the controls by the track cut so (a jump of the GPS at
+  // the start moves the start) and sends the whole recording, the part cut off is drawn grey and dashed.
+  function trimSent() {
+    if (!orez) { return null; }
+    var f = orez.closest("form");
+    return { mode: f.elements.mode.value || "auto", start_s: +f.elements.start_s.value, end_s: +f.elements.end_s.value };
+  }
+  function drawCut() {
+    if (cut) { map.removeLayer(cut); cut = null; }
+    var t = trimSent();
+    if (!t || !OB.raw || !OB.trim || !$("foto-stopa").checked) { return; }
+    var lo = t.mode === "manual" ? t.start_s : t.mode === "off" ? -1 : OB.trim.auto_start;
+    var hi = t.mode === "manual" ? t.end_s : t.mode === "off" ? Infinity : OB.trim.auto_end;
+    var before = [], after = [], a = null, b = null;
+    OB.raw.forEach(function (p) {
+      if (p[2] < lo) { before.push(ll(p[0], p[1])); } else if (p[2] > hi) { after.push(ll(p[0], p[1])); }
+      else { if (!a) { a = p; } b = p; }
+    });
+    if (before.length && a) { before.push(ll(a[0], a[1])); }
+    if (after.length && b) { after.unshift(ll(b[0], b[1])); }
+    cut = L.layerGroup().addTo(map);
+    [before, after].forEach(function (pts) {
+      if (pts.length > 1) { L.polyline(pts, { className: "ob-gps-orez", weight: 3, interactive: false }).addTo(cut); }
+    });
+  }
+  if (orez) {
+    var f = orez.closest("form"), lo = f.elements.start_s, hi = f.elements.end_s;
+    var fmt = function (s) { s = Math.round(s); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); };
+    var onTrim = function (ev) {
+      if (!ev.target.name || ["mode", "start_s", "end_s"].indexOf(ev.target.name) < 0) { return; }
+      orez.querySelector("[data-orez-rucne]").hidden = f.elements.mode.value !== "manual";
+      if (+lo.value > +hi.value - 60) {
+        if (ev.target === hi) { hi.value = +lo.value + 60; } else { lo.value = Math.max(0, +hi.value - 60); }
+      }
+      var out = orez.querySelectorAll("[data-orez-cas]");
+      out[0].textContent = fmt(lo.value);
+      out[1].textContent = fmt(hi.value);
+      drawCut();
+      clearTimeout(later);
+      later = setTimeout(function () { if (count()) { check(); } }, 400);
+    };
+    f.addEventListener("input", onTrim);
+    f.addEventListener("change", onTrim);
+  }
+
   function check() {
     var mine = ++sent;
-    var body = { points: Object.keys(points).map(function (k) { return { control: k, u: points[k][0], v: points[k][1] }; }) };
+    var body = { points: Object.keys(points).map(function (k) { return { control: k, u: points[k][0], v: points[k][1] }; }),
+                 trim: trimSent() };
     list();
     fetch(OB.check, { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": OB.csrf },
                       body: JSON.stringify(body) })
@@ -127,7 +174,10 @@
         shown = mine;
         deviation = d.deviation || {};
         OB.track = d.track || null;
+        OB.raw = d.raw || null;
+        OB.trim = d.trim || null;
         drawTrack();
+        drawCut();
         var n = count(), msg = [];
         if (n < OB.minPoints) {
           msg.push(t("Označeno %(n)s z aspoň %(min)s bodů.", { n: n, min: OB.minPoints }));

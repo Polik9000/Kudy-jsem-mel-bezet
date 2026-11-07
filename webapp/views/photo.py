@@ -21,9 +21,10 @@ from ..db import loads
 from ..i18n import _, _n
 from ..services import jobs, mapfix, screens, storage
 from . import bp
-from .races import get_entry
+from .races import get_entry, store_trim
 
 TRACK_POINTS = 800     # the track over the photo, at most this many points
+RAW_POINTS = 1500      # the whole recording (for cutting its start and end), at most this many points
 _cache = {}            # (fit file, start) -> ground, and photo file + mtime -> (size, quad); per process
 CACHE_MAX = 32
 
@@ -35,15 +36,24 @@ def _photo(entry_id):
     return row
 
 
-def _ground(e):
-    """(ground_course, lat0, lon0, track in metres sampled) of the entry, or jobs.Refused."""
+def _ground(e, trim=None):
+    """(ground_course, lat0, lon0, track in metres sampled) of the entry, or jobs.Refused. trim: the cut of the GPS
+    track to place by (analyze.py --gps-trim), default the runner's setting: a jump of the GPS at the start would
+    put the start somewhere else."""
+    return _placing(e, trim)[:4]
+
+
+def _placing(e, trim=None):
+    """_ground and two more: the whole recording [(x, y, s)] sampled (s: seconds from its first position, as the
+    cut counts them) and what the cut does (oroute/gpstrim.py apply: track["trim"] without the points)."""
     from ..services import runner
     from ..services.handlers import photo_track
     info = runner.entry_info(get_db(), e["id"])
-    key = ("g", info["fit_file"], info["start_local"], info["splits"], info["gps_trim"])
+    setting = trim or runner.gps_trim(info)
+    key = ("g", info["fit_file"], info["start_local"], info["splits"], setting)
     if key not in _cache:
         _trim()
-        track, start_s, cumulative = photo_track(cfg(), info)
+        track, start_s, cumulative = photo_track(cfg(), info, setting)
         lat0, lon0 = georef.track_frame(track)
         to_xy = georef.local_frame(lat0, lon0)
         x, y = to_xy(track["lat"], track["lon"])
@@ -51,8 +61,83 @@ def _ground(e):
         on = (t >= start_s) & (t <= start_s + (cumulative[-1] or 0))
         xy = np.c_[x, y][on]
         step = max(1, len(xy) // TRACK_POINTS)
-        _cache[key] = (georef.ground_course(track, to_xy, start_s, cumulative), lat0, lon0, xy[::step])
+        cut = track["trim"]
+        raw = np.array([p for p in cut["head"]] + [[la, lo, s + cut["start_s"]] for la, lo, s
+                                                   in zip(track["lat"], track["lon"], t)] + [p for p in cut["tail"]])
+        rx, ry = to_xy(raw[:, 0], raw[:, 1])
+        rstep = max(1, len(raw) // RAW_POINTS)
+        info_cut = {k: v for k, v in cut.items() if k not in ("head", "tail", "gaps")}
+        _cache[key] = (georef.ground_course(track, to_xy, start_s, cumulative), lat0, lon0, xy[::step],
+                       np.c_[rx, ry, raw[:, 2]][::rstep], info_cut)
     return _cache[key]
+
+
+def _trim_page(e, raw_cut):
+    """What the panel "Začátek a konec GPS stopy" of the page starts with."""
+    cut = dict(raw_cut, head=[0] if raw_cut["start_s"] > 0 else [],
+               tail=[0] if raw_cut["end_s"] < raw_cut["length_s"] else [])
+    try:
+        own = loads(e["gps_trim"])
+    except (ValueError, TypeError):
+        own = None
+    setting = own.get("mode") if own and own.get("activity") == e["activity_id"] else "auto"
+    return dict(cut, setting=setting, text=texts.gps_trim(cut))
+
+
+def _trim_sent():
+    """The cut the page is trying out (JSON trim: mode, start_s, end_s) as analyze.py --gps-trim takes it, or None
+    (the runner's setting)."""
+    from oroute import gpstrim
+    t = (request.get_json(silent=True) or {}).get("trim")
+    if not isinstance(t, dict):
+        return None
+    try:
+        if t.get("mode") == "off":
+            return "off"
+        if t.get("mode") == "manual":
+            value = f"{float(t['start_s']):.1f}:{float(t['end_s']):.1f}"
+            gpstrim.parse(value)
+            return value
+    except (KeyError, TypeError, ValueError):
+        return None
+    return "auto" if t.get("mode") == "auto" else None
+
+
+def _trim_form(e):
+    """The cut sent with the save button of the page: (value of entries.gps_trim, the cut to place by), or
+    (False, None) without one. A cut that leaves too little: flashed, (False, None)."""
+    from ..services import runner
+    from .races import trim_from_form
+    if "mode" not in request.form:
+        return False, None
+    try:
+        value = trim_from_form(e, request.form)
+    except ValueError as err:
+        flash(str(err), "error")
+        return False, None
+    return value, runner.gps_trim(dict(gps_trim=value, activity_id=e["activity_id"]))
+
+
+def _keep_drawing(out, trim, cut, again):
+    """A cut being tried that leaves the track off some of the clicked controls cannot place the map: the track
+    and the whole recording are drawn as the runner's own setting places it (again(): the evaluation with it), so
+    the part cut off can still be seen, and the page says why."""
+    if not trim or "raw" in out:
+        return out
+    before = again()
+    if "raw" in before:
+        out.update(track=before["track"], raw=before["raw"], trim=_raw_out([], [], cut)["trim"])
+        out["ok"] = False
+        out["problems"] = [_("S tímhle oříznutím chybí stopa u některých označených kontrol (jsou v uříznuté části), "
+                             "podle nich usadit nejde. Oříznutí jde uložit samo.")]
+    return out
+
+
+def _raw_out(raw, pix, cut):
+    """The whole recording in pixels of the page [[u, v, s]] and the cut, for drawing what is cut off."""
+    return dict(raw=[[p[0], p[1], round(float(r[2]), 1)] for p, r in zip(pix, raw)],
+                trim=dict(start_s=cut["start_s"], end_s=cut["end_s"], length_s=cut["length_s"],
+                          auto_start=cut["auto"]["start_s"], auto_end=cut["auto"]["end_s"]))
 
 
 def _sheet(path):
@@ -102,14 +187,14 @@ def photo_page(entry_id):
         flash(_("K závodu není uložená žádná fotka mapy. Nahraj ji v Podkladech (pole Mapa s tratí)."), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
     try:
-        ground = _ground(e)[0]
+        placing = _placing(e)
     except jobs.Refused as err:
         flash(str(err), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
     size, _sheets = _sheet(cfg().path(row["file"]))
-    return render_template("ob/photo.html", e=e, size=size, names=_names(ground), points=loads(row["points"], []),
+    return render_template("ob/photo.html", e=e, size=size, names=_names(placing[0]), points=loads(row["points"], []),
                            kmz=storage.course_source(cfg(), e) == "kmz", aktivni="races",
-                           min_points=georef.MANUAL_MIN)
+                           min_points=georef.MANUAL_MIN, trim=_trim_page(e, placing[5]), back="fotka")
 
 
 @bp.route("/races/<int:entry_id>/fotka.jpg")
@@ -147,7 +232,7 @@ def photo_points(entry_id):
         abort(404)
     pts = _points(entry_id)
     try:
-        out = _evaluate(e, row, pts)
+        out = _evaluate(e, row, pts, _trim_sent())
     except jobs.Refused as err:
         return jsonify(ok=False, problems=[str(err)])
     db = get_db()
@@ -156,10 +241,10 @@ def photo_points(entry_id):
     return jsonify(out)
 
 
-def _evaluate(e, row, pts):
+def _evaluate(e, row, pts, trim=None):
     """What the page shows for the points: ok (they place the photo), deviation per point, problems in Czech,
-    the track in pixels of the photo."""
-    ground, lat0, lon0, track = _ground(e)
+    the track in pixels of the photo (and the whole recording with the cut, _raw_out). trim: the cut to try."""
+    ground, lat0, lon0, track, raw, cut = _placing(e, trim)
     known = {n for n, ok in _names(ground) if ok}
     names = [p[0] for p in pts]
     if any(n not in {m for m, _p in _names(ground)} for n in names):
@@ -182,11 +267,13 @@ def _evaluate(e, row, pts):
         # metres -> picture centred with y up -> picture pixels
         inv = np.linalg.inv(got["H"])
         W, H = size
-        q = georef.apply_h(inv, track)
-        out["track"] = [[round(float(u + W / 2), 1), round(float(H / 2 - v), 1)] for u, v in q]
+        q = georef.apply_h(inv, np.r_[track, raw[:, :2]])
+        pix = [[round(float(u + W / 2), 1), round(float(H / 2 - v), 1)] for u, v in q]
+        out["track"] = pix[:len(track)]
+        out.update(_raw_out(raw, pix[len(track):], cut))
         out["accuracy"] = int(max(15.0, got["rms"]) + 0.5)
     out["problems"] = problems
-    return out
+    return _keep_drawing(out, trim, cut, lambda: _evaluate(e, row, pts))
 
 
 @bp.route("/races/<int:entry_id>/fotka/ulozit", methods=["POST"])
@@ -200,14 +287,17 @@ def photo_save(entry_id):
         flash(_("Pro tuhle kategorii už je mapa z KMZ, která je přesnější. Fotka se nepoužila."), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
     pts = [tuple(p) for p in loads(row["points"], [])]
+    value, setting = _trim_form(e)
     try:
-        out = _evaluate(e, row, pts)
+        out = _evaluate(e, row, pts, setting)
     except jobs.Refused as err:
         flash(str(err), "error")
         return redirect(url_for("ob.photo_page", entry_id=entry_id))
     if not out["ok"]:
         flash(" ".join(out["problems"]) or texts.photo_problem("few"), "error")
         return redirect(url_for("ob.photo_page", entry_id=entry_id))
+    if value is not False:
+        store_trim(get_db(), e, value)          # the photo is placed by it, and the analysis after it uses it
     jobs.enqueue(get_db(), "georef_map", user_id=g.user["id"], entry_id=entry_id, payload=dict(points=pts))
     flash(_("Fotka se usazuje podle tvých bodů na pozadí. Až bude hotová, analýza kategorie se spustí znovu."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
@@ -227,15 +317,19 @@ def _map_entry(entry_id):
     return e
 
 
-def _map_evaluate(e, pts):
-    ground, lat0, lon0, track = _ground(e)
+def _map_evaluate(e, pts, trim=None):
+    ground, lat0, lon0, track, raw, cut = _placing(e, trim)
     names = {m for m, _p in _names(ground)}
     if any(p[0] not in names for p in pts):
         abort(400)
     _a, _b, k, gm = mapfix.preview(cfg(), e["course_file"])
     got = [p[0] for p in pts]
     out = mapfix.evaluate(gm, k, [p for p in pts if got.count(p[0]) == 1], lambda n: _where(ground, n),
-                          lat0, lon0, track)
+                          lat0, lon0, np.r_[track, raw[:, :2]])
+    if "track" in out:
+        pix = out["track"]
+        out["track"] = pix[:len(track)]
+        out.update(_raw_out(raw, pix[len(track):], cut))
     problems = []
     if len(set(got)) < len(got):
         problems.append(texts.photo_problem("same"))
@@ -254,7 +348,7 @@ def _map_evaluate(e, pts):
                                       scale_pct=out['scale_pct'], rms=out['rms']))
         out["accuracy"] = int(max(10.0, out["rms"]) + 0.5)
     out["problems"] = problems
-    return out
+    return _keep_drawing(out, trim, cut, lambda: _map_evaluate(e, pts))
 
 
 @bp.route("/races/<int:entry_id>/mapa-rucne")
@@ -262,7 +356,8 @@ def _map_evaluate(e, pts):
 def map_fix_page(entry_id):
     e = _map_entry(entry_id)
     try:
-        ground = _ground(e)[0]
+        placing = _placing(e)
+        ground = placing[0]
     except jobs.Refused as err:
         flash(str(err), "error")
         return redirect(url_for("ob.race", entry_id=entry_id) + "#podklady")
@@ -277,7 +372,8 @@ def map_fix_page(entry_id):
                            screen=storage.course_source(cfg(), e) == "screen",
                            image_url=url_for("ob.map_fix_image", entry_id=entry_id),
                            check_url=url_for("ob.map_fix_points", entry_id=entry_id),
-                           save_url=url_for("ob.map_fix_save", entry_id=entry_id))
+                           save_url=url_for("ob.map_fix_save", entry_id=entry_id),
+                           trim=_trim_page(e, placing[5]), back="mapa")
 
 
 @bp.route("/races/<int:entry_id>/mapa-rucne.jpg")
@@ -295,7 +391,7 @@ def map_fix_points(entry_id):
     e = _map_entry(entry_id)
     pts = _points(entry_id)
     try:
-        out = _map_evaluate(e, pts)
+        out = _map_evaluate(e, pts, _trim_sent())
     except jobs.Refused as err:
         return jsonify(ok=False, problems=[str(err)])
     os.makedirs(os.path.dirname(_map_points_path(entry_id)), exist_ok=True)
@@ -311,8 +407,9 @@ def map_fix_save(entry_id):
     try:
         with open(_map_points_path(entry_id), encoding="utf-8") as f:
             pts = [tuple(p) for p in json.load(f)]
-        out = _map_evaluate(e, pts)
-        _a, lat0, lon0, _b = _ground(e)
+        value, setting = _trim_form(e)
+        out = _map_evaluate(e, pts, setting)
+        _a, lat0, lon0, _b = _ground(e, setting)
     except (OSError, ValueError):
         abort(400)
     except jobs.Refused as err:
@@ -321,6 +418,8 @@ def map_fix_save(entry_id):
     if not out["ok"]:
         flash(" ".join(out["problems"]) or _("Označ aspoň %(MIN_POINTS)s kontroly.", MIN_POINTS=mapfix.MIN_POINTS), "error")
         return redirect(url_for("ob.map_fix_page", entry_id=entry_id))
+    if value is not False:
+        store_trim(get_db(), e, value)          # mapfix.apply queues the analysis, which uses it
     n = mapfix.apply(get_db(), cfg(), e, out["corr"], lat0, lon0, g.user["id"],
                      dict(shift_m=out["shift_m"], turn_deg=out["turn_deg"], rms=out["rms"]))
     flash(_n(n, "Mapa posunutá o %(shift_m).0f m a otočená o %(turn).1f° (%(n)s mapa). Analýzy závodu se pustí znovu.",

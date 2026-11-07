@@ -429,9 +429,10 @@ def _georef_map(ctx, job):
             os.remove(path)
 
 
-def photo_track(conf, info):
+def photo_track(conf, info, trim=None):
     """(track, official start in seconds of the track's clock, official cumulative times) for placing a photo,
-    or jobs.Refused with what is missing."""
+    or jobs.Refused with what is missing. trim: how the start and end of the track are cut (analyze.py --gps-trim);
+    default the runner's setting (runner.gps_trim)."""
     import datetime as dt
 
     from oroute import gpstrim
@@ -444,7 +445,7 @@ def photo_track(conf, info):
         raise jobs.Refused(_("Fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí "
                                "běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit)."))
     try:
-        track = gpstrim.apply(load_track(conf.path(info["fit_file"])), runner.gps_trim(info))
+        track = gpstrim.apply(load_track(conf.path(info["fit_file"])), trim or runner.gps_trim(info))
     except InputError as e:
         raise jobs.Refused(texts.analysis_error(e.code, e.text)) from e
     rec = track["start"] if track["start"].tzinfo else track["start"].replace(tzinfo=dt.timezone.utc)

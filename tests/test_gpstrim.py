@@ -162,3 +162,45 @@ def test_race_page_sets_the_cut_and_the_analysis_is_done_again(app, client, user
     assert send(mode="manual", start_s="x", end_s="10").status_code == 400
     send(mode="manual", start_s="100", end_s="120")              # less than a minute left: refused
     assert con.execute("SELECT gps_trim FROM entries WHERE id = ?", (entry,)).fetchone()["gps_trim"] is None
+
+
+@pytest.mark.needs_data
+def test_the_cut_is_set_where_the_map_is_placed_by_hand(app, client, user, monkeypatch):
+    """Placing the map by hand shows the whole recording over the map: the cut is tried there (the server places
+    the controls by the track cut so and sends the recording with what is cut off) and kept from there."""
+    con, conf = con_of(app), app.config["OB"]
+    entry = seed_demo(con, conf, user)["pohora"]
+    con.execute("DELETE FROM jobs")
+    con.commit()
+    html = client.get(f"/races/{entry}/mapa-rucne").get_data(as_text=True)
+    assert 'id="orez-gps"' in html and "Uložit jen oříznutí stopy" in html and 'name="back" value="mapa"' in html
+    token = csrf(client, f"/races/{entry}/mapa-rucne")
+    # the points of the controls where the track says they are: the map is where it was, the cut is tried
+    from webapp.views import photo
+    with app.test_request_context():
+        from flask import g
+        g.user = con.execute("SELECT * FROM users WHERE id = ?", (user,)).fetchone()
+        e = photo._map_entry(entry)
+        ground, lat0, lon0, _, raw, cut = photo._placing(e, "120:2000")
+        assert cut["start_s"] >= 120 and cut["end_s"] <= 2000 and raw[0, 2] == 0 and raw[-1, 2] == cut["length_s"]
+    _, _, k, gm = photo.mapfix.preview(conf, e["course_file"])
+    import oroute.georef as georef
+    kx = georef.R_EARTH * math.cos(math.radians(lat0)) * math.pi / 180
+    ky = georef.R_EARTH * math.pi / 180
+    pts = []
+    for name, ok in photo._names(ground)[:6]:
+        if ok:
+            x, y = photo._where(ground, name)
+            u, v = gm.latlon_to_px(lat0 + y / ky, lon0 + x / kx)
+            pts.append(dict(control=name, u=float(u) * k, v=(float(v) - gm.header_px) * k))
+    r = client.post(f"/races/{entry}/mapa-rucne/body", json=dict(points=pts, trim=dict(mode="manual", start_s=120,
+                    end_s=2000)), headers={"X-CSRF-Token": token})
+    d = r.get_json()
+    assert d["trim"]["start_s"] >= 120 and len(d["raw"]) > 100 and d["raw"][0][2] == 0
+    # only the cut is kept: back to the page of placing, the analysis is queued
+    r = client.post(f"/races/{entry}/gps-trim", data=dict(mode="manual", start_s="120", end_s="2000", back="mapa",
+                                                          csrf_token=token))
+    assert r.status_code == 302 and r.headers["Location"].endswith(f"/races/{entry}/mapa-rucne")
+    assert json.loads(con.execute("SELECT gps_trim FROM entries WHERE id = ?", (entry,)).fetchone()["gps_trim"])[
+        "start_s"] == 120
+    assert con.execute("SELECT 1 FROM jobs WHERE entry_id = ? AND kind = 'analyse'", (entry,)).fetchone()
