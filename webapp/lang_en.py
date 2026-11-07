@@ -1690,6 +1690,111 @@ EN = {
         "(optional, by hand, e.g. “knoll, north foot”)",
     "Rozbor po závodě: co bylo kolem kontroly a jak ses z místa, kde ses ztratil, měl vrátit. Rada je odhad z kresby mapy (cesty, vodoteče, ploty, okraje ploch, budovy), bez vrstevnic a skal. „Nedalo se minout“ znamená, že na tu věc bys narazil odkudkoli z kruhu nejistoty, kdybys šel daným směrem. Do oplocených a zakázaných míst rada nevede.":
         "An analysis after the race: what was around the control and how you should have got back from the place where you got lost. The advice is an estimate from the drawing of the map (paths, streams, fences, edges of areas, buildings), without contours and cliffs. “Could not be missed” means that you would hit that feature from anywhere in the circle of uncertainty if you went in the given direction. The advice does not lead into fenced and out-of-bounds places.",
+    # Garmin Connect (Personal API)
+    'Tohle nevypadá jako klíč Personal API z Garmin Connect. Zkopíruj ho celý.':
+        'This does not look like a Garmin Connect Personal API key. Copy all of it.',
+    'Účet Garmin není připojený: vlož klíč Personal API.':
+        'No Garmin account is connected: paste a Personal API key.',
+    'Garmin vrátil neznámou odpověď místo přístupového tokenu.':
+        'Garmin sent an unknown answer instead of an access token.',
+    'Garmin Connect není dostupný (internet?): %(e)s':
+        'Garmin Connect cannot be reached (internet?): %(e)s',
+    'Garmin klíč nepřijal (je špatně zkopírovaný, vypršel, nebo byl smazaný). Vytvoř v Garmin Connect nový a vlož ho znovu.':
+        'Garmin did not accept the key (it was copied wrong, has expired or was deleted). Create a new one in Garmin Connect and paste it again.',
+    'Garmin Connect odpověděl chybou %(status)s při přihlášení klíčem.':
+        'Garmin Connect answered with error %(status)s when signing in with the key.',
+    'Garmin teď nechce odpovídat (příliš mnoho dotazů). Zkus to za chvíli.':
+        'Garmin is not answering right now (too many requests). Try again in a while.',
+    'Garmin přístup odmítl. Vytvoř v Garmin Connect nový klíč a vlož ho znovu.':
+        'Garmin refused access. Create a new key in Garmin Connect and paste it again.',
+    'Garmin Connect odpověděl chybou %(status)s.':
+        'Garmin Connect answered with error %(status)s.',
+    'Neplatné číslo aktivity.':
+        'Invalid activity number.',
+    'Aktivita %(aid)s: Garmin neposlal soubor .fit.':
+        'Activity %(aid)s: Garmin sent no .fit file.',
+    'stahuji z Garmin Connect %(i)s/%(n)s':
+        'downloading from Garmin Connect %(i)s/%(n)s',
+    'Garmin vrátil seznam aktivit, kterému appka nerozumí.':
+        'Garmin sent a list of activities the app does not understand.',
+    ' Nestaženo %(n)s: %(why)s':
+        ' Not downloaded: %(n)s: %(why)s',
+    'Staženo z Garmin Connect %(n)s aktivit, nových %(new)s.':
+        'Downloaded %(n)s activities from Garmin Connect, %(new)s new.',
+    'Nevybraná žádná aktivita.':
+        'No activity selected.',
+    'Z Garmin Connect se nestáhla žádná aktivita.':
+        'No activity was downloaded from Garmin Connect.',
+    'Staženo z Garmin Connect %(n)s aktivit.':
+        'Downloaded %(n)s activities from Garmin Connect.',
+    'Klíč je uložený jen v tomhle počítači. Appka teď načte tvoje aktivity z Garmin Connect.':
+        'The key is stored on this computer only. The app now loads your activities from Garmin Connect.',
+    'Klíč je z tohoto počítače smazaný. V Garmin Connect ho můžeš smazat i tam.':
+        'The key is deleted from this computer. You can delete it in Garmin Connect too.',
+    'Nevybral jsi žádnou aktivitu.':
+        'You did not select any activity.',
+    'Stahuji %(n)s aktivit z Garmin Connect. Samy se spárují se závody.':
+        'Downloading %(n)s activities from Garmin Connect. They pair with your races on their own.',
+    'Stahuji všechny běhy za vybrané období. Spočítá se z nich model kopců a zůstanou jen běhy ze závodů, jako u exportu účtu.':
+        'Downloading all runs of the chosen period. Your hill model is fitted from them, and then only the race runs stay, as with an account export.',
+    'Běhy z Garmin Connect':
+        'Runs from Garmin Connect',
+    'poslední 2 týdny':
+        'last 2 weeks',
+    'poslední 2 měsíce':
+        'last 2 months',
+    'poslední rok':
+        'last year',
+    'všechno':
+        'everything',
+    'Zpět na Nahrát běhy':
+        'Back to Upload runs',
+    'Appka si běhy stáhne přímo z tvého účtu Garmin Connect, bez ručního exportu. Potřebuje k tomu <b>klíč Personal API</b>, který si vytvoříš sám v Garmin Connect. Heslo k účtu Garmin appka nikdy nedostane.':
+        'The app downloads your runs straight from your Garmin Connect account, with no manual export. It needs a <b>Personal API key</b>, which you create yourself in Garmin Connect. The app never gets your Garmin password.',
+    'Otevři v prohlížeči <a href="%(url)s" target="_blank" rel="noopener">Garmin Connect, Nastavení, Personal API</a> a přihlas se.':
+        'Open <a href="%(url)s" target="_blank" rel="noopener">Garmin Connect, Settings, Personal API</a> in your browser and sign in.',
+    'Klikni na <b>Create Key</b>, potvrď podmínky a vyber platnost (nejdéle jeden rok).':
+        'Click <b>Create Key</b>, accept the terms and choose how long it is valid (one year at most).',
+    'Klíč zkopíruj (Garmin ho ukáže jen jednou) a vlož ho sem.':
+        'Copy the key (Garmin shows it only once) and paste it here.',
+    'Klíč Personal API':
+        'Personal API key',
+    'Připojit účet Garmin':
+        'Connect Garmin account',
+    'Klíč se uloží jen do datové složky appky v tomhle počítači a posílá se jen Garminu. Kdo má klíč, může číst tvoje data z Garmin Connect, takže ho nikomu neposílej. Když klíč vyprší nebo ho v Garmin Connect smažeš, appka řekne, ať vložíš nový.':
+        "The key is stored only in the app's data folder on this computer and is sent only to Garmin. Anyone with the key can read your Garmin Connect data, so do not send it to anyone. When the key expires or you delete it in Garmin Connect, the app asks you for a new one.",
+    'Období':
+        'Period',
+    'Ukázat':
+        'Show',
+    'Předvybrané jsou běhy, které v appce ještě nejsou. Načtené běhy se samy spárují se závody.':
+        'Runs that are not in the app yet are selected. Loaded runs pair with your races on their own.',
+    'V appce':
+        'In the app',
+    'Načíst %(name)s':
+        'Load %(name)s',
+    'Načíst vybrané':
+        'Load selected',
+    'Za tohle období nejsou v Garmin Connect žádné aktivity.':
+        'There are no activities in Garmin Connect for this period.',
+    'Model kopců ze všech běhů':
+        'Hill model from all runs',
+    'Stáhne všechny běhy za vybrané období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Potom zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou.':
+        'Downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Then only the race runs stay; the others (they show where you live) are deleted.',
+    'Stáhnout běhy a spočítat model':
+        'Download runs and fit the model',
+    'Účet Garmin je připojený klíčem uloženým jen v tomhle počítači.':
+        'The Garmin account is connected with a key stored on this computer only.',
+    'Odpojit účet Garmin':
+        'Disconnect Garmin account',
+    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V <a href="%(url)s">Nahrát běhy, Načíst přímo z Garmin Connect</a> vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
+        '<b>Easiest: straight from Garmin Connect.</b> In <a href="%(url)s">Upload runs, Load straight from Garmin Connect</a> you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
+    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V Nahrát běhy, Načíst přímo z Garmin Connect vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
+        '<b>Easiest: straight from Garmin Connect.</b> In Upload runs, Load straight from Garmin Connect you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
+    'Načíst přímo z Garmin Connect':
+        'Load straight from Garmin Connect',
+    'Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.':
+        'No manual export: the app downloads runs from your Garmin account with a key you paste only here.',
 }
 
 EN.update({

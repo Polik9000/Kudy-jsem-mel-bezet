@@ -1,0 +1,81 @@
+{% extends "ob/base.html" %}
+{% block title %}{{ _('Běhy z Garmin Connect') }}{% endblock %}
+{% block content %}
+{% set period_names = {14: _('poslední 2 týdny'), 60: _('poslední 2 měsíce'), 365: _('poslední rok'), 3650: _('všechno')} %}
+<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Běhy z Garmin Connect') }}</h2>
+<p><a href="{{ url_for('ob.upload') }}">{{ _('Zpět na Nahrát běhy') }}</a></p>
+{% if not connected %}
+<div class="karta">
+  <p>{% trans %}Appka si běhy stáhne přímo z tvého účtu Garmin Connect, bez ručního exportu. Potřebuje k tomu
+    <b>klíč Personal API</b>, který si vytvoříš sám v Garmin Connect. Heslo k účtu Garmin appka nikdy nedostane.{% endtrans %}</p>
+  <ol>
+    <li>{% trans url=key_page %}Otevři v prohlížeči <a href="{{ url }}" target="_blank" rel="noopener">Garmin Connect, Nastavení, Personal API</a>
+      a přihlas se.{% endtrans %}</li>
+    <li>{% trans %}Klikni na <b>Create Key</b>, potvrď podmínky a vyber platnost (nejdéle jeden rok).{% endtrans %}</li>
+    <li>{% trans %}Klíč zkopíruj (Garmin ho ukáže jen jednou) a vlož ho sem.{% endtrans %}</li>
+  </ol>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="akce" value="klic">
+    <label class="ob-pole">{{ _('Klíč Personal API') }}
+      <input type="password" name="klic" required autocomplete="off" spellcheck="false"></label>
+    <div class="controls"><button type="submit" class="btn btn-hlavni">{{ _('Připojit účet Garmin') }}</button></div>
+  </form>
+  <p class="hint">{% trans %}Klíč se uloží jen do datové složky appky v tomhle počítači a posílá se jen Garminu. Kdo má klíč,
+    může číst tvoje data z Garmin Connect, takže ho nikomu neposílej. Když klíč vyprší nebo ho v Garmin Connect
+    smažeš, appka řekne, ať vložíš nový.{% endtrans %}</p>
+</div>
+{% else %}
+<form method="get" class="controls karta">
+  <label>{{ _('Období') }}
+    <select name="dni" onchange="this.form.submit()">
+      {% for d in periods %}<option value="{{ d }}" {{ 'selected' if d == days }}>{{ period_names[d] }}</option>{% endfor %}
+    </select></label>
+  <noscript><button type="submit" class="btn btn-maly">{{ _('Ukázat') }}</button></noscript>
+</form>
+{% if rows is not none %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="akce" value="nacist">
+  {% if rows %}
+  <p class="hint">{% trans %}Předvybrané jsou běhy, které v appce ještě nejsou. Načtené běhy se samy spárují se závody.{% endtrans %}</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th data-sort="text">{{ _('Start') }}</th><th data-sort="text">{{ _('Název') }}</th><th data-sort="text">{{ _('Druh') }}</th>
+        <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">km</th><th>{{ _('V appce') }}</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr><td><input type="checkbox" name="aktivita" value="{{ r.id }}" aria-label="{{ _('Načíst %(name)s', name=r.name) }}"
+               {{ 'checked' if r.run and not r.in_app }}></td>
+        <td data-value="{{ r.start }}">{{ r.start | kdy }}</td><td class="ob-wrap">{{ r.name }}</td><td>{{ r.type }}</td>
+        <td class="num" data-value="{{ r.time_s }}">{{ r.time_s | mmss }}</td>
+        <td class="num">{{ '%.2f' | format(r.km) }}</td><td>{{ _('ano') if r.in_app else '' }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <div class="controls"><button type="submit" class="btn btn-hlavni">{{ _('Načíst vybrané') }}</button></div>
+  {% else %}
+  <p>{{ _('Za tohle období nejsou v Garmin Connect žádné aktivity.') }}</p>
+  {% endif %}
+</form>
+{% endif %}
+<div class="karta">
+  <h3>{{ _('Model kopců ze všech běhů') }}</h3>
+  <p>{% trans %}Stáhne všechny běhy za vybrané období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako
+    z exportu účtu Garmin. Potom zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou.{% endtrans %}</p>
+  <form method="post" class="controls">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="akce" value="vse">
+    <select name="dni" aria-label="{{ _('Období') }}">
+      {% for d in periods %}<option value="{{ d }}" {{ 'selected' if d == 365 }}>{{ period_names[d] }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn">{{ _('Stáhnout běhy a spočítat model') }}</button>
+  </form>
+</div>
+<form method="post" class="karta">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="akce" value="odpojit">
+  <p class="hint">{{ _('Účet Garmin je připojený klíčem uloženým jen v tomhle počítači.') }}</p>
+  <button type="submit" class="btn btn-maly">{{ _('Odpojit účet Garmin') }}</button>
+</form>
+{% endif %}
+{% endblock %}
