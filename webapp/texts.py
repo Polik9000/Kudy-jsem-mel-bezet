@@ -626,6 +626,28 @@ def official_reason(reason):
     return reason or ""
 
 
+def gps_trim(trim):
+    """What was cut off the start and the end of the GPS track (oroute.gpstrim.apply: track["trim"]), in Czech."""
+    head, tail, mode = trim.get("head") or [], trim.get("tail") or [], trim.get("mode")
+    auto = trim.get("auto") or {}
+    out = []
+    if head:
+        why = auto.get("start_why") if mode == "auto" else None
+        out.append(f"začátek stopy uříznutý o {mmss(trim['start_s'])}"
+                   + (f" (GPS se ještě nechytila a pak skočila o {why['jump_m']} m)" if why else ""))
+    if tail:
+        why = auto.get("end_why") if mode == "auto" else None
+        out.append(f"konec uříznutý o {mmss(trim['length_s'] - trim['end_s'])}"
+                   + (f" (GPS na konci skočila o {why['jump_m']} m)" if why else ""))
+    if not out:
+        if mode == "off":
+            return "Stopa se neořezává, je použitá celá."
+        return "Stopa vypadá v pořádku, nic se neořezalo."
+    lead = {"auto": "Automaticky: ", "manual": "Ručně: "}.get(mode, "")
+    text = lead + " a ".join(out) + "."
+    return text[0].upper() + text[1:]
+
+
 # --- English: the same functions, answered by texts_en.py when the page is English ------------------------------------
 
 def _in_language(name):
@@ -642,5 +664,5 @@ def _in_language(name):
 
 for _name in ("match_note", "flags", "gps_trouble", "mistake", "attack", "feature", "relocate", "beyond", "lost_advice",
               "lost_note", "lost_moment", "crossed", "analysis_error", "photo_problem", "photo_failed", "screen_failed",
-              "screen_note", "georef_reason", "official_reason"):
+              "screen_note", "georef_reason", "official_reason", "gps_trim"):
     _in_language(_name)

@@ -496,3 +496,24 @@ def official_reason(reason):
     if reason == "no official finish time":
         return "ORIS has no finish time"
     return reason or ""
+
+
+def gps_trim(trim):
+    head, tail, mode = trim.get("head") or [], trim.get("tail") or [], trim.get("mode")
+    auto = trim.get("auto") or {}
+    out = []
+    if head:
+        why = auto.get("start_why") if mode == "auto" else None
+        out.append(f"the first {mmss(trim['start_s'])} of the track are cut off"
+                   + (f" (the GPS had no fix yet and then jumped {why['jump_m']} m)" if why else ""))
+    if tail:
+        why = auto.get("end_why") if mode == "auto" else None
+        out.append(f"the last {mmss(trim['length_s'] - trim['end_s'])} are cut off"
+                   + (f" (the GPS jumped {why['jump_m']} m at the end)" if why else ""))
+    if not out:
+        if mode == "off":
+            return "The track is not cut, all of it is used."
+        return "The track looks fine, nothing is cut off."
+    lead = {"auto": "Automatically: ", "manual": "By hand: "}.get(mode, "")
+    text = lead + " and ".join(out) + "."
+    return text[0].upper() + text[1:]

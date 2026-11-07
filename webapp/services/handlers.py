@@ -434,6 +434,7 @@ def photo_track(conf, info):
     or jobs.Refused with what is missing."""
     import datetime as dt
 
+    from oroute import gpstrim
     from oroute.errors import InputError
     from oroute.fitload import load_track
 
@@ -443,7 +444,7 @@ def photo_track(conf, info):
         raise jobs.Refused(_("Fotka mapy se usazuje podle tvé stopy v oficiálních časech ražení: k závodu chybí "
                                "běh z hodinek nebo mezičasy z ORIS. Nahraj nejdřív běh z hodinek (.fit)."))
     try:
-        track = load_track(conf.path(info["fit_file"]))
+        track = gpstrim.apply(load_track(conf.path(info["fit_file"])), runner.gps_trim(info))
     except InputError as e:
         raise jobs.Refused(texts.analysis_error(e.code, e.text)) from e
     rec = track["start"] if track["start"].tzinfo else track["start"].replace(tzinfo=dt.timezone.utc)

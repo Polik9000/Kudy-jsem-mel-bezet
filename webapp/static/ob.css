@@ -126,6 +126,10 @@ path.ob-podklad { stroke: #fff; }
 path.ob-plan { stroke: var(--ob-plan); }
 path.ob-zakaz { stroke: var(--ob-chyba); }
 path.ob-oprava { stroke: var(--ink); }
+path.ob-gps-orez { stroke: #4d5356; stroke-dasharray: 6 6; filter: drop-shadow(0 0 1.4px #fff) drop-shadow(0 0 1px #fff); }
+path.ob-gps-orez-bod { stroke: #fff; fill: #4d5356; }
+.ob-gps-orez .ob-pole input[type=range] { width: min(28rem, 100%); }
+.ob-gps-orez-posuvniky { margin: .4rem 0; }
 path.ob-zakaz-osm { stroke: var(--ob-chyba); }
 path.ob-zakaz-plocha { stroke: var(--ob-chyba); fill: var(--ob-chyba); }
 path.ob-prechod { stroke: var(--brand); fill: var(--flag-a); }

@@ -40,7 +40,7 @@ def _ground(e):
     from ..services import runner
     from ..services.handlers import photo_track
     info = runner.entry_info(get_db(), e["id"])
-    key = ("g", info["fit_file"], info["start_local"], info["splits"])
+    key = ("g", info["fit_file"], info["start_local"], info["splits"], info["gps_trim"])
     if key not in _cache:
         _trim()
         track, start_s, cumulative = photo_track(cfg(), info)

@@ -117,6 +117,22 @@ def entry_info(con, entry_id):
         (entry_id,)).fetchone()
 
 
+def gps_trim(info):
+    """How the start and the end of the track are cut (analyze.py --gps-trim): "auto", "off" or "FROM:TO".
+    entries.gps_trim is JSON dict(activity, mode, start_s, end_s): it holds only for the run it was set on (another
+    run paired with the race is cut automatically again)."""
+    try:
+        t = json.loads(info["gps_trim"] or "null")
+    except ValueError:
+        t = None
+    if not t or not info["activity_id"] or t.get("activity") != info["activity_id"] or t.get("mode") == "auto":
+        return "auto"
+    if t.get("mode") == "off":
+        return "off"
+    lo, hi = t.get("start_s"), t.get("end_s")
+    return f"{'' if lo is None else round(float(lo), 1)}:{'' if hi is None else round(float(hi), 1)}"
+
+
 def official_times(info):
     """The dict oroute/official.py takes, when ORIS gave a start time and split times; else None."""
     cum = loads(info["splits"])
@@ -236,7 +252,7 @@ def _write_json(path, data):
 
 
 # the code that reads what the samples of a race are made of: the terrain of the map and the track of the run
-SAMPLE_CODE = ("oroute/terrain.py", "oroute/mapdata.py", "oroute/fitload.py", "oroute/official.py")
+SAMPLE_CODE = ("oroute/terrain.py", "oroute/mapdata.py", "oroute/fitload.py", "oroute/gpstrim.py", "oroute/official.py")
 
 
 def samples_key(conf, info, out):
@@ -250,6 +266,7 @@ def samples_key(conf, info, out):
     for path in (conf.path(info["maponly_file"]), conf.path(info["fit_file"])):
         st = os.stat(path)
         h.update(f"{os.path.basename(path)}/{st.st_size}/{st.st_mtime_ns}".encode())
+    h.update(f"trim {gps_trim(info)}".encode())
     for name in ("course.json", "official.json"):
         path = os.path.join(out, name)
         if os.path.exists(path):
@@ -323,7 +340,7 @@ def _routing_inputs(con, conf, info, out, extra, notes):
     script = ["bestroute.py", conf.path(info["maponly_file"]), os.path.join(out, "course.json"),
               conf.path(info["fit_file"]), best,
               "--title", f"{info['event_name']} ({info['class_name']})", *slope, *extra, "--dem", conf.dem,
-              "--no-images", "--terrain-cache", _terrain_cache(conf, info["event_id"])]
+              "--no-images", "--terrain-cache", _terrain_cache(conf, info["event_id"]), "--gps-trim", gps_trim(info)]
     with open(os.path.join(out, "course.json"), encoding="utf-8") as f:
         n_legs = len(json.load(f)["controls"]) + 1
     return script, n_legs, shared
@@ -370,7 +387,7 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
         if os.path.exists(conf.path(storage.course_json(info["course_file"]))):
             shutil.copyfile(conf.path(storage.course_json(info["course_file"])), os.path.join(out, "course.json"))
             given = ["--course", os.path.join(out, "course.json")]
-        _run("analyze.py", course, fit, out, "--no-images", *given, *extra)
+        _run("analyze.py", course, fit, out, "--no-images", "--gps-trim", gps_trim(info), *given, *extra)
         if after_course:
             after_course(rel)
     if not info["maponly_file"]:

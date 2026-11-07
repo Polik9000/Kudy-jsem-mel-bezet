@@ -110,6 +110,8 @@ CREATE TABLE IF NOT EXISTS entries (
     match_note       TEXT,
     own_osm_mode     TEXT,           -- the runner's own setting instead of events.osm_mode; NULL = as the race has it
     own_hatch_mode   TEXT,           -- the same for events.hatch_mode
+    gps_trim         TEXT,           -- JSON: how the start and end of the run's GPS track are cut
+                                     -- (services/runner.py gps_trim); NULL = automatically
     class_chosen     INTEGER NOT NULL DEFAULT 0,   -- 1: the runner chose the class (services/oris_class.py); the
                                                    -- class of their ORIS entry does not replace it
     UNIQUE (user_id, class_id)

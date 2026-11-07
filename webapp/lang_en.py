@@ -1811,6 +1811,40 @@ EN = {
         'Load straight from Garmin Connect',
     'Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.':
         'No manual export: the app downloads runs from your Garmin account with a key you paste only here.',
+    'Oříznutí stopy se nezměnilo.':
+        'The cut of the track has not changed.',
+    'Po oříznutí by zbyla méně než minuta stopy. Nic se neuložilo.':
+        'Less than a minute of the track would be left. Nothing was saved.',
+    ' Analýza se přepočítá na pozadí.':
+        ' The analysis will be redone in the background.',
+    'Začátek a konec GPS stopy':
+        'Start and end of the GPS track',
+    ': oříznuto':
+        ': cut',
+    'Uříznutá část je v mapě šedě čárkovaně.':
+        'The part cut off is grey and dashed on the map.',
+    'Uprostřed stopy chybí GPS: v %(at)s na %(dur)s min (rovná čára %(dist)s m). Tam se nic neořezává, úseky by přišly o čas. Když tě rovná čára na úseku ruší, otevři úsek a dej <b>Opravit moji stopu</b>.':
+        'The GPS is missing in the middle of the track: at %(at)s for %(dur)s min (a straight line of %(dist)s m). Nothing is cut there, the legs would lose time. If the straight line bothers you on a leg, open the leg and choose <b>Correct my track</b>.',
+    'uřízne jen skok GPS na začátku nebo na konci, dobrá stopa zůstane celá':
+        'cuts off only a GPS jump at the start or at the end, a good track stays whole',
+    'neořezávat':
+        'do not cut',
+    'použije se celá stopa, jak ji hodinky zapsaly':
+        'the whole track is used as the watch recorded it',
+    'ručně':
+        'by hand',
+    'začátek a konec nastavíš posuvníky':
+        'set the start and the end with the sliders',
+    'Stopa začíná v':
+        'The track starts at',
+    'Stopa končí v':
+        'The track ends at',
+    'Čas je od prvního bodu GPS, celkem %(total)s. Šedá čárkovaná část v mapě se uřízne; začátek stopy je bod, odkud se počítá start (když závod nemá mezičasy z ORIS).':
+        'Time from the first GPS point, %(total)s in all. The grey dashed part on the map is cut off; the start of the track is where the start is counted from (when the race has no split times in ORIS).',
+    'Uložit a přepočítat':
+        'Save and recompute',
+    'Vrátit to jde kdykoli: vyber „automaticky“ a ulož.':
+        'You can undo it at any time: choose “automatically” and save.',
 }
 
 EN.update({
