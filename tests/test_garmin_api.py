@@ -150,10 +150,10 @@ def test_offer_download_and_pair(local):
     c = local.test_client()
     c.get("/")
     fake = FakeGarmin({111: (_now(2), "running"), 112: (_now(5), "orienteering"), 113: (_now(6), "cycling"),
-                       114: (_now(300), "running")})
+                       115: (_now(1), "walking"), 114: (_now(300), "running")})
     _connect(local, c, fake)
     html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
-    assert 'value="111"' in html and 'value="112"' in html and 'value="113"' in html and 'value="114"' not in html
+    assert all(f'value="{i}"' in html for i in (111, 112, 113, 115)) and 'value="114"' not in html
     checked = set(re.findall(r'value="(\d+)" aria-label="[^"]*"\s*checked', html))
     assert checked == {"111", "112"}                 # a ride is not pre-selected
     r = c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", aktivita=["111", "112"]))
@@ -183,16 +183,44 @@ def test_all_runs_as_an_export(local):
     c.get("/")
     fake = FakeGarmin({121: (_now(2), "running"), 122: (_now(4), "trail_running"), 123: (_now(5), "cycling")})
     _connect(local, c, fake)
-    c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="vse", dni="60"))
+    c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", model="1", dni_model="60"))
     run_once(local.config["OB"])
     from webapp import db as dbm
     con = dbm.connect(local.config["OB"].db_path)
     job = con.execute("SELECT status, message FROM jobs WHERE kind = 'garmin_api'").fetchone()
     assert job["status"] == "done", job["message"]
-    assert "Staženo z Garmin Connect 2" in job["message"] and "V archivu 2 souborů .fit" in job["message"]
+    assert "staženo z Garmin Connect 2 běhů" in job["message"] and "V archivu 2 souborů .fit" in job["message"]
     downloads = [p for m, p in fake.calls if p.startswith("/download-service")]
     assert len(downloads) == 2                      # the ride is not downloaded
     assert not os.listdir(local.config["OB"].path("incoming"))   # the zip is gone
+
+
+def test_chosen_runs_and_hill_model_in_one_go(local):
+    """One button: the chosen runs stay (even though they are paired with no race), the model is fitted from all
+    runs of the period, and the other runs of the period are dropped afterwards."""
+    load_handlers()
+    c = local.test_client()
+    c.get("/")
+    fake = FakeGarmin({131: (_now(2), "running"), 132: (_now(4), "trail_running"), 133: (_now(5), "walking"),
+                       134: (_now(6), "running")})
+    _connect(local, c, fake)
+    html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
+    assert 'id="garmin-druh"' in html and 'value="walking"' in html and 'value="trail_running"' in html
+    assert "Zaškrtnout vše" in html and 'name="model"' in html
+    # the walk is chosen by hand, together with the model
+    c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", aktivita=["133"],
+                                       model="1", dni_model="60"))
+    run_once(local.config["OB"])
+    from webapp import db as dbm
+    con = dbm.connect(local.config["OB"].db_path)
+    job = con.execute("SELECT status, message FROM jobs WHERE kind = 'garmin_api'").fetchone()
+    assert job["status"] == "done", job["message"]
+    assert "Model kopců: staženo z Garmin Connect 3 běhů" in job["message"]
+    kept = con.execute("SELECT source, original_name FROM activities").fetchall()
+    assert [(r["source"], r["original_name"]) for r in kept] == [("garmin-api", "133_ACTIVITY.fit")]
+    # nothing chosen and no model: refused
+    r = c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist"), follow_redirects=True)
+    assert "Nevybral jsi žádnou aktivitu" in r.get_data(as_text=True)
 
 
 def test_page_in_english(local):

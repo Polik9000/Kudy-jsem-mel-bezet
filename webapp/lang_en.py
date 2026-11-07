@@ -1690,6 +1690,34 @@ EN = {
         "(optional, by hand, e.g. “knoll, north foot”)",
     "Rozbor po závodě: co bylo kolem kontroly a jak ses z místa, kde ses ztratil, měl vrátit. Rada je odhad z kresby mapy (cesty, vodoteče, ploty, okraje ploch, budovy), bez vrstevnic a skal. „Nedalo se minout“ znamená, že na tu věc bys narazil odkudkoli z kruhu nejistoty, kdybys šel daným směrem. Do oplocených a zakázaných míst rada nevede.":
         "An analysis after the race: what was around the control and how you should have got back from the place where you got lost. The advice is an estimate from the drawing of the map (paths, streams, fences, edges of areas, buildings), without contours and cliffs. “Could not be missed” means that you would hit that feature from anywhere in the circle of uncertainty if you went in the given direction. The advice does not lead into fenced and out-of-bounds places.",
+    'V Garmin Connect za vybrané období není žádný běh.':
+        'There is no run in Garmin Connect for the chosen period.',
+    'Model kopců: staženo z Garmin Connect %(n)s běhů.':
+        'Hill model: downloaded %(n)s runs from Garmin Connect.',
+    'Nevybral jsi žádnou aktivitu ani model kopců.':
+        'You selected no activity and no hill model.',
+    'Stahuji z Garmin Connect: vybrané aktivity %(n)s, model kopců: %(model)s. Samy se spárují se závody.':
+        'Downloading from Garmin Connect: selected activities %(n)s, hill model: %(model)s. They pair with your races on their own.',
+    'Druh aktivity':
+        'Activity type',
+    'všechny druhy (%(n)s)':
+        'all types (%(n)s)',
+    'neznámý':
+        'unknown',
+    'Zaškrtnout vše zobrazené':
+        'Select all shown',
+    'Zrušit zaškrtnutí':
+        'Clear selection',
+    '<b>Spočítat i model kopců</b> ze všech běhů za období':
+        '<b>Also fit the hill model</b> from all runs of the period',
+    'Období modelu kopců':
+        'Period for the hill model',
+    'Vybrané běhy výše se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.':
+        'The runs you selected above are saved and stay. On top of that the app downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Of those only the race runs stay; the others (they show where you live) are deleted. Both happen in one go.',
+    'Načíst vybrané a model kopců':
+        'Load selected and hill model',
+    'Zaškrtnuto':
+        'Selected',
     # Garmin Connect (Personal API)
     'Tohle nevypadá jako klíč Personal API z Garmin Connect. Zkopíruj ho celý.':
         'This does not look like a Garmin Connect Personal API key. Copy all of it.',
@@ -1725,18 +1753,12 @@ EN = {
         'No activity selected.',
     'Z Garmin Connect se nestáhla žádná aktivita.':
         'No activity was downloaded from Garmin Connect.',
-    'Staženo z Garmin Connect %(n)s aktivit.':
-        'Downloaded %(n)s activities from Garmin Connect.',
     'Klíč je uložený jen v tomhle počítači. Appka teď načte tvoje aktivity z Garmin Connect.':
         'The key is stored on this computer only. The app now loads your activities from Garmin Connect.',
     'Klíč je z tohoto počítače smazaný. V Garmin Connect ho můžeš smazat i tam.':
         'The key is deleted from this computer. You can delete it in Garmin Connect too.',
     'Nevybral jsi žádnou aktivitu.':
         'You did not select any activity.',
-    'Stahuji %(n)s aktivit z Garmin Connect. Samy se spárují se závody.':
-        'Downloading %(n)s activities from Garmin Connect. They pair with your races on their own.',
-    'Stahuji všechny běhy za vybrané období. Spočítá se z nich model kopců a zůstanou jen běhy ze závodů, jako u exportu účtu.':
-        'Downloading all runs of the chosen period. Your hill model is fitted from them, and then only the race runs stay, as with an account export.',
     'Běhy z Garmin Connect':
         'Runs from Garmin Connect',
     'poslední 2 týdny':
@@ -1777,12 +1799,6 @@ EN = {
         'Load selected',
     'Za tohle období nejsou v Garmin Connect žádné aktivity.':
         'There are no activities in Garmin Connect for this period.',
-    'Model kopců ze všech běhů':
-        'Hill model from all runs',
-    'Stáhne všechny běhy za vybrané období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Potom zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou.':
-        'Downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Then only the race runs stay; the others (they show where you live) are deleted.',
-    'Stáhnout běhy a spočítat model':
-        'Download runs and fit the model',
     'Účet Garmin je připojený klíčem uloženým jen v tomhle počítači.':
         'The Garmin account is connected with a key stored on this computer only.',
     'Odpojit účet Garmin':
