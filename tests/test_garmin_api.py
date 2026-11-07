@@ -149,11 +149,11 @@ def test_offer_download_and_pair(local):
     load_handlers()
     c = local.test_client()
     c.get("/")
-    fake = FakeGarmin({111: (_now(2), "running"), 112: (_now(5), "orienteering"), 113: (_now(6), "cycling"),
+    fake = FakeGarmin({111: (_now(2), "running"), 112: (_now(5), "orienteering"), 113: (_now(6), "cycling"), 115: (_now(1), "walking"),
                        114: (_now(300), "running")})
     _connect(local, c, fake)
     html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
-    assert 'value="111"' in html and 'value="112"' in html and 'value="113"' in html and 'value="114"' not in html
+    assert 'value="111"' in html and 'value="112"' in html and 'value="113"' in html and 'value="115"' in html and 'value="114"' not in html
     checked = set(re.findall(r'value="(\d+)" aria-label="[^"]*"\s*checked', html))
     assert checked == {"111", "112"}                 # a ride is not pre-selected
     r = c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", aktivita=["111", "112"]))

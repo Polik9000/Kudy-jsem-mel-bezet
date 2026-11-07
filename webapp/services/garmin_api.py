@@ -36,8 +36,8 @@ PAGE = 100            # activities per page of the list
 MAX_LIST = 3000       # never more than this many activities in one list (about ten years of daily runs)
 PAUSE_S = 0.2         # between two downloads: the Personal API publishes no rate limit, so go easy on it
 REFRESH_S = 3600      # a cached token is taken while it has more than an hour left (as Garmin's client does)
-# activity types (Garmin typeKey) offered first: what an orienteering race or a run is recorded as
-RUN_TYPES = ("run", "orienteering", "hiking", "walking", "trail", "track")
+# activity types (Garmin typeKey) that are selected first and downloaded for the hill model
+RUN_TYPES = ("run", "orienteering")   # running, trail_running, track_running; walking and hiking are listed, not selected
 
 
 class GarminApiError(Exception):
