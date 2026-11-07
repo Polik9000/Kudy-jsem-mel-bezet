@@ -93,19 +93,34 @@ def _import_upload(ctx, job):
 @jobs.handler("garmin_api")
 def _garmin_api(ctx, job):
     """Runs from the runner's Garmin Connect account (services/garmin_api.py, only the app on one's own computer).
-    mode "vybrane": the chosen activities are stored as if uploaded one by one, and paired with the races.
-    mode "export": every run of the period, handled as a whole Garmin export (import_upload): races from ORIS,
-    pairing, the own hill model, and then only the runs paired with races (or recorded at one) stay."""
+    payload ids: the chosen activities, stored as if uploaded one by one (they stay) and paired with the races.
+    payload model_days: every run of that many last days, handled as a whole Garmin export (import_upload):
+    races from ORIS, pairing, the own hill model, and then only the runs paired with races (or recorded at one)
+    stay. Both can come in one job: the chosen runs are stored first, so the export part does not drop them."""
     p = jobs.payload(job)
     uid = job["user_id"]
     ids = [int(i) for i in p.get("ids", [])]
-    if p.get("mode") == "export" and not ids:     # every run of the last `days` days
+    days = int(p["model_days"]) if p.get("model_days") else None
+    if not ids and not days:
+        raise jobs.Refused(_("Nevybraná žádná aktivita."))
+    parts = []
+    if ids:
+        parts.append(_garmin_chosen(ctx, job, uid, ids))
+    if days:
         try:
-            ids = [r["id"] for r in garmin_api.offer(ctx.con, ctx.conf, uid, int(p.get("days", 365))) if r["run"]]
+            all_ids = [r["id"] for r in garmin_api.offer(ctx.con, ctx.conf, uid, days) if r["run"]]
         except garmin_api.GarminApiError as e:
             raise jobs.Refused(str(e)) from None
-    if not ids:
-        raise jobs.Refused(_("Nevybraná žádná aktivita."))
+        if not all_ids:
+            raise jobs.Refused(_("V Garmin Connect za vybrané období není žádný běh."))
+        rel, path, got, note = _garmin_download(ctx, job, uid, all_ids)
+        msg = _import_upload(ctx, dict(job, payload=dumps(dict(file=rel, name="Garmin Connect", kind="export"))))
+        parts.append(_("Model kopců: staženo z Garmin Connect %(n)s běhů.", n=got) + " " + msg + note)
+    return "\n".join(parts)
+
+
+def _garmin_download(ctx, job, uid, ids):
+    """Download the activities into a zip in the incoming folder: (relative path, path, downloaded, note)."""
     rel, path = storage.incoming(ctx.conf, ".zip")
     try:
         got, skipped = garmin_api.download_zip(ctx.conf, uid, ids, path,
@@ -118,9 +133,12 @@ def _garmin_api(ctx, job):
     if not got:
         os.remove(path)
         raise jobs.Refused(_("Z Garmin Connect se nestáhla žádná aktivita.") + note)
-    if p.get("mode") == "export":
-        msg = _import_upload(ctx, dict(job, payload=dumps(dict(file=rel, name="Garmin Connect", kind="export"))))
-        return _("Staženo z Garmin Connect %(n)s aktivit.", n=got) + " " + msg + note
+    return rel, path, got, note
+
+
+def _garmin_chosen(ctx, job, uid, ids):
+    """The chosen activities: stored, the races loaded from ORIS when there is something new, paired."""
+    rel, path, got, note = _garmin_download(ctx, job, uid, ids)
     new = 0
     try:
         for name, data in garmin.iter_fit(path):

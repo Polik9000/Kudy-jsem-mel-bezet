@@ -33,18 +33,28 @@
     </select></label>
   <noscript><button type="submit" class="btn btn-maly">{{ _('Ukázat') }}</button></noscript>
 </form>
-{% if rows is not none %}
-<form method="post">
+<form method="post" id="garmin-vyber">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="akce" value="nacist">
+  {% if rows is not none %}
   {% if rows %}
   <p class="hint">{% trans %}Předvybrané jsou běhy, které v appce ještě nejsou. Načtené běhy se samy spárují se závody.{% endtrans %}</p>
+  <div class="controls karta">
+    <label>{{ _('Druh aktivity') }}
+      <select id="garmin-druh">
+        <option value="">{{ _('všechny druhy (%(n)s)', n=rows | length) }}</option>
+        {% for t, n in types %}<option value="{{ t }}">{{ t or _('neznámý') }} ({{ n }})</option>{% endfor %}
+      </select></label>
+    <button type="button" class="btn btn-maly" id="garmin-vse">{{ _('Zaškrtnout vše zobrazené') }}</button>
+    <button type="button" class="btn btn-maly" id="garmin-nic">{{ _('Zrušit zaškrtnutí') }}</button>
+    <span class="hint" id="garmin-pocet" role="status"></span>
+  </div>
   <div class="tablewrap"><table>
     <thead><tr><th></th><th data-sort="text">{{ _('Start') }}</th><th data-sort="text">{{ _('Název') }}</th><th data-sort="text">{{ _('Druh') }}</th>
         <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">km</th><th>{{ _('V appce') }}</th></tr></thead>
     <tbody>
     {% for r in rows %}
-    <tr><td><input type="checkbox" name="aktivita" value="{{ r.id }}" aria-label="{{ _('Načíst %(name)s', name=r.name) }}"
+    <tr data-druh="{{ r.type }}"><td><input type="checkbox" name="aktivita" value="{{ r.id }}" aria-label="{{ _('Načíst %(name)s', name=r.name) }}"
                {{ 'checked' if r.run and not r.in_app }}></td>
         <td data-value="{{ r.start }}">{{ r.start | kdy }}</td><td class="ob-wrap">{{ r.name }}</td><td>{{ r.type }}</td>
         <td class="num" data-value="{{ r.time_s }}">{{ r.time_s | mmss }}</td>
@@ -52,25 +62,47 @@
     {% endfor %}
     </tbody>
   </table></div>
-  <div class="controls"><button type="submit" class="btn btn-hlavni">{{ _('Načíst vybrané') }}</button></div>
   {% else %}
   <p>{{ _('Za tohle období nejsou v Garmin Connect žádné aktivity.') }}</p>
   {% endif %}
-</form>
-{% endif %}
-<div class="karta">
-  <h3>{{ _('Model kopců ze všech běhů') }}</h3>
-  <p>{% trans %}Stáhne všechny běhy za vybrané období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako
-    z exportu účtu Garmin. Potom zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou.{% endtrans %}</p>
-  <form method="post" class="controls">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="akce" value="vse">
-    <select name="dni" aria-label="{{ _('Období') }}">
+  {% endif %}
+  <div class="karta">
+    <label><input type="checkbox" name="model" value="1" checked>
+      {% trans %}<b>Spočítat i model kopců</b> ze všech běhů za období{% endtrans %}</label>
+    <select name="dni_model" aria-label="{{ _('Období modelu kopců') }}">
       {% for d in periods %}<option value="{{ d }}" {{ 'selected' if d == 365 }}>{{ period_names[d] }}</option>{% endfor %}
     </select>
-    <button type="submit" class="btn">{{ _('Stáhnout běhy a spočítat model') }}</button>
-  </form>
-</div>
+    <p class="hint">{% trans %}Vybrané běhy výše se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich,
+      jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů;
+      ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.{% endtrans %}</p>
+    <div class="controls"><button type="submit" class="btn btn-hlavni">{{ _('Načíst vybrané a model kopců') }}</button></div>
+  </div>
+</form>
+<script>
+(function () {
+  var form = document.getElementById("garmin-vyber"), sel = document.getElementById("garmin-druh");
+  if (!form || !sel) return;
+  var rows = Array.prototype.slice.call(form.querySelectorAll("tbody tr[data-druh]"));
+  var info = document.getElementById("garmin-pocet");
+  function visible(r) { return r.style.display !== "none"; }
+  function count() {
+    var n = rows.filter(function (r) { return r.querySelector("input").checked; }).length;
+    info.textContent = {{ _('Zaškrtnuto') | tojson }} + ": " + n + " / " + rows.length;
+  }
+  function filter() {
+    rows.forEach(function (r) { r.style.display = !sel.value || r.getAttribute("data-druh") === sel.value ? "" : "none"; });
+  }
+  sel.addEventListener("change", filter);
+  document.getElementById("garmin-vse").addEventListener("click", function () {
+    rows.filter(visible).forEach(function (r) { r.querySelector("input").checked = true; }); count();
+  });
+  document.getElementById("garmin-nic").addEventListener("click", function () {
+    rows.forEach(function (r) { r.querySelector("input").checked = false; }); count();
+  });
+  form.addEventListener("change", count);
+  count();
+})();
+</script>
 <form method="post" class="karta">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="akce" value="odpojit">

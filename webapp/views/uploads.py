@@ -81,20 +81,16 @@ def garmin_page():
             garmin_api.forget(conf, uid)
             flash(_("Klíč je z tohoto počítače smazaný. V Garmin Connect ho můžeš smazat i tam."), "ok")
         elif act == "nacist":
-            ids = [i for i in request.form.getlist("aktivita") if i.isdecimal()]
-            if not ids:
-                flash(_("Nevybral jsi žádnou aktivitu."), "error")
+            ids = [int(i) for i in request.form.getlist("aktivita") if i.isdecimal()]
+            days = request.form.get("dni_model", type=int) if request.form.get("model") else None
+            days = days if days in DAYS else (365 if days else None)
+            if not ids and not days:
+                flash(_("Nevybral jsi žádnou aktivitu ani model kopců."), "error")
             else:
-                jobs.enqueue(db, "garmin_api", user_id=uid, payload=dict(mode="vybrane", ids=[int(i) for i in ids]))
-                flash(_("Stahuji %(n)s aktivit z Garmin Connect. Samy se spárují se závody.", n=len(ids)), "ok")
+                jobs.enqueue(db, "garmin_api", user_id=uid, payload=dict(ids=ids, model_days=days))
+                flash(_("Stahuji z Garmin Connect: vybrané aktivity %(n)s, model kopců: %(model)s."
+                        " Samy se spárují se závody.", n=len(ids), model=_("ano") if days else _("ne")), "ok")
                 return go(url_for("ob.jobs_page"))
-        elif act == "vse":
-            days = request.form.get("dni", type=int)
-            jobs.enqueue(db, "garmin_api", user_id=uid,
-                         payload=dict(mode="export", days=days if days in DAYS else 365))
-            flash(_("Stahuji všechny běhy za vybrané období. Spočítá se z nich model kopců a zůstanou jen běhy"
-                    " ze závodů, jako u exportu účtu."), "ok")
-            return go(url_for("ob.jobs_page"))
         return redirect(url_for("ob.garmin_page"))
     days = request.args.get("dni", type=int)
     days = days if days in DAYS else 60
@@ -104,5 +100,7 @@ def garmin_page():
             rows = garmin_api.offer(db, conf, uid, days)
         except garmin_api.GarminApiError as e:
             flash(str(e), "error")
-    return render_template("ob/garmin.html", connected=connected, rows=rows, days=days, periods=DAYS,
+    types = sorted({r["type"] for r in rows or []})
+    types = [(t, sum(1 for r in rows if r["type"] == t)) for t in types]
+    return render_template("ob/garmin.html", connected=connected, rows=rows, types=types, days=days, periods=DAYS,
                            key_page=garmin_api.KEY_PAGE)
