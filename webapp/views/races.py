@@ -478,7 +478,7 @@ def _take_map(db, e, kind, f):
             if os.path.exists(tmp):
                 os.remove(tmp)
         if not e["activity_id"] or not loads(e["splits"]):
-            flash(_("Fotka je uložená. Až doplníš běh z hodinek a mezičasy z ORIS, usadí se automaticky."), "ok")
+            flash(_("Fotka je uložená, ale zatím se neusadí.") + " " + _waiting_for(db, e), "ok")
             return []
         jobs.enqueue(db, "georef_map", user_id=g.user["id"], entry_id=e["id"], payload=dict(stored_photo=True))
         flash(_("Fotka je uložená a usazuje se na pozadí; výsledek uvidíš v úlohách."), "ok")
@@ -520,6 +520,24 @@ def _take_map(db, e, kind, f):
                  if was == "screen" else ""), "ok")
     db.commit()
     return [r["id"] for r in who]
+
+
+def _waiting_for(db, e):
+    """Why a map photo or Livelox screenshots saved for the race cannot be placed yet (they are placed by the run
+    and the official punch times), in words that say what to do. e: get_entry row (after the files were taken)."""
+    if not e["activity_id"]:
+        return _("Až nahraješ běh z hodinek (.fit), usadí se automaticky.")
+    data = class_splits.load(db, e["class_id"])
+    if not data or not data.get("runners"):
+        return _("ORIS zatím nemá mezičasy kategorie %(class_name)s. Jakmile je ORIS zveřejní a appka je načte, "
+                 "usadí se automaticky.", class_name=e["class_name"])
+    regno = (g.user["oris_regno"] or "").upper()
+    if not regno or not any((r.get("regno") or "").upper() == regno for r in data["runners"]):
+        return _("Ve výsledcích kategorie %(class_name)s v ORIS tě nevidím, a bez tvých mezičasů se mapa podle běhu "
+                 "usadit nedá. Běžel jsi jinou kategorii? Vyber ji pod „Běžel jsem jinou kategorii“.",
+                 class_name=e["class_name"])
+    return _("V ORIS u tebe v kategorii %(class_name)s nejsou časy ražení ani čas v cíli, podle kterých se mapa "
+             "usazuje. Nahraj místo snímků KMZ z Livelox.", class_name=e["class_name"])
 
 
 def _take_screens(db, e, course, maponly):
@@ -567,7 +585,7 @@ def _take_screens(db, e, course, maponly):
     if queued:
         flash(_("Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů. Výsledek uvidíš v úlohách."), "ok")
     else:
-        flash(_("Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS, usadí se automaticky."), "ok")
+        flash(_("Snímky z Livelox jsou uložené, ale zatím se neusadí.") + " " + _waiting_for(db, e), "ok")
     return []
 
 
@@ -580,6 +598,8 @@ def race_map_upload(entry_id):
     if kind not in ("course", "maponly") or not f or not f.filename:
         abort(400)
     db = get_db()
+    if class_splits.fill_missing(db, g.user["id"]):
+        e = get_entry(entry_id)
     who = _take_map(db, e, kind, f)
     for i in who or []:
         matching.queue_analysis(db, i)
@@ -595,8 +615,9 @@ def race_files(entry_id):
     """Everything the race needs in one form: the run from the watch (fit) and the two maps (course, maponly),
     any of them. The run is paired with this race by hand. The analysis is queued once, after all the files
     are in, not once per file."""
-    e = get_entry(entry_id)
     db = get_db()
+    class_splits.fill_missing(db, g.user["id"])   # a disqualified run: its times from the class splits
+    e = get_entry(entry_id)
     sent = {k: f for k, f in ((k, request.files.get(k))
                               for k in ("fit", "course", "course_photo", "maponly", "screen_course", "screen_maponly"))
             if f and f.filename}

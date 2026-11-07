@@ -5,6 +5,7 @@ from oroute import garmin
 
 from ..db import loads
 from . import jobs
+from . import splits as class_splits
 
 
 def _activities(con, user_id):
@@ -79,6 +80,7 @@ def ready(con, entry_id):
 
 def queue_waiting_photos(con, user_id):
     """Queue map photos uploaded before the runner's FIT or ORIS splits became available."""
+    class_splits.fill_missing(con, user_id)
     rows = con.execute(
         "SELECT e.id FROM entries e JOIN photos p ON p.entry_id = e.id JOIN classes c ON c.id = e.class_id"
         " WHERE e.user_id = ? AND e.activity_id IS NOT NULL AND e.splits IS NOT NULL"
@@ -96,6 +98,7 @@ def queue_waiting_photos(con, user_id):
 
 def queue_waiting_screens(con, user_id):
     """Queue Livelox screenshots uploaded before the FIT or official ORIS splits arrived."""
+    class_splits.fill_missing(con, user_id)
     rows = con.execute(
         "SELECT e.id, p.class_id FROM entries e JOIN pending_screens p"
         " ON p.class_id = e.class_id AND p.user_id = e.user_id"

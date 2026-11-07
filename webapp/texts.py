@@ -576,8 +576,10 @@ def screen_failed(code, data=None):
             return "Na snímku s tratí nejsou vidět kolečka kontrol. Je v Livelox zapnutá trať tvé kategorie?"
         m = re.match(r"the circles in the picture do not fit the track: (\d+) of (\d+) controls matched", reason)
         if m:
-            return (f"Kolečka na snímku neodpovídají tvé stopě: sedí jen {m.group(1)} z {m.group(2)} kontrol. Je to "
-                    "trať tvé kategorie a běh z tohoto závodu? Na snímku má být vidět celá trať.")
+            return (f"Kolečka na snímku neodpovídají tvé stopě: sedí jen {m.group(1)} z {m.group(2)} kontrol. Zkontroluj "
+                    "tři věci: v Livelox je zapnutá trať tvé kategorie (ne jiné), k závodu je spárovaný tvůj běh "
+                    "z tohoto dne (Podklady, Běh z hodinek) a kategorie závodu sedí s tou, kterou jsi běžel (jinou "
+                    "vybereš pod „Běžel jsem jinou kategorii“). Na snímku má být vidět celá trať.")
         m = re.match(r"too few points: (\d+) circles in the picture, (\d+) controls", reason)
         if m and int(m.group(2)) >= 4:
             return (f"Na snímku {kolecek(int(m.group(1)))} kontrol, tvoje trať jich má {m.group(2)}. Oddal mapu, ať je "

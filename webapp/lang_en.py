@@ -2205,3 +2205,24 @@ EN_JS = {
     "Uložená fotka mapy už tu není; nahraj ji znovu.":
         "The saved map photo is no longer here; upload it again.",
 }
+
+# Texts of the pages that ended up among the script texts above: the pages need them in EN.
+EN.update({k: v for k, v in EN_JS.items() if k not in EN})
+
+EN.update({
+    "Snímky z Livelox jsou uložené, ale zatím se neusadí.":
+        "The Livelox screenshots are saved, but they cannot be placed yet.",
+    "Fotka je uložená, ale zatím se neusadí.":
+        "The photo is saved, but it cannot be placed yet.",
+    "Až nahraješ běh z hodinek (.fit), usadí se automaticky.":
+        "Once you upload the watch run (.fit), it will be placed automatically.",
+    "ORIS zatím nemá mezičasy kategorie %(class_name)s. Jakmile je ORIS zveřejní a appka je načte, usadí se automaticky.":
+        "ORIS has no split times for category %(class_name)s yet. Once ORIS publishes them and the app loads them, "
+        "it will be placed automatically.",
+    "Ve výsledcích kategorie %(class_name)s v ORIS tě nevidím, a bez tvých mezičasů se mapa podle běhu usadit nedá. Běžel jsi jinou kategorii? Vyber ji pod „Běžel jsem jinou kategorii“.":
+        "You are not in the ORIS results of category %(class_name)s, and without your split times the map cannot be "
+        "placed by your run. Did you run another category? Choose it under “I ran another class”.",
+    "V ORIS u tebe v kategorii %(class_name)s nejsou časy ražení ani čas v cíli, podle kterých se mapa usazuje. Nahraj místo snímků KMZ z Livelox.":
+        "ORIS has no punch times or finish time for you in category %(class_name)s, which the map is placed by. "
+        "Upload a KMZ from Livelox instead of the screenshots.",
+})

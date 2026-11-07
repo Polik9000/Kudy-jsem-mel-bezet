@@ -29,6 +29,30 @@ def load(con, class_id):
     return loads(row["data"]) if row else None
 
 
+def fill_missing(con, user_id):
+    """Entries of the user without their own split times, whose class splits are kept and hold the runner: take
+    the times from there. Mainly a disqualified run (a missed control), whose times older versions did not keep,
+    so its Livelox screenshots or photo waited for "splits from ORIS" for ever. Returns the entry ids filled."""
+    user = con.execute("SELECT oris_regno FROM users WHERE id = ?", (user_id,)).fetchone()
+    regno = ((user and user["oris_regno"]) or "").upper()
+    if not regno:
+        return []
+    filled = []
+    for e in con.execute("SELECT id, class_id, start_local FROM entries WHERE user_id = ? AND splits IS NULL",
+                         (user_id,)).fetchall():
+        data = load(con, e["class_id"])
+        me = next((r for r in (data or {}).get("runners", []) if (r.get("regno") or "").upper() == regno), None)
+        cum = oris.usable_splits(dict(time_s=me.get("time_s"), cumulative=me.get("cum"))) if me else None
+        if cum is None:
+            continue
+        con.execute("UPDATE entries SET splits = ?, start_local = COALESCE(start_local, ?) WHERE id = ?",
+                    (dumps(cum), me.get("start_local"), e["id"]))
+        filled.append(e["id"])
+    if filled:
+        con.commit()
+    return filled
+
+
 def leg_names(n):
     return [f"{'S' if k == 1 else k - 1}-{'F' if k == n else k}" for k in range(1, n + 1)]
 

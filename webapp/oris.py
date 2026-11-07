@@ -132,19 +132,30 @@ def oresults_url(links):
 def parse_splits(data, regno):
     """One runner's official times in a class, or None when the class has no splits for them.
 
-    Returns dict(control_codes, start_local 'HH:MM:SS', time_s, place,
-                 cumulative = seconds from the start to each control and last to the finish; None = no punch).
+    Returns dict(control_codes, start_local 'HH:MM:SS', time_s, place, status ("OK" or what ORIS wrote instead of
+    a time, e.g. "DISK"), cumulative = seconds from the start to each control and last to the finish; None = no
+    punch). A disqualified runner (a missed control) has time_s None, but the punches they have and the finish on
+    the clock are still in cumulative: the run can be placed on the map and analysed by them.
     """
     if not data or not isinstance(data, dict):
         return None
-    row = next((p for p in _items(data.get("Splits")) if (p.get("RegNo") or "").upper() == regno.upper()), None)
-    if row is None:
+    if next((p for p in _items(data.get("Splits")) if (p.get("RegNo") or "").upper() == regno.upper()), None) is None:
         return None
-    codes = _codes(data)
-    time_s = seconds(row.get("ResTime"))
-    cum = [seconds(row.get(f"TotalTime{i}")) for i in range(1, len(codes) + 1)]
-    return dict(control_codes=codes, start_local=row.get("StartTime") or None, time_s=time_s,
-                place=(row.get("ResPlace") or "").strip(". ") or None, cumulative=cum + [time_s])
+    whole = parse_class_splits(data)
+    me = next(r for r in whole["runners"] if (r["regno"] or "") == regno.upper())
+    return dict(control_codes=whole["control_codes"], start_local=me["start_local"], time_s=me["time_s"],
+                place=me["place"], status=me["status"], cumulative=me["cum"])
+
+
+def usable_splits(t):
+    """The cumulative times to keep for an entry (JSON-ready list) from parse_splits / runner_times, or None when
+    they cannot place the run: no finish time even on the clock, or no punch at all."""
+    cum = (t or {}).get("cumulative") or []
+    if t and t.get("time_s") is not None:
+        return cum                          # classified: kept as always
+    if not cum or cum[-1] is None or not any(c is not None for c in cum[:-1]):
+        return None
+    return cum
 
 
 def start_utc(date, start_local):
