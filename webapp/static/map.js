@@ -113,10 +113,11 @@
     $("l-course").hidden = !(overlays.maponly && overlays.course);
     $("c-course").checked = !overlays.maponly;
     showMap();
-    ["barriers", "controls", "best", "track", "planned", "stops", "marks", "refresh", "catch", "sel", "draw"].forEach(function (k) {
+    ["barriers", "controls", "best", "track", "orez", "planned", "stops", "marks", "refresh", "catch", "sel", "draw"].forEach(function (k) {
       groups[k] = L.layerGroup().addTo(map);
     });
     draw();
+    trimPreview();
     table();
     strip();
     totals();
@@ -254,7 +255,7 @@
   }
 
   function draw() {
-    Object.keys(groups).forEach(function (k) { if (k !== "draw") { groups[k].clearLayers(); } });
+    Object.keys(groups).forEach(function (k) { if (k !== "draw" && k !== "orez") { groups[k].clearLayers(); } });
     var n = D.course.length;
     // out-of-bounds areas read from the purple hatching of the map with the course
     (D.areas || []).forEach(function (ring) {
@@ -910,5 +911,56 @@
       document.body.setAttribute("data-obnovit", "");
       $("p-saved").textContent = pts ? T("Opravená stopa uložená, postupy se přepočítávají.") : T("Zpět na GPS stopu, postupy se přepočítávají.");
     }).catch(function () { $("p-saved").textContent = T("Uložení se nepovedlo, zkus to znovu."); });
+  }
+
+  // "Začátek a konec GPS stopy": the part of the recording cut off (or about to be, while the sliders move) is
+  // drawn grey and dashed, with a dot where the track begins and ends. Times are seconds from the first position
+  // the watch wrote (oroute/gpstrim.py); the track of the page starts at trim.start_s of them.
+  function trimPreview() {
+    var T = D.track.trim, form = document.querySelector("[data-orez]");
+    if (!T || !groups.orez) { return; }
+    var raw = T.head.slice();
+    D.track.t.forEach(function (t, i) { raw.push([D.track.lat[i], D.track.lon[i], t + T.start_s]); });
+    raw = raw.concat(T.tail);
+    function cut(lo, hi) {
+      var before = [], after = [], a = null, b = null;
+      groups.orez.clearLayers();
+      raw.forEach(function (p) {
+        if (p[2] < lo) { before.push([p[0], p[1]]); } else if (p[2] > hi) { after.push([p[0], p[1]]); }
+        else { if (!a) { a = p; } b = p; }
+      });
+      // the dashed line reaches the first (last) point kept: the straight line the cut takes away
+      if (before.length && a) { before.push([a[0], a[1]]); }
+      if (after.length && b) { after.unshift([b[0], b[1]]); }
+      [before, after].forEach(function (pts) {
+        if (pts.length > 1) {
+          L.polyline(pts, { className: "ob-gps-orez", weight: 3, interactive: false }).addTo(groups.orez);
+        }
+      });
+      [a, b].forEach(function (p) {
+        if (p && (before.length || after.length)) {
+          L.circleMarker([p[0], p[1]], { className: "ob-gps-orez-bod", radius: 4, weight: 1.5, fillOpacity: 1,
+                                         interactive: false }).addTo(groups.orez);
+        }
+      });
+    }
+    cut(T.start_s, T.end_s);
+    if (!form) { return; }
+    var lo = form.elements.start_s, hi = form.elements.end_s, box = form.querySelector("[data-orez-rucne]");
+    function fmt(s) { s = Math.round(s); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
+    function show() {
+      var mode = form.elements.mode.value;
+      box.hidden = mode !== "manual";
+      if (+lo.value > +hi.value - 60) {
+        if (document.activeElement === hi) { hi.value = +lo.value + 60; } else { lo.value = Math.max(0, +hi.value - 60); }
+      }
+      form.querySelectorAll("[data-orez-cas]")[0].textContent = fmt(lo.value);
+      form.querySelectorAll("[data-orez-cas]")[1].textContent = fmt(hi.value);
+      if (mode === "manual") { cut(+lo.value, +hi.value); }
+      else if (mode === "off") { cut(-1, T.length_s + 1); }
+      else { cut(T.auto.start_s, T.auto.end_s); }
+    }
+    form.addEventListener("input", show);
+    form.addEventListener("change", show);
   }
 })();

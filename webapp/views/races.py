@@ -11,7 +11,7 @@ from oroute import garmin
 
 from .. import cfg, club, get_db, i18n, oris, texts
 from ..auth import login_required
-from ..db import loads
+from ..db import dumps, loads
 from ..i18n import N_, _
 from ..services import accounts, barriers, jobs, mapfix, matching, oris_class, plans, results, screens, storage, view
 from ..services import splits as class_splits
@@ -310,6 +310,7 @@ def race(entry_id):
         osm_enabled=cfg().osm, mode_names={k: _(v) for k, v in MODE_NAMES.items()},
         hatch_info=barriers.hatch_data(cfg(), e["class_id"]),
         refreshes=refreshments(db, e["event_id"]), wide=bool(analysis),
+        trim=gps_trim_view(e, analysis),
         progress=entry_progress(db, entry_id), stamp=analysis_stamp(db, entry_id),
         sp=class_splits.view(db, e, g.user["oris_regno"], _model_times(db, analysis)),
         model_stale=bool(analysis and analysis["has_routes"] and model and analysis["model_id"] != model["id"]),
@@ -394,6 +395,56 @@ def race_settings(entry_id):
     else:
         flash(_("Nastavení se nezměnilo."), "ok")
     return redirect(url_for("ob.race", entry_id=entry_id) + "#nastaveni")
+
+
+def gps_trim_view(e, analysis):
+    """What the race page says about the start and end of the GPS track (oroute/gpstrim.py): the cut of the
+    analysis shown (trim of analysis.json), the runner's setting and a sentence; None without an analysis or
+    from before the cut existed."""
+    trim = (loads(analysis["track"], {}) or {}).get("trim") if analysis else None
+    if not trim:
+        return None
+    try:
+        own = loads(e["gps_trim"])
+    except (ValueError, TypeError):
+        own = None
+    mode = own.get("mode") if own and own.get("activity") == e["activity_id"] else "auto"
+    return dict(trim, setting=mode, text=texts.gps_trim(trim))
+
+
+@bp.route("/races/<int:entry_id>/gps-trim", methods=["POST"])
+@login_required
+def race_gps_trim(entry_id):
+    """How the start and the end of the GPS track are cut: mode auto (oroute/gpstrim.py finds a jump of the GPS),
+    off (all of it) or manual (start_s, end_s: seconds from the first position of the recording). The whole
+    analysis is done again (the track, the splits and the samples of the model change)."""
+    e = get_entry(entry_id)
+    mode = request.form.get("mode")
+    if mode not in ("auto", "off", "manual") or not e["activity_id"]:
+        abort(400)
+    new = dict(activity=e["activity_id"], mode=mode)
+    if mode == "manual":
+        try:
+            lo, hi = float(request.form["start_s"]), float(request.form["end_s"])
+        except (KeyError, ValueError):
+            abort(400)
+        if hi - lo < 60:
+            flash(_("Po oříznutí by zbyla méně než minuta stopy. Nic se neuložilo."), "error")
+            return redirect(url_for("ob.race", entry_id=entry_id) + "#orez-gps")
+        new.update(start_s=round(max(lo, 0.0), 1), end_s=round(hi, 1))
+    db = get_db()
+    try:
+        old = loads(e["gps_trim"])
+    except (ValueError, TypeError):
+        old = None
+    if old == new or (mode == "auto" and not old):
+        flash(_("Oříznutí stopy se nezměnilo."), "ok")
+        return redirect(url_for("ob.race", entry_id=entry_id) + "#orez-gps")
+    db.execute("UPDATE entries SET gps_trim = ? WHERE id = ?", (None if mode == "auto" else dumps(new), entry_id))
+    db.commit()
+    queued = matching.queue_analysis(db, entry_id)
+    flash(_("Uloženo.") + (_(" Analýza se přepočítá na pozadí.") if queued else ""), "ok")
+    return redirect(url_for("ob.race", entry_id=entry_id))
 
 
 def _take_map(db, e, kind, f):

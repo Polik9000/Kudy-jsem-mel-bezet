@@ -14,6 +14,9 @@ Writes to OUT_DIR:
 
 --official FILE: JSON with the organiser's times ({"start_utc": ..., "cumulative": [...]}, see oroute/official.py).
 When given, the punches are taken from those times instead of the closest GPS approach.
+--gps-trim auto|off|FROM:TO: the start and the end of the recording where the GPS was not there yet (or any more)
+are cut off automatically (auto, the default; oroute/gpstrim.py), kept (off), or cut at the seconds given
+(from the first position of the recording).
 """
 import argparse
 import csv
@@ -24,7 +27,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from oroute import errors  # noqa: E402
+from oroute import errors, gpstrim  # noqa: E402
 from oroute.analysis import analyse_legs, estimate_offset, find_punches, flag_legs, track_xy, unrecorded  # noqa: E402
 from oroute.course import (  # noqa: E402
     detect_course,
@@ -66,11 +69,13 @@ def main():
     ap.add_argument("--official", help="JSON with official start and split times; used instead of GPS punch detection")
     ap.add_argument("--no-images", action="store_true",
                     help="do not draw the overlay pictures (the web app draws the map itself from analysis.json)")
+    ap.add_argument("--gps-trim", default="auto",
+                    help="auto (default): cut off a GPS jump at the start or the end; off; FROM:TO in seconds")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
     gm = GeoMap.from_kmz(args.kmz)
-    tr = load_track(args.fit)
+    tr = gpstrim.apply(load_track(args.fit), args.gps_trim)
     u0, v0 = gm.latlon_to_px(tr["lat"][:1], tr["lon"][:1])
 
     if args.course:
@@ -193,6 +198,10 @@ def main():
     weak = [i + 1 for i, s in enumerate(line_scores[:-1]) if s < 0.5] if line_scores is not None else []
     if weak:
         lines += ["", f"Note: course order is uncertain around leg(s) {weak}; check course.json."]
+    cut = tr["trim"]
+    if cut["head"] or cut["tail"]:
+        lines += ["", f"GPS track cut ({cut['mode']}): kept {mmss(cut['start_s'])} to {mmss(cut['end_s'])} of "
+                  f"{mmss(cut['length_s'])} recorded."]
     if gone:
         lines += ["", "No GPS data on leg(s) " + ", ".join(leg_name(k, n) for k in sorted(gone))
                   + ": the recording does not show them (started late, stopped early or a control not visited)."]
@@ -222,7 +231,8 @@ def main():
         start=tr["start"].isoformat(), total_time=total, est_loss=loss, vref=vref, rref=rref, offset_m=off,
         weak_order=weak, official=official,
         course=[dict(lat=round(float(la), 7), lon=round(float(lo), 7)) for la, lo in course_ll],
-        track=dict(t=rounded(t, 2), lat=rounded(tr["lat"], 6), lon=rounded(tr["lon"], 6), speed=rounded(speed, 2)),
+        track=dict(t=rounded(t, 2), lat=rounded(tr["lat"], 6), lon=rounded(tr["lon"], 6), speed=rounded(speed, 2),
+                   trim=tr["trim"]),
         punch=punch, legs=out_legs))
 
 

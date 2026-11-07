@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from oroute import errors, generic, mapdata  # noqa: E402
+from oroute import errors, generic, gpstrim, mapdata  # noqa: E402
 from oroute import terrain as T  # noqa: E402
 from oroute.analysis import analyse_legs, find_punches, flag_legs, smooth_speed, track_xy, unrecorded  # noqa: E402
 from oroute.dem import load_dem_grid  # noqa: E402
@@ -280,6 +280,8 @@ def main():
     ap.add_argument("--samples-only", action="store_true",
                     help="stop after fit_samples.npz and leg_samples.npz: what the personal speed model learns "
                          "from this race, without finding any route")
+    ap.add_argument("--gps-trim", default="auto",
+                    help="the start and end of the recording to cut off, as analyze.py takes it (oroute/gpstrim.py)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -314,7 +316,7 @@ def main():
 
     pts_xy = [tuple(float(a) for a in gm.to_xy(p["lat"], p["lon"])) for p in pts_ll]
 
-    tr = load_track(args.fit)
+    tr = gpstrim.apply(load_track(args.fit), args.gps_trim)
     punch, official = None, None
     if args.official:
         tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official)))
