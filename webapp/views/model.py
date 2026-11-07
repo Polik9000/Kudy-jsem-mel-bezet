@@ -89,6 +89,40 @@ def tables(model):
     return terrain, hills
 
 
+TEXTBOOK_UP_K = SpeedModel().up_k   # 1 m of climb = this many metres on the flat in the textbook (about Naismith)
+
+
+def gist(model, terrain, slope_own, races):
+    """Two to four plain sentences over the tables: where the runner is faster or slower than the map key says,
+    the hills, and how much to trust it all."""
+    _ = i18n._
+    out = []
+    known = [r for r in terrain if r["prior"] and r["seconds"] >= 120]
+    if known:
+        best = max(known, key=lambda r: r["factor"] / r["prior"])
+        worst = min(known, key=lambda r: r["factor"] / r["prior"])
+        up = best["factor"] / best["prior"] - 1
+        down = 1 - worst["factor"] / worst["prior"]
+        if up >= 0.08:
+            out.append(_("Terén „%(name)s“ běháš rychleji, než čeká mapový klíč (asi o %(pct)s %%).",
+                         name=best["name"], pct=f"{up * 100:.0f}"))
+        if down >= 0.08 and worst is not best:
+            out.append(_("Terén „%(name)s“ běháš pomaleji, než čeká mapový klíč (asi o %(pct)s %%).",
+                         name=worst["name"], pct=f"{down * 100:.0f}"))
+        if not out:
+            out.append(_("V terénech, kde máš dost dat, běháš zhruba tak, jak čeká mapový klíč."))
+    if slope_own:
+        k = model.up_k / TEXTBOOK_UP_K
+        out.append(_("Do kopce: 1 m stoupání tě stojí jako %(k)s m po rovině (učebnice počítá asi %(book)s m),",
+                     k=i18n.num(model.up_k, 1), book=f"{TEXTBOOK_UP_K:.0f}") + " "
+                   + (_("takže jsi do kopce silnější než průměr.") if k < 0.85 else
+                      _("takže jsi do kopce slabší než průměr.") if k > 1.15 else _("zhruba jako průměr.")))
+    n = len(races)
+    out.append((_("Model stojí na %(n)s závodě", n=n) if n == 1 else _("Model stojí na %(n)s závodech", n=n))
+               + (_(", je zatím jen orientační.") if n < 4 else "." if n < 10 else _(", už je docela spolehlivý.")))
+    return out
+
+
 FIT_RACES = 10   # "Jak dobře model sedí": the latest races with best routes and the split times of the class
 
 
@@ -132,7 +166,9 @@ def model():
                            personal=m.notes.get("personal") or {}, slope=m.slope_from or {},
                            slope_own=bool(m.notes.get("slope_own")), fitted_at=rows[0]["fitted_at"],
                            slope_chart=charts.slope_chart(m, curve), check=m.notes.get("check"),
-                           average=average_summary(db, g.user["id"]), fit=class_fit(db, g.user))
+                           average=average_summary(db, g.user["id"]), fit=class_fit(db, g.user),
+                           gist=gist(m, terrain, bool(m.notes.get("slope_own")),
+                                     (m.notes.get("personal") or {}).get("races", [])))
 
 
 @bp.route("/model/prepocitat-vse", methods=["POST"])

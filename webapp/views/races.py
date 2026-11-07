@@ -13,7 +13,21 @@ from .. import cfg, club, get_db, i18n, oris, texts
 from ..auth import login_required
 from ..db import dumps, loads
 from ..i18n import N_, _
-from ..services import accounts, barriers, jobs, mapfix, matching, oris_class, plans, results, screens, storage, view
+from ..services import (
+    accounts,
+    barriers,
+    jobs,
+    local_data,
+    mapfix,
+    matching,
+    oris_class,
+    plans,
+    race_file,
+    results,
+    screens,
+    storage,
+    view,
+)
 from ..services import splits as class_splits
 from . import bp, go
 from .jobs import analysis_stamp, entry_progress
@@ -248,6 +262,48 @@ def race_oris_class(oris_id):
                       " WHERE e.user_id = ? AND c.event_id = ? ORDER BY e.id LIMIT 1", (g.user["id"], ev["id"])).fetchone()
     return render_template("ob/race_oris.html", ev=ev, classes=oris_class.event_classes(db, ev["id"]), have=have,
                            oris_url=oris.event_url(oris_id), aktivni="races")
+
+
+MAX_RACE_FILE = 400 * 1024 * 1024      # two KMZ from Livelox and a .fit
+
+
+@bp.route("/races/nacist", methods=["GET", "POST"])
+@login_required
+def race_file_load():
+    """A race saved by another runner of the app (.obzavod, services/race_file.py): only the app on one's own
+    computer; on the server the runners of a race share its maps already."""
+    if not cfg().local:
+        abort(404)
+    if request.method == "POST":
+        f = request.files.get("soubor")
+        data = f.read(MAX_RACE_FILE + 1) if f and f.filename else b""
+        if not data:
+            flash("Vyber soubor se závodem (.obzavod).", "error")
+        elif len(data) > MAX_RACE_FILE:
+            flash("Soubor je na uložený závod příliš velký.", "error")
+        else:
+            try:
+                entry_id, msg = race_file.load(get_db(), cfg(), g.user, data)
+                flash(msg, "ok")
+                return go(url_for("ob.race", entry_id=entry_id))
+            except race_file.BadFile as err:
+                flash(str(err), "error")
+        return go(url_for("ob.race_file_load"))
+    return render_template("ob/race_file.html", aktivni="races")
+
+
+@bp.route("/races/<int:entry_id>/soubor", methods=["POST"])
+@login_required
+def race_file_save(entry_id):
+    """Save the race to a file for another runner: maps, course and official times; the runner's own track and
+    settings only when ticked."""
+    if not cfg().local:
+        abort(404)
+    e = get_entry(entry_id)
+    data = race_file.export(get_db(), cfg(), entry_id, track=request.form.get("stopa") == "1",
+                            mine=request.form.get("nastaveni") == "1")
+    return send_file(io.BytesIO(data), mimetype="application/zip", as_attachment=True,
+                     download_name=race_file.file_name(e))
 
 
 @bp.route("/races/<int:entry_id>/class", methods=["POST"])
@@ -500,7 +556,8 @@ def _take_map(db, e, kind, f):
         screens.drop_event(db, cfg(), e["event_id"])
         who = db.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id WHERE c.event_id = ?",
                          (e["event_id"],)).fetchall()
-        flash(_("Mapa bez tratě je uložená pro všechny, kdo tenhle závod běželi.")
+        flash((_("Mapa bez tratě je uložená.") if cfg().local
+               else _("Mapa bez tratě je uložená pro všechny, kdo tenhle závod běželi."))
               + (_(" Nahradila mapu ze snímku Livelox; nejlepší postupy se přepočítají.")
                  if e["maponly_source"] == "snimek" else ""), "ok")
     else:
@@ -565,9 +622,11 @@ def _take_screens(db, e, course, maponly):
         return []
     queued = matching.queue_waiting_screens(db, g.user["id"])
     if queued:
-        flash(_("Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů. Výsledek uvidíš v úlohách."), "ok")
+        flash(_("Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů."
+                " Výsledek uvidíš v úlohách."), "ok")
     else:
-        flash(_("Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS, usadí se automaticky."), "ok")
+        flash(_("Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS,"
+                " usadí se automaticky."), "ok")
     return []
 
 
@@ -789,12 +848,62 @@ def profile():
                        (regno, person["oris_user_id"], person["name"], g.user["id"]))
             db.commit()
             jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
-            flash(_("Uloženo. Závody z ORIS se načítají (%(name)s).", name=person['name']), "ok")
+            flash(_("Uloženo: %(regno)s patří v ORIS jménu %(name)s. Závody z ORIS se načítají."
+                    " Když to nejsi ty, napiš autorovi aplikace.", regno=regno, name=person['name']), "ok")
             return redirect(url_for("ob.races"))
         db.commit()
         flash(_("Uloženo."), "ok")
         return redirect(url_for("ob.profile"))
-    return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]))
+    return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]), releases=RELEASES,
+                           data_mb=local_data.folder_size(cfg().instance) / 1e6 if cfg().local else 0)
+
+
+RELEASES = "https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest"
+
+
+@bp.route("/externi", methods=["POST"])
+def external_open():
+    """The app on one's own computer: a link to another web site (ORIS, OpenStreetMap) opens in the system
+    browser, the window stays on the app (the window has no address bar or back button)."""
+    if not cfg().local:
+        abort(404)
+    import webbrowser
+    from urllib.parse import urlparse
+    url = (request.get_json(silent=True) or {}).get("url", "")
+    if urlparse(url).scheme not in ("http", "https") or not urlparse(url).netloc:
+        abort(400)
+    webbrowser.open(url)
+    return "", 204
+
+
+@bp.route("/data/slozka", methods=["POST"])
+@login_required
+def data_open():
+    """The app on one's own computer: show the data folder in the file manager."""
+    if not cfg().local:
+        abort(404)
+    if not local_data.open_folder(cfg().instance):
+        flash(f"Složku se nepodařilo otevřít. Najdeš ji tady: {cfg().instance}", "error")
+    return redirect(url_for("ob.profile") + "#data")
+
+
+@bp.route("/data/smazat", methods=["POST"])
+@login_required
+def data_wipe():
+    """The app on one's own computer: delete everything (races, runs, maps, analyses, models). Needs the word
+    SMAZAT typed."""
+    if not cfg().local:
+        abort(404)
+    if request.form.get("potvrzeni", "").strip() != local_data.CONFIRM:
+        flash(f"Nic se nesmazalo. Pro potvrzení napiš {local_data.CONFIRM}.", "error")
+        return redirect(url_for("ob.profile") + "#data")
+    try:
+        local_data.wipe(get_db(), cfg())
+    except local_data.Busy as err:
+        flash(str(err), "error")
+        return redirect(url_for("ob.profile") + "#data")
+    session.clear()
+    return redirect(url_for("ob.races"))
 
 
 @bp.route("/konec", methods=["POST"])

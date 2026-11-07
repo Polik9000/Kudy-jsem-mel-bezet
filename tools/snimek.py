@@ -34,6 +34,10 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# the real races: data/ and tests/golden, or the folder OB_TEST_DATA (tests/README.md)
+_EXT = os.environ.get("OB_TEST_DATA")
+DATA = _EXT or os.path.join(ROOT, "data")
+GOLDEN = os.path.join(_EXT, "golden") if _EXT else os.path.join(ROOT, "tests", "golden")
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
@@ -73,13 +77,13 @@ def sources(names=None):
     """dict(name, slug, course, maponly, golden, fit, official, dem) of every pair of KMZ with and without the course:
     the four races of data/ and the pairs of data-extra/parovani.json."""
     out = []
-    for d in sorted(glob.glob(os.path.join(ROOT, "data", "*", "course.kmz"))):
+    for d in sorted(glob.glob(os.path.join(DATA, "*", "course.kmz"))):
         folder = os.path.dirname(d)
         name = os.path.basename(folder)
-        golden = os.path.join(ROOT, "tests", "golden", name, "course.json")
+        golden = os.path.join(GOLDEN, name, "course.json")
         out.append(dict(name=name, slug=name, course=d, maponly=os.path.join(folder, "maponly.kmz"),
                         golden=golden if os.path.exists(golden) else None, fit=os.path.join(folder, "run.fit"),
-                        official=None, dem=os.path.join(ROOT, "tests", "golden", name, "dem_cache.npz")))
+                        official=None, dem=os.path.join(GOLDEN, name, "dem_cache.npz")))
     pj = os.path.join(ROOT, "data-extra", "parovani.json")
     if os.path.exists(pj):
         with open(pj, encoding="utf-8") as f:

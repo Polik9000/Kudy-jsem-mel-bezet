@@ -1,0 +1,43 @@
+{% extends "ob/base.html" %}
+{% block title %}Načíst z hodinek{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}Načíst z hodinek</h2>
+<p class="evhead">Připoj hodinky Garmin kabelem. Starší modely se ukážou jako disk a běhy v nich najdu sám. Nabídnu jen ty,
+  které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.</p>
+<form method="get" class="karta ob-form">
+  {% if found %}
+  <p>Nalezené hodinky:
+    {% for f in found %}<a class="btn btn-maly" href="{{ url_for('ob.watch_page', slozka=f) }}">{{ f }}</a> {% endfor %}</p>
+  {% else %}
+  <p class="hint">Žádné hodinky jako disk nevidím. Připojené hodinky můžou být v režimu MTP (novější modely, hlavně
+    na Macu), nebo ještě nejsou připojené. Zadej složku s .fit ručně, nebo běhy exportuj z Garmin Connect
+    (<a href="{{ url_for('ob.help_page') }}#garmin">Jak na to</a>) a nahraj je přes Nahrát běhy.</p>
+  {% endif %}
+  <label>Nebo složka se soubory .fit
+    <input name="slozka" value="{{ folder }}" placeholder="{{ sample }}" autocomplete="off"></label>
+  <button type="submit" class="btn">Zobrazit běhy</button>
+</form>
+{% if rows is not none %}
+{% if rows %}
+<form method="post" class="karta">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="slozka" value="{{ folder }}">
+  <p>Ve složce <code>{{ base }}</code> je {{ rows | length }} běhů, nových {{ rows | selectattr('new') | list | length }}.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Start</th><th>Sport</th><th class="num">Čas</th><th class="num">km</th><th>GPS</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr><td>{% if r.new %}<input type="checkbox" name="soubor" value="{{ r.name }}" checked aria-label="Načíst {{ r.name }}">{% endif %}</td>
+      <td>{{ r.start.strftime('%-d. %-m. %Y %H:%M') }}</td><td>{{ r.sport }}</td>
+      <td class="num">{{ r.timer_s | mmss }}</td><td class="num">{{ '%.2f' | format((r.dist_m or 0) / 1000) }}</td>
+      <td>{{ 'ano' if r.has_gps else 'ne' }}</td><td>{% if not r.new %}<span class="hint">už v aplikaci</span>{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <button type="submit" class="btn btn-hlavni">Načíst vybrané</button>
+</form>
+{% elif folder %}
+<p class="prazdno empty">Ve složce nejsou žádné běhy (.fit se záznamem aktivity).</p>
+{% endif %}
+{% endif %}
+{% endblock %}

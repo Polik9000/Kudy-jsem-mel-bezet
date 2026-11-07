@@ -7,8 +7,10 @@
   <label>{{ _('Jméno') }} <input name="name" value="{{ user.name or '' }}"></label>
   {% if local_app and not user.oris_regno %}
   <label>{{ _('Registrační číslo ORIS (nepovinné, např. BFM0000)') }}
-    <input name="oris_regno" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{4}"></label>
-  <p class="hint">{% trans %}Podle něj se z ORIS načtou tvoje závody a kategorie. Zadat ho jde jen jednou.{% endtrans %}</p>
+    <input name="oris_regno" autocomplete="off"
+           pattern="\s*[A-Za-z]{3}\s*[0-9]{4}\s*" title="{{ _('tři písmena oddílu a čtyři číslice, např. BFM0000') }}"></label>
+  <p class="hint">{% trans %}Podle něj se z ORIS načtou tvoje závody a kategorie. Ověří se v ORIS a po uložení se ukáže jméno,
+    ke kterému patří. Zadat ho jde jen jednou, tak ho zkontroluj.{% endtrans %}</p>
   {% endif %}
   <button type="submit" class="btn btn-hlavni">{{ _('Uložit') }}</button>
 </form>
@@ -19,8 +21,8 @@
     <dt>ORIS ID</dt><dd>{{ user.oris_user_id or _('zatím nenačteno') }}</dd>
     <dt>{{ _('Závody z ORIS načteny') }}</dt><dd>{{ (user.oris_synced_at | kdy) or _('zatím ne') }}</dd>
   </dl>
-  <p class="hint">{% trans %}Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.
-    Účet k němu patří napořád, změnit ho nejde.{% endtrans %}</p>
+  <p class="hint">{% trans %}Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.{% endtrans %}
+    {% if not local_app %}{% trans %}Účet k němu patří napořád, změnit ho nejde.{% endtrans %}{% endif %}</p>
   {% if user.oris_user_id and club.ENABLED %}
   <p class="controls zavododkazy ob-odkazy">
     <a class="btn btn-zdroj zdroj-start" href="{{ club.member(user.oris_user_id) }}">{{ ikona('start') }}{{ _('Vizitka na klubovém webu') }}</a>
@@ -47,6 +49,31 @@
     a občerstvovačky (jen už u nich nebude tvoje jméno). Účet si můžeš později založit znovu.{% endtrans %}</p>
   <label>{{ _('Heslo pro potvrzení') }} <input name="password" type="password" autocomplete="current-password" required></label>
   <button type="submit" class="btn">{{ _('Zrušit účet a smazat moje data') }}</button>
+</form>
+{% endif %}
+{% if local_app %}
+<h3 id="data">{{ _('Data a verze') }}</h3>
+<div class="karta">
+  <dl class="detaily">
+    <dt>{{ _('Verze aplikace') }}</dt><dd>{{ app_version }}</dd>
+    <dt>{{ _('Složka s daty') }}</dt><dd><code>{{ data_dir }}</code> ({{ '%.0f' | format(data_mb) }} MB)</dd>
+  </dl>
+  <div class="controls">
+    <form method="post" action="{{ url_for('ob.data_open') }}" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn">{{ _('Otevřít složku s daty') }}</button></form>
+    <a class="btn" href="{{ releases }}" target="_blank" rel="noopener">{{ _('Zkontrolovat nové vydání') }}</a>
+  </div>
+  <p class="hint">{% trans %}Aplikace sama nikam nevolá a nové verze nehledá: odkaz jen otevře stránku vydání v prohlížeči. Novou
+    verzi nainstaluj přes starou, data ve složce zůstanou a závody budou vidět dál.{% endtrans %}</p>
+</div>
+<form method="post" action="{{ url_for('ob.data_wipe') }}" class="karta ob-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p>{% trans races=has.races, activities=has.activities, analyses=has.analyses, notes=has.notes, models=has.models %}Smaže všechno, co je v aplikaci: závody ({{ races }}), běhy z hodinek ({{ activities }}), rozbory
+    ({{ analyses }}), poznámky ({{ notes }}), osobní modely ({{ models }}), mapy i registrační číslo ORIS.
+    Nejde to vrátit.{% endtrans %}</p>
+  <label>{{ _('Pro potvrzení napiš SMAZAT') }} <input name="potvrzeni" autocomplete="off"></label>
+  <button type="submit" class="btn">{{ _('Smazat všechna moje data') }}</button>
 </form>
 {% endif %}
 <h3>{{ _('Soukromí') }}</h3>

@@ -49,7 +49,7 @@ a = Analysis(
 pyz = PYZ(a.pure)
 icon = os.path.join(ICONS, "app.icns" if sys.platform == "darwin" else "app.ico")
 exe = EXE(
-    pyz, a.scripts, [],
+    pyz, a.scripts, [("X utf8", None, "OPTION")],   # UTF-8 mode: open() without encoding must not use cp1252
     exclude_binaries=True,
     name=APP,
     console=os.environ.get("APP_CONSOLE") == "1",   # 1: a console window with the log (for looking into a problem)

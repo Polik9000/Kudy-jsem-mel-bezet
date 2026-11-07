@@ -77,7 +77,6 @@ def test_fit_finds_which_circle_is_which_control():
     assert np.hypot(*(back - got).T).max() < 0.5
 
 
-@pytest.mark.needs_data
 def test_kmz_written_from_a_picture_reads_like_a_livelox_one(tmp_path):
     im = picture([(100, 100), (300, 200)], size=(400, 300))
     gm = GeoMap(im, 49.51, 49.50, 18.22, 18.20, rotation=-4.5, header_px=0)

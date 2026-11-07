@@ -35,11 +35,24 @@ class AnalysisError(Exception):
 STOP_LOOK_S = 1.0   # how often a running script looks whether the runner asked to stop its job
 
 
+_RUNNING = set()     # the scripts running now (kill_all ends them when the desktop app is closed)
+
+
+def kill_all():
+    """End every running script: the app is closing, a script left alone would lose its pipe and fail."""
+    for p in list(_RUNNING):
+        try:
+            p.kill()
+        except OSError:
+            pass
+
+
 def _run(*cmd, on_line=None):
     """Run a script of the repo root. on_line gets every line it prints, as it prints it (python -u).
     Raises jobs.Stopped (the script killed) when the runner asks to stop the job meanwhile."""
     p = subprocess.Popen([sys.executable, "-u", *cmd], cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, encoding="utf-8", errors="replace")
+    _RUNNING.add(p)
     late, halt, done = threading.Event(), threading.Event(), threading.Event()
 
     def stop():
@@ -66,6 +79,7 @@ def _run(*cmd, on_line=None):
     finally:
         timer.cancel()
         done.set()
+        _RUNNING.discard(p)
         if p.poll() is None:  # on_line failed: do not leave the script running on its own
             p.kill()
             p.wait()

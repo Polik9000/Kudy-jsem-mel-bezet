@@ -5,7 +5,20 @@
 <h2 class="s-ikonou">{{ ikona('archiv', 'ikona-nadpis') }}{{ _('Přehled závodů') }}</h2>
 <p class="evhead">{% trans %}Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.{% endtrans %}
   {% if user.oris_synced_at %}{% trans when=user.oris_synced_at | kdy %}ORIS načten {{ when }}.{% endtrans %}{% endif %}</p>
-{% if local_app and not user.oris_regno %}
+{% if local_app and not counts.total %}
+<div class="karta ob-uvod">
+  <h3>{{ _('Jak začít') }}</h3>
+  <ol>
+    <li>{% trans profile=url_for('ob.profile'), oris=url_for('ob.race_oris'), new=url_for('ob.race_new') %}<b>Registrační číslo ORIS</b> (nepovinné) zadej v <a href="{{ profile }}">Profilu</a>: tvoje
+      závody, kategorie a oficiální mezičasy se pak načtou samy. Bez něj přidáš závod
+      <a href="{{ oris }}">podle čísla v ORIS</a> nebo <a href="{{ new }}">ručně</a>.{% endtrans %}</li>
+    <li>{% trans url=url_for('ob.upload') %}<b>Běh z hodinek</b> (.fit nebo zip z Garmin Connect) nahraj v <a href="{{ url }}">Nahrát běhy</a>.
+      Se závodem se spáruje sám.{% endtrans %}</li>
+    <li>{% trans url=url_for('ob.help_page') %}<b>Mapy</b>: u závodu v Podkladech nahraj KMZ z Livelox, s tratí a bez ní.
+      <a href="{{ url }}">Jak na to</a>{% endtrans %}</li>
+  </ol>
+</div>
+{% elif local_app and not user.oris_regno %}
 <p class="karta">{% trans url=url_for('ob.profile') %}Závody z ORIS se načtou samy, když v <a href="{{ url }}">Profilu</a> zadáš svoje
   registrační číslo ORIS. Bez něj můžeš závod přidat z ORIS nebo ručně.{% endtrans %}</p>
 {% endif %}
@@ -13,13 +26,18 @@
 <p class="stalewarn">{% trans error=sync.error.splitlines()[0] %}Poslední načtení z ORIS se nepovedlo: {{ error }}{% endtrans %}</p>
 {% endif %}
 <div class="controls">
+  {% if user.oris_regno %}
   <form method="post" action="{{ url_for('ob.sync') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-hlavni">{{ _('Načíst závody z ORIS') }}</button>
+    <button type="submit" class="btn btn-hlavni" title="{{ _('Načte z ORIS závody, na které jsi přihlášený pod svým registračním číslem') }}">{{ _('Načíst závody z ORIS') }}</button>
   </form>
   <a class="btn" href="{{ url_for('ob.upload') }}">{{ ikona('kompas') }}{{ _('Nahrát běhy') }}</a>
-  <a class="btn" href="{{ url_for('ob.race_oris') }}">{{ _('Přidat závod z ORIS') }}</a>
+  {% else %}
+  <a class="btn btn-hlavni" href="{{ url_for('ob.upload') }}">{{ ikona('kompas') }}{{ _('Nahrát běhy') }}</a>
+  {% endif %}
+  <a class="btn" href="{{ url_for('ob.race_oris') }}" title="{{ _('Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem') }}">{{ _('Přidat závod z ORIS') }}</a>
   <a class="btn" href="{{ url_for('ob.race_new') }}">{{ _('Přidat závod ručně') }}</a>
+  {% if local_app %}<a class="btn" href="{{ url_for('ob.race_file_load') }}" title="{{ _('Závod uložený jiným běžcem (.obzavod)') }}">{{ _('Načíst závod ze souboru') }}</a>{% endif %}
   {% if counts.hotovo %}{% include "ob/_recompute.html" %}{% endif %}
   <span class="spacer"></span>
   {% if seasons | length > 1 %}
@@ -69,8 +87,8 @@
 </div>
 {% else %}
 <div class="tablewrap"><table id="zavody">
-  <thead><tr><th data-sort="text">{{ _('Datum') }}</th><th data-sort="text">{{ _('Závod') }}</th><th data-sort="text">{{ _('Kat.') }}</th>
-      <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">{{ _('Místo') }}</th>
+  <thead><tr><th data-sort="text">{{ _('Datum') }}</th><th data-sort="text">{{ _('Závod') }}</th><th data-sort="text" class="ob-siroky">{{ _('Kat.') }}</th>
+      <th class="num ob-siroky" data-sort="number">{{ _('Čas') }}</th><th class="num ob-siroky" data-sort="number">{{ _('Místo') }}</th>
       <th class="ob-siroky">{{ _('Aktivita') }}</th><th class="ob-siroky">{{ _('Mapa s tratí') }}</th><th class="ob-siroky">{{ _('Mapa bez tratě') }}</th>
       <th data-sort="text">{{ _('Stav') }}</th></tr></thead>
   <tbody>
@@ -78,12 +96,12 @@
   <tr>
     <td data-value="{{ e.date }}">{{ e.date | datum }}</td>
     <td><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a>
-        <span class="evdetail">{% if e.place %}{{ e.place }}{% endif %}
+        <span class="evdetail">{% if e.place %}<span title="{{ e.place }}">{{ e.place.split(', GPS')[0] }}</span>{% endif %}
           {% if e.event_oris_id %}{% if e.place %} · {% endif %}<a href="{{ oris_url(e.event_oris_id) }}" rel="noopener">ORIS {{ e.event_oris_id }}</a>
           {% if club.ENABLED %}· <a href="{{ club.event(e.event_oris_id) }}">{{ _('klubový web') }}</a>{% endif %}{% endif %}</span></td>
-    <td>{{ e.class_name }}</td>
-    <td class="num" data-value="{{ e.official_time_s or '' }}">{{ e.official_time_s | mmss }}</td>
-    <td class="num">{{ e.result_place or '' }}</td>
+    <td class="ob-siroky">{{ e.class_name }}</td>
+    <td class="num ob-siroky" data-value="{{ e.official_time_s or '' }}">{{ e.official_time_s | mmss }}</td>
+    <td class="num ob-siroky">{{ e.result_place or '' }}</td>
     <td class="ob-siroky">{% if e.activity_id %}{{ e.act_start | localtime }}, {{ e.act_timer | mmss }}
         <span class="stav {{ conf[e.match_confidence][1] }}">{{ conf[e.match_confidence][0] }}</span>
         {% else %}<span class="muted">{{ _('chybí') }}</span>{% endif %}</td>

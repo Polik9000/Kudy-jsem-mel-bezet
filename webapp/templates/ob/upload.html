@@ -21,6 +21,8 @@
 {% if local_app %}
 <p class="karta"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}</a>
   <span class="hint">{% trans %}Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.{% endtrans %}</span></p>
+<p class="karta"><a class="btn" href="{{ url_for('ob.watch_page') }}">{{ _('Načíst z hodinek přes USB nebo ze složky') }}</a>
+  <span class="hint">{{ _('Hodinky Garmin připojené kabelem jako disk, nebo složka se soubory .fit.') }}</span></p>
 {% endif %}
 <h2>{% trans %}Nahrané aktivity ({{ total }}){% endtrans %}</h2>
 {% if acts %}
@@ -29,7 +31,8 @@
       <th class="num" data-sort="number">km</th><th>GPS</th><th data-sort="text">{{ _('Závod') }}</th></tr></thead>
   <tbody>
   {% for a in acts %}
-  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ a.sport }}</td>
+  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ {'running': 'běh', 'walking': 'chůze', 'hiking': 'turistika', 'cycling': 'kolo', 'training': 'trénink',
+                  'generic': 'jiná aktivita', 'trail_running': 'běh v terénu'}.get(a.sport, a.sport) }}</td>
       <td class="num" data-value="{{ a.timer_s or 0 }}">{{ a.timer_s | mmss }}</td>
       <td class="num">{{ '%.2f' | format((a.dist_m or 0) / 1000) }}</td>
       <td>{{ _('ano') if a.has_gps else _('ne') }}</td>

@@ -4,7 +4,7 @@ from flask import abort, flash, g, redirect, render_template, request, url_for
 from .. import cfg, get_db
 from ..auth import login_required
 from ..i18n import _
-from ..services import garmin_api, jobs, matching, storage
+from ..services import garmin_api, jobs, matching, storage, watch
 from . import bp, go
 
 
@@ -104,3 +104,34 @@ def garmin_page():
     types = [(t, sum(1 for r in rows if r["type"] == t)) for t in types]
     return render_template("ob/garmin.html", connected=connected, rows=rows, types=types, days=days, periods=DAYS,
                            key_page=garmin_api.KEY_PAGE)
+
+
+@bp.route("/upload/hodinky", methods=["GET", "POST"])
+@login_required
+def watch_page():
+    """Runs from a watch connected by USB, or from a folder (only the app on one's own computer: the server
+    would read its own disk)."""
+    if not cfg().local:
+        abort(404)
+    db = get_db()
+    folder = (request.values.get("slozka") or "").strip()
+    found = watch.watch_folders()
+    if request.method == "POST":
+        try:
+            loaded, there, refused = watch.load(db, cfg(), g.user, folder, request.form.getlist("soubor"))
+        except FileNotFoundError:
+            flash(_("Složka neexistuje."), "error")
+            return redirect(url_for("ob.watch_page"))
+        flash(_("Načteno běhů: %(n)s.", n=loaded) + (" " + _("Už v aplikaci bylo %(n)s.", n=there) if there else "")
+              + (" " + _("Běhy se se závody spárovaly samy.") if loaded else ""), "ok" if loaded else "error")
+        return redirect(url_for("ob.upload"))
+    rows = base = None
+    if not folder and len(found) == 1:
+        folder = found[0]
+    if folder:
+        try:
+            base, rows = watch.offer(db, g.user["id"], folder)
+        except FileNotFoundError:
+            flash(_("Složka neexistuje. Zkontroluj cestu."), "error")
+    return render_template("ob/watch.html", found=found, folder=folder, base=base, rows=rows,
+                           sample="D:\\GARMIN\\Activity")

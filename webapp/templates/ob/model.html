@@ -26,6 +26,8 @@
   </div>
 </div>
 <div class="karta">
+  <h3>{{ _('V kostce') }}</h3>
+  <ul class="ob-kostka">{% for t in gist %}<li>{{ t }}</li>{% endfor %}</ul>
   <dl class="detaily">
     <dt>{{ _('Rychlost na rovné cestě') }}</dt>
     <dd><b>{{ num(model.v_flat * 3.6, 1) }} km/h</b> ({{ (1000 / model.v_flat) | mmss }} min/km)</dd>
@@ -108,6 +110,8 @@
   </table></div>
 </div>
 
+<details class="ob-jak ob-pro-zvidave">
+<summary>{{ _('Závody v modelu, kontrola modelu a historie') }}</summary>
 <h2>{{ _('Závody v modelu') }}</h2>
 <div class="tablewrap"><table>
   <thead><tr><th>{{ _('Závod') }}</th><th class="num">{{ _('Datum') }}</th><th class="num">{{ _('Váha') }}</th><th class="num">{{ _('Čisté sekundy') }}</th>
@@ -157,5 +161,6 @@
   {% endfor %}
   </tbody>
 </table></div>
+</details>
 {% endif %}
 {% endblock %}

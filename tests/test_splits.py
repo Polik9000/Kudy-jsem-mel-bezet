@@ -143,3 +143,17 @@ def test_view_without_the_runner_in_the_class(app):
     a = class_splits.agreement(t, [r * 1.5 for r in t["ref"]])
     assert a["rho"] > 0.999 and a["outliers"] == [] and "stejně jako kategorie" in a["verdict"]
     assert class_splits.agreement(t, [1.0, 2.0]) is None
+
+
+def test_upsert_class_takes_over_a_class_made_without_oris_id(app):
+    """A class added by hand (same race, same name, no ORIS id) must not stop the ORIS sync with a UNIQUE error."""
+    con = dbm.connect(app.config["OB"].db_path)
+    eid = con.execute("INSERT INTO events (name, date) VALUES ('x', '2025-05-17')").lastrowid
+    own = con.execute("INSERT INTO classes (event_id, name) VALUES (?, 'H16C')", (eid,)).lastrowid
+    cid = sync_oris.upsert_class(con, eid, dict(oris_id=202420, name="H16C", distance_km=3.1, climb_m=90, controls=14))
+    assert cid == own
+    row = con.execute("SELECT * FROM classes WHERE id = ?", (own,)).fetchone()
+    assert row["oris_id"] == 202420 and row["distance_km"] == 3.1 and row["controls"] == 14
+    assert con.execute("SELECT COUNT(*) FROM classes").fetchone()[0] == 1
+    assert sync_oris.upsert_class(con, eid, dict(oris_id=202420, name="H16C", distance_km=None, climb_m=None,
+                                                  controls=None)) == own

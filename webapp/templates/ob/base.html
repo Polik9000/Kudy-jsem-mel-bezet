@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10251E">
-  <title>{% block title %}{{ _('Rozbor postupů') }}{% endblock %} · Kudy jsem měl běžet</title>
+  <title>{% block title %}{{ _('Rozbor postupů') }}{% endblock %} · {{ _('Kudy jsem měl běžet') }}</title>
   <script>(function(){try{var r=localStorage.getItem("ob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='base.css') }}">
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='ob.css') }}">
@@ -68,9 +68,9 @@
         <div class="headtexty">
           <div class="headcas">
             <button type="button" class="rezim-prepinac" id="rezim" hidden aria-label="{{ _('Světlý nebo tmavý režim') }}">◐</button>
-            <span class="ted-cas" id="ted-cas"></span>
+            {% if not local_app %}<span class="ted-cas" id="ted-cas"></span>{% endif %}
           </div>
-          <span class="headverze">{% if user %}{{ user.name or (_('na tomhle počítači') if local_app else user.username) }}{% else %}{{ _('nepřihlášen') }}{% endif %}</span>
+          <span class="headverze">{% if user %}{{ user.name or ('' if local_app else user.username) }}{% else %}{{ _('nepřihlášen') }}{% endif %}</span>
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@
   <div class="obsah">
     <main>
       {% for category, message in get_flashed_messages(with_categories=true) %}
-      <p class="{{ 'stalewarn' if category == 'error' else 'nota' }}" role="status">{{ message }}</p>
+      <p class="{{ 'stalewarn' if category == 'error' else 'nota' }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
       {% endfor %}
       {% block content %}{% endblock %}
     </main>
@@ -97,7 +97,7 @@
       {% trans %}Časy a mezičasy: <a href="https://oris.ceskyorientak.cz/">ORIS</a>.{% endtrans %}
       {% trans %}Výškopis: Mapzen Terrain Tiles (AWS){% endtrans %}{% if 'cuzk' in dem_sources %}{% trans %}, DMR 5G © ČÚZK (CC BY 4.0){% endtrans %}{% endif %}.
       {% trans %}Překážky: © přispěvatelé <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL).{% endtrans %}
-      <p class="patverze">ob-tracker {{ app_version }} · {{ _('Kontakt') }}: <a href="mailto:tobiasotta09@gmail.com">tobiasotta09@gmail.com</a></p>
+      <p class="patverze">{{ _('Kudy jsem měl běžet') if local_app else 'ob-tracker' }} {{ app_version }} · {{ _('Kontakt') }}: <a href="mailto:tobiasotta09@gmail.com">tobiasotta09@gmail.com</a></p>
     </footer>
   </div>
 </div>
@@ -109,7 +109,8 @@
   {% endfor %}
 </nav>
 {% endif %}
-<script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }}, lang: {{ lang | tojson }}, t: {{ js_i18n | tojson }} };</script>
+<script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }}, lang: {{ lang | tojson }}, t: {{ js_i18n | tojson }},
+  external: {{ (url_for('ob.external_open') if local_app else '') | tojson }}, csrf: {{ csrf_token() | tojson }} };</script>
 <script src="{{ url_for('ob.static', filename='ob.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
