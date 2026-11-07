@@ -7,8 +7,6 @@ races/
 fits/
 *.zip
 dem_cache.npz
-# elevation tiles of the four reference races, so the tests run without network
-!tests/golden/*/dem_cache.npz
 # web app: database and everything users upload (maps, .fit) or the analysis writes
 instance/
 .env
@@ -25,3 +23,16 @@ dist/
 
 # written by the installer build from the git tag
 webapp/_version.py
+
+# Data never go to this public repository: maps (other people's work), runs from the watch and the
+# reference results of real races stay on the author's computer (docs/data-lokalne.md).
+/data/*
+!/data/README.md
+/tests/golden/
+/private/
+*.fit
+*.FIT
+*.kmz
+*.obzavod
+/ob-data/
+.ruff_cache/

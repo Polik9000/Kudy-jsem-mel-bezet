@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pytest
 from conftest import csrf
-from races import ROOT
+from races import DATA
 from test_recompute import _fake_refit, _scripts
 from test_web_races import con_of, work
 
@@ -99,7 +99,7 @@ def test_off_and_by_hand():
 def test_the_runs_of_the_test_races_are_not_cut():
     """The races of the regression tests: none has a GPS jump at the start or the end, so nothing of their
     analysis changes (checked on 31 races of the author's Garmin export too: only one is cut, a real jump)."""
-    fits = sorted(glob.glob(os.path.join(ROOT, "data", "*", "run.fit")))
+    fits = sorted(glob.glob(os.path.join(DATA, "*", "run.fit")))
     assert fits
     for path in fits:
         tr = load_track(path)

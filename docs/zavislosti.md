@@ -61,4 +61,4 @@ Uložená testovací data: `tests/fixtures/oris/` (odpovědi ORIS, cizí jména 
 
 ## Mapy závodů
 
-Mapy jsou díla pořadatelů a mapařů. Aplikace je ukazuje jen přihlášeným, kteří závod běželi, nenabízí stažení a u mapy na to upozorňuje. V repozitáři jsou čtyři mapy v `data/` (soukromý repozitář, tvoje závody).
+Mapy jsou díla pořadatelů a mapařů. Aplikace je ukazuje jen přihlášeným, kteří závod běželi, nenabízí stažení a u mapy na to upozorňuje. Čtyři referenční mapy v `data/` jsou jen na autorově počítači, v repozitáři nejsou (`docs/data-lokalne.md`).

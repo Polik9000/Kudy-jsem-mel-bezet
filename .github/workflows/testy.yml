@@ -1,0 +1,54 @@
+# Testy a hlídání dat pro každý pull request a push do main.
+#
+# Data (mapy, běhy z hodinek, zlaté výsledky skutečných závodů) ve veřejném repu nejsou, takže testy, které je
+# potřebují (značky needs_data a slow, např. test_best_routes_unchanged), se tu samy přeskočí (tests/conftest.py).
+# Celé je pouští autor u sebe s daty: OB_TEST_DATA=<složka s daty> python -m pytest (docs/data-lokalne.md).
+name: Testy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  data:
+    name: Žádná data v repu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hlídač dat
+        run: |
+          # mapy, běhy, výsledky skutečných závodů a soukromé složky nesmí být v gitu
+          bad=$(git ls-files | grep -iE '\.(fit|kmz|obzavod|gpx|tcx|ocd)$|^data/[^/]+/|^tests/golden/|^private/|^data-extra/|^kontrola/|^instance/' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Tyhle soubory do veřejného repa nepatří (docs/data-lokalne.md):"
+            echo "$bad"
+            exit 1
+          fi
+          echo "Žádná data v repu."
+
+  testy:
+    name: Ruff a rychlé testy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Závislosti
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: Ruff
+        run: ruff check .
+      - name: Rychlé testy (bez dat)
+        env:
+          PYTHONUTF8: "1"
+        run: python -m pytest -m "not slow" -q -p no:cacheprovider
