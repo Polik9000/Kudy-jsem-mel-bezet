@@ -20,6 +20,14 @@
 
 <div class="karta" id="garmin">
   <h3>{% trans %}Běh z hodinek (Garmin){% endtrans %}</h3>
+  {% if local_app %}
+  <p>{% if user %}{% trans url=url_for('ob.garmin_page') %}<b>Nejjednodušší: přímo z Garmin Connect.</b> V <a href="{{ url }}">Nahrát
+    běhy, Načíst přímo z Garmin Connect</a> vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken"
+    target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy,
+    stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.{% endtrans %}{% else %}{% trans %}<b>Nejjednodušší: přímo z Garmin Connect.</b> V Nahrát běhy, Načíst přímo z Garmin Connect vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken"
+    target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy,
+    stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.{% endtrans %}{% endif %}</p>
+  {% endif %}
   <p>{% trans %}<b>Jeden závod</b> z Garmin Connect (na webu):{% endtrans %}</p>
   <ol>
     <li>{% trans %}Otevři aktivitu a klikni na ozubené kolečko.{% endtrans %}</li>

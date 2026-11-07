@@ -18,6 +18,10 @@
     <span class="hint ob-nahravani-stav" role="status"></span>
   </div>
 </form>
+{% if local_app %}
+<p class="karta"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}</a>
+  <span class="hint">{% trans %}Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.{% endtrans %}</span></p>
+{% endif %}
 <h2>{% trans %}Nahrané aktivity ({{ total }}){% endtrans %}</h2>
 {% if acts %}
 <div class="tablewrap"><table>

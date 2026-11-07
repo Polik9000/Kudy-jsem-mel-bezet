@@ -11,8 +11,9 @@ from oroute import garmin
 
 from .. import oris
 from ..config import ROOT
+from ..db import dumps
 from ..i18n import _, _n
-from . import jobs, matching, personal, plans, results, runner, storage, sync_oris
+from . import garmin_api, jobs, matching, personal, plans, results, runner, storage, sync_oris
 
 
 @jobs.handler("sync_oris")
@@ -30,8 +31,9 @@ def _import_upload(ctx, job):
     path = ctx.conf.path(p["file"])
     try:
         # a zip with a single run (one activity exported from Garmin Connect) is that run, not an account export:
-        # nothing of the earlier exports may be dropped because of it
-        one = garmin.single_fit(path) if p["kind"] != "fit" else None
+        # nothing of the earlier exports may be dropped because of it ("export": runs from Garmin Connect, a zip
+        # made by the garmin_api job, is an export even with one run)
+        one = garmin.single_fit(path) if p["kind"] == "zip" else None
         if p["kind"] == "fit" or one:
             if one:
                 name, data = one
@@ -85,6 +87,53 @@ def _import_upload(ctx, job):
     changed = matching.match_user(ctx.con, job["user_id"])
     matching.queue_waiting_photos(ctx.con, job["user_id"])
     matching.queue_waiting_screens(ctx.con, job["user_id"])
+    return msg + (_(" Spárováno se závody: %(len)s.", len=len(changed)) if changed else "")
+
+
+@jobs.handler("garmin_api")
+def _garmin_api(ctx, job):
+    """Runs from the runner's Garmin Connect account (services/garmin_api.py, only the app on one's own computer).
+    mode "vybrane": the chosen activities are stored as if uploaded one by one, and paired with the races.
+    mode "export": every run of the period, handled as a whole Garmin export (import_upload): races from ORIS,
+    pairing, the own hill model, and then only the runs paired with races (or recorded at one) stay."""
+    p = jobs.payload(job)
+    uid = job["user_id"]
+    ids = [int(i) for i in p.get("ids", [])]
+    if p.get("mode") == "export" and not ids:     # every run of the last `days` days
+        try:
+            ids = [r["id"] for r in garmin_api.offer(ctx.con, ctx.conf, uid, int(p.get("days", 365))) if r["run"]]
+        except garmin_api.GarminApiError as e:
+            raise jobs.Refused(str(e)) from None
+    if not ids:
+        raise jobs.Refused(_("Nevybraná žádná aktivita."))
+    rel, path = storage.incoming(ctx.conf, ".zip")
+    try:
+        got, skipped = garmin_api.download_zip(ctx.conf, uid, ids, path,
+                                               progress=lambda t: jobs.progress(ctx.con, job["id"], t))
+    except garmin_api.GarminApiError as e:
+        if os.path.exists(path):
+            os.remove(path)
+        raise jobs.Refused(str(e)) from None
+    note = _(" Nestaženo %(n)s: %(why)s", n=len(skipped), why=skipped[0][1]) if skipped else ""
+    if not got:
+        os.remove(path)
+        raise jobs.Refused(_("Z Garmin Connect se nestáhla žádná aktivita.") + note)
+    if p.get("mode") == "export":
+        msg = _import_upload(ctx, dict(job, payload=dumps(dict(file=rel, name="Garmin Connect", kind="export"))))
+        return _("Staženo z Garmin Connect %(n)s aktivit.", n=got) + " " + msg + note
+    new = 0
+    try:
+        for name, data in garmin.iter_fit(path):
+            aid, added = storage.save_activity(ctx.con, ctx.conf, uid, data, name, "garmin-api")
+            new += added
+    finally:
+        os.remove(path)
+    msg = _("Staženo z Garmin Connect %(n)s aktivit, nových %(new)s.", n=got, new=new) + note
+    if new:
+        msg += " " + _races_from_oris(ctx, uid)
+    changed = matching.match_user(ctx.con, uid)
+    matching.queue_waiting_photos(ctx.con, uid)
+    matching.queue_waiting_screens(ctx.con, uid)
     return msg + (_(" Spárováno se závody: %(len)s.", len=len(changed)) if changed else "")
 
 

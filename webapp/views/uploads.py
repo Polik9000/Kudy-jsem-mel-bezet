@@ -4,7 +4,7 @@ from flask import abort, flash, g, redirect, render_template, request, url_for
 from .. import cfg, get_db
 from ..auth import login_required
 from ..i18n import _
-from ..services import jobs, matching, storage
+from ..services import garmin_api, jobs, matching, storage
 from . import bp, go
 
 
@@ -55,3 +55,54 @@ def activity_delete(activity_id):
         db.commit()
         flash(_("Běh je smazaný."), "ok")
     return redirect(url_for("ob.upload"))
+
+
+DAYS = (14, 60, 365, 3650)   # periods offered on the Garmin Connect page
+
+
+@bp.route("/upload/garmin", methods=["GET", "POST"])
+@login_required
+def garmin_page():
+    """Runs straight from the runner's Garmin Connect account (Garmin's Personal API, services/garmin_api.py).
+    Only the app on one's own computer: on a server the key of every runner would sit on the server."""
+    if not cfg().local:
+        abort(404)
+    db, conf, uid = get_db(), cfg(), g.user["id"]
+    if request.method == "POST":
+        act = request.form.get("akce")
+        if act == "klic":
+            try:
+                garmin_api.save_key(conf, uid, request.form.get("klic"))
+            except garmin_api.GarminApiError as e:
+                flash(str(e), "error")
+            else:
+                flash(_("Klíč je uložený jen v tomhle počítači. Appka teď načte tvoje aktivity z Garmin Connect."), "ok")
+        elif act == "odpojit":
+            garmin_api.forget(conf, uid)
+            flash(_("Klíč je z tohoto počítače smazaný. V Garmin Connect ho můžeš smazat i tam."), "ok")
+        elif act == "nacist":
+            ids = [i for i in request.form.getlist("aktivita") if i.isdecimal()]
+            if not ids:
+                flash(_("Nevybral jsi žádnou aktivitu."), "error")
+            else:
+                jobs.enqueue(db, "garmin_api", user_id=uid, payload=dict(mode="vybrane", ids=[int(i) for i in ids]))
+                flash(_("Stahuji %(n)s aktivit z Garmin Connect. Samy se spárují se závody.", n=len(ids)), "ok")
+                return go(url_for("ob.jobs_page"))
+        elif act == "vse":
+            days = request.form.get("dni", type=int)
+            jobs.enqueue(db, "garmin_api", user_id=uid,
+                         payload=dict(mode="export", days=days if days in DAYS else 365))
+            flash(_("Stahuji všechny běhy za vybrané období. Spočítá se z nich model kopců a zůstanou jen běhy"
+                    " ze závodů, jako u exportu účtu."), "ok")
+            return go(url_for("ob.jobs_page"))
+        return redirect(url_for("ob.garmin_page"))
+    days = request.args.get("dni", type=int)
+    days = days if days in DAYS else 60
+    rows, connected = None, garmin_api.has_key(conf, uid)
+    if connected:
+        try:
+            rows = garmin_api.offer(db, conf, uid, days)
+        except garmin_api.GarminApiError as e:
+            flash(str(e), "error")
+    return render_template("ob/garmin.html", connected=connected, rows=rows, days=days, periods=DAYS,
+                           key_page=garmin_api.KEY_PAGE)
