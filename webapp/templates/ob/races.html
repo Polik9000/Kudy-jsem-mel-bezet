@@ -35,6 +35,7 @@
   {% else %}
   <a class="btn btn-hlavni" href="{{ url_for('ob.upload') }}">{{ ikona('kompas') }}{{ _('Nahrát běhy') }}</a>
   {% endif %}
+  {% if local_app %}<a class="btn" href="{{ url_for('ob.garmin_page') }}" title="{{ _('Běhy přímo z tvého účtu Garmin, bez ručního exportu') }}">{{ _('Načíst z Garmin Connect') }}</a>{% endif %}
   <a class="btn" href="{{ url_for('ob.race_oris') }}" title="{{ _('Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem') }}">{{ _('Přidat závod z ORIS') }}</a>
   <a class="btn" href="{{ url_for('ob.race_new') }}">{{ _('Přidat závod ručně') }}</a>
   {% if local_app %}<a class="btn" href="{{ url_for('ob.race_file_load') }}" title="{{ _('Závod uložený jiným běžcem (.obzavod)') }}">{{ _('Načíst závod ze souboru') }}</a>{% endif %}

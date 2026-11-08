@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="{{ lang }}">
+{# the light / dark mode saved with the account (views/language.py): in the page itself, so it does not flash and
+   survives the new port of each start of the app; data-rezim absent = not saved yet, the browser copy decides #}
+<html lang="{{ lang }}"{% if user and user.theme is not none %} data-rezim="{{ user.theme }}"{% if user.theme in ('svetly', 'tmavy') %} data-theme="{{ user.theme }}"{% endif %}{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10251E">
   <title>{% block title %}{{ _('Rozbor postupů') }}{% endblock %} · {{ _('Kudy jsem měl běžet') }}</title>
-  <script>(function(){try{var r=localStorage.getItem("ob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
+  <script>(function(){if(document.documentElement.hasAttribute("data-rezim")){return;}try{var r=localStorage.getItem("ob-rezim");if(r==="svetly"||r==="tmavy"){document.documentElement.setAttribute("data-theme",r);}}catch(e){}})();</script>
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='base.css') }}">
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='ob.css') }}">
   <link rel="stylesheet" href="{{ url_for('ob.static', filename='les.css') }}">
@@ -110,7 +112,8 @@
 </nav>
 {% endif %}
 <script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }}, lang: {{ lang | tojson }}, t: {{ js_i18n | tojson }},
-  external: {{ (url_for('ob.external_open') if local_app else '') | tojson }}, csrf: {{ csrf_token() | tojson }} };</script>
+  external: {{ (url_for('ob.external_open') if local_app else '') | tojson }},
+  rezim: {{ (url_for('ob.set_theme') if user else '') | tojson }}, csrf: {{ csrf_token() | tojson }} };</script>
 <script src="{{ url_for('ob.static', filename='ob.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

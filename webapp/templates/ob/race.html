@@ -46,9 +46,8 @@
 </details>
 {% endif %}
 
-{% if progress %}<p class="nota" id="ob-prubeh" role="status">{{ progress }}</p>{% endif %}
 {% if job and job.status == 'failed' %}
-<div class="stalewarn">{{ _('Poslední analýza selhala.') }} {{ (job.error or '').splitlines()[0] if job.error else '' }}
+<div class="stalewarn" data-hlaska="{{ _('Poslední analýza selhala.') }}">{{ _('Poslední analýza selhala.') }} {{ (job.error or '').splitlines()[0] if job.error else '' }}
   <details><summary>{{ _('Podrobnosti') }}</summary><pre>{{ job.error }}</pre></details>
   <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -185,7 +184,7 @@
 {% endif %}
 
 {# the legs in the order of the course, coloured by loss; arrows and the keys ← → go from leg to leg #}
-<div class="ob-pas" id="pas" hidden>
+<div class="ob-pas ob-ceka" id="pas">
   <button type="button" class="btn btn-maly" id="b-prev" aria-label="{{ _('Předchozí úsek') }}" title="{{ _('Předchozí úsek (←)') }}">‹</button>
   <div class="ob-pas-useky" id="pas-useky" role="group" aria-label="{{ _('Úseky') }}"></div>
   <button type="button" class="btn btn-maly" id="b-next" aria-label="{{ _('Další úsek') }}" title="{{ _('Další úsek (→)') }}">›</button>
@@ -255,7 +254,7 @@
       <p id="p-flags" class="hint"></p>
       <fieldset>
         <legend>{{ _('Co se na úseku stalo') }}</legend>
-        <label class="check"><input type="checkbox" id="n-stop"> {{ _('schválná zastávka (nepočítá se jako chyba)') }}</label>
+        <label class="check"><input type="checkbox" id="n-stop"> {{ _('záměrná zastávka (nepočítá se jako chyba)') }}</label>
         <label class="check"><input type="checkbox" id="n-lost"> {{ _('ztráta kontaktu s mapou') }}</label>
         <label class="ob-pole">{{ _('Zelená') }}
           <select id="n-green"><option value="">{{ _('neuvedeno') }}</option><option value="through">{{ _('proběhl jsem ji') }}</option>
@@ -431,6 +430,9 @@
 {% include "ob/_settings.html" %}
 </section>
 </div>
+{# how far the job of the race is: a bar fixed at the bottom of the window (ob.css .ob-prubeh), out of the flow,
+   so the page does not move while it is computed; ob.js fills it in and loads the page again at the end #}
+<p class="ob-prubeh" id="ob-prubeh" role="status" aria-live="polite"{% if not progress %} hidden{% endif %}>{{ progress or '' }}</p>
 {% endblock %}
 {% block scripts %}
 {% if analysis %}

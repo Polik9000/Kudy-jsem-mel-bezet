@@ -464,3 +464,16 @@ Podklad: Tobiasův závod Bělá (okr. Opava, 18. 10. 2026) z webové appky, sn�
 ## Co jsem nedělal záměrně
 
 Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadání). Žádné volání AI. Nic jsem neposílal na produkční server ani na klubový web; z něj jsem nečetl nic nového (podklady už byly v `docs/reference/`).
+
+## 8. 11. 2026: stránka závodu neposkakuje, Garmin nahoře, režim barev, „záměrná“ (issues 5, 8, 10, 12)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Průběh výpočtu je **lišta pevně dole v okně** (`position: fixed`, na telefonu nad spodní nabídkou), ne odstavec nad mapou. Lišta je ve stránce závodu vždy, schovaná, když se nic nepočítá. | Odstavec nad mapou se objevoval, měnil délku a mizel a obsah pod ním skákal; navíc byl daleko nad místem, kde člověk čte. Lišta mimo tok stránky nic neposune. |
+| Konec úlohy pozná `ob.js` jen podle **viditelné** lišty. | Lišta je teď v každé stránce závodu; bez toho se stránka načítala pořád dokola (našel test v Playwright). |
+| Po vlastním načtení se stránka vrátí na **prvek, který byl nahoře v okně** (a na otevřenou záložku), uložené v `sessionStorage` jen pro záložku prohlížeče; znovu ještě po vykreslení mapy (`ob-vykresleno`) a po `load`, dokud člověk sám neposune. | Pozice v pixelech nestačí: nad mapou se po přepočtu mění hlášky a rozbalení „Jak je rozbor spočítaný“. Na `main` se tabulka úseků po dopočítání posunula o 36 až 54 px, teď do 0,4 px (Playwright, 1280×900 i 390×844, úloha hotová i selhaná). |
+| Hlášky, které se objevit musí (selhaná analýza), zůstávají nahoře; lišta na 12 s řekne, že tam jsou. Místo pro souhrn ztrát a pás úseků se drží od začátku (`min-height`, `visibility`). | Hláška je důležitá a patří k závodu, ale čtenář je jinde; přeskočit ho k ní by bylo horší. |
+| Garmin Connect: tlačítko, počet zaškrtnutých a volba modelu kopců v **liště nad tabulkou** (`position: sticky`); na telefonu se drží jen její spodní řádek. Dolní tlačítko zůstává. Tlačítko říká „Načíst vybrané“, když model kopců není zaškrtnutý. | Rok běhů je dlouhá tabulka. Celá lišta by na telefonu zabrala třetinu výšky (289 px), spodní řádek 169 px. |
+| Odkaz Načíst z Garmin Connect je i na Přehledu závodů (jen lokální appka) a na Nahrát běhy **nad** formulářem. | Je to nejjednodušší cesta (nápověda #garmin). |
+| Světlý / tmavý režim se ukládá **k účtu v databázi** (`users.theme`: `svetly`, `tmavy`, `''` = podle zařízení, `NULL` = ještě nevybráno), server ho píše do `<html data-theme>`; `localStorage` je jen kopie. Jazyk se ukládá taky (`users.lang`) jako záloha za cookie. | Ověřeno: lokální appka startuje na náhodném portu a `localStorage` patří k adrese s portem, takže režim se po restartu ztratil; cookie jazyka port nerozlišuje a zůstala. Cookie by stačila v appce, ale na webu by režim neplatil na jiném zařízení a nová relace by ho neměla; databáze funguje v obou a bez bliknutí. `NULL` proti `''` dovolí převzít režim, který už někdo měl v prohlížeči. |
+| „Schválná zastávka“ → **„záměrná zastávka“** ve všech textech (mapa, panel úseku, nastavení, nápověda, dokumentace). „Schválně“ ve smyslu „úmyslně“ v ostatních dokumentech zůstává. | Tobias (issue 10). |

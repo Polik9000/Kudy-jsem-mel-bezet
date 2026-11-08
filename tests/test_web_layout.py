@@ -381,3 +381,19 @@ def test_only_lesni_klid_theme_is_loaded(client):
 def test_about_page_and_bottom_navigation(client, user):
     html = client.get("/o-aplikaci").get_data(as_text=True)
     assert "Omezení modelu" in html and "Mřížka 2,7" in html and 'class="bottomnav"' in html
+
+
+def test_race_page_keeps_its_place_when_it_loads_itself_again():
+    """Issue 5 (checked in a browser with Playwright, see docs/rozhodnuti.md): the progress is a bar fixed at the
+    bottom, and the page that loads itself again after a job goes back to the element the reader looked at."""
+    js = read("webapp", "static", "ob.js").decode("utf-8")
+    # the bar is in every race page: only a bar that shows a running job means "the job has just ended"
+    # (without this the page loaded itself again every few seconds)
+    assert '!line.hidden && !line.classList.contains("ob-prubeh-konec") && d.progress === ""' in js
+    assert "keepPlace(); location.reload();" in js
+    keep = js[js.index("function keepPlace()"):js.index("if (jobs) {")]
+    assert keep.index("try {") < keep.index("sessionStorage.setItem(PLACE") < keep.index("} catch (e)")
+    assert 'var PLACE = "ob-pozice"' in js and "sessionStorage.removeItem(PLACE)" in js
+    assert 'document.dispatchEvent(new CustomEvent("ob-vykresleno"))' in read("webapp", "static", "map.js").decode("utf-8")
+    css = read("webapp", "static", "ob.css").decode("utf-8")
+    assert ".ob-prubeh { position: fixed;" in css and ".ob-pas.ob-ceka { visibility: hidden; }" in css

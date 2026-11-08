@@ -5,15 +5,16 @@ The Czech text is the message id: `_("Czech sentence %(n)d", n=3)` in Python, `_
 webapp/lang_en.py; a text without an entry stays Czech (tests/test_i18n.py checks that none is missing).
 
 Which language a page uses: ?lang=en|cs (also remembered in the cookie `ob_lang`, see ob.set_language),
-else the cookie, else OB_LANG (default cs). Background jobs run in the language of the page that started them
-(jobs.lang), so the sentences the worker stores for the job list come out in the reader's language.
+else the cookie, else the language saved with the account (users.lang), else OB_LANG (default cs). Background
+jobs run in the language of the page that started them (jobs.lang), so the sentences the worker stores for the
+job list come out in the reader's language.
 """
 import contextlib
 import contextvars
 import os
 import re
 
-from flask import has_request_context, request
+from flask import g, has_request_context, request
 
 LANGS = {"cs": "Čeština", "en": "English"}
 DEFAULT = os.environ.get("OB_LANG", "cs") if os.environ.get("OB_LANG", "cs") in LANGS else "cs"
@@ -40,6 +41,9 @@ def lang():
         for pick in (request.args.get("lang"), request.cookies.get(COOKIE)):
             if pick in LANGS:
                 return pick
+        user = g.get("user")  # the language saved with the account: also when the window lost its cookies
+        if user is not None and user["lang"] in LANGS:
+            return user["lang"]
     return DEFAULT
 
 

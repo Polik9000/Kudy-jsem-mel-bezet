@@ -550,6 +550,10 @@ Co hotové není nebo nesedí:
     cesty (75 m), ne po čáře.
 46. Oplocenku bez zoubků (jen uzavřená černá čára) appka za oplocenku nebere, aby nezavřela smyčku cest. Potkáš
     takovou někde, kde je opravdu neprůchozí?
+47. Na Macu (okno appky, WKWebView): přepni tmavý režim a angličtinu, appku zavři a spusť znovu. Zůstane obojí? Na
+    Windows a v Chromu jsem to ověřil (8. 11.), Mac jsem neměl.
+48. Garmin Connect na telefonu nebo iPadu: lišta s tlačítkem Načíst vybrané zůstává při posunu tabulky nahoře (na
+    telefonu jen spodní řádek lišty, asi pětina výšky). Nepřekáží? Je z ní jasné, co tlačítko udělá?
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 
