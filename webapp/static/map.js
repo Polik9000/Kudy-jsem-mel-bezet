@@ -8,7 +8,7 @@
   var OB = window.OB, D = null, map = null, selected = null, drawing = null, mode = null, saving = 0;
   var groups = {}, overlays = {};
   var lines = {}, altLines = [];        // layers of each leg (track, best route) and of the selected leg's alternatives
-  var LEG_GROUPS = ["best", "track", "planned", "stops", "marks"];  // the groups that hold what belongs to one leg
+  var LEG_GROUPS = ["casing", "best", "track", "planned", "stops", "marks"];  // the groups that hold what belongs to one leg
   var whole = null;                     // the bounds of the whole course and track
   var noteTimer = null, sent = 0, shown = 0;  // a note waiting to be saved; order of the saves and of their answers
   var planTimer = null;                 // set while the page waits for the worker to price a planned route
@@ -25,7 +25,8 @@
   function mmss(s, sign) {
     if (s === null || s === undefined) { return ""; }
     var neg = s < 0, v = Math.round(Math.abs(s));
-    return (neg ? "-" : (sign && v ? "+" : "")) + Math.floor(v / 60) + ":" + ("0" + (v % 60)).slice(-2);
+    // a real minus sign, and no sign on a time that rounds to nothing
+    return (neg && v ? "\u2212" : (sign && v ? "+" : "")) + Math.floor(v / 60) + ":" + ("0" + (v % 60)).slice(-2);
   }
   function esc(t) {
     return String(t === null || t === undefined ? "" : t).replace(/[&<>"]/g, function (c) {
@@ -90,7 +91,8 @@
   function init(d) {
     D = d;
     if (D.rerouting) { document.body.setAttribute("data-obnovit", ""); }
-    map = L.map("map", { zoomSnap: 0.25, minZoom: 11, maxZoom: 21, doubleClickZoom: false, attributionControl: true });
+    // maxZoom: a Livelox map has about 1 m per pixel; closer than this shows only blurred pixels
+    map = L.map("map", { zoomSnap: 0.25, minZoom: 11, maxZoom: 19, doubleClickZoom: false, attributionControl: true });
     map.attributionControl.setPrefix(false);
     map.attributionControl.addAttribution(T("mapa © pořadatel závodu") + (D.osm ? " · " + T("překážky © přispěvatelé OpenStreetMap") : ""));
     map.createPane("mapimg").style.zIndex = 200;
@@ -113,7 +115,7 @@
     $("l-course").hidden = !(overlays.maponly && overlays.course);
     $("c-course").checked = !overlays.maponly;
     showMap();
-    ["barriers", "controls", "best", "track", "orez", "planned", "stops", "marks", "refresh", "catch", "sel", "draw"].forEach(function (k) {
+    ["barriers", "controls", "casing", "best", "track", "orez", "planned", "stops", "marks", "refresh", "catch", "sel", "draw"].forEach(function (k) {
       groups[k] = L.layerGroup().addTo(map);
     });
     draw();
@@ -313,6 +315,9 @@
         put(L.polyline(leg.note.corrected, { className: "ob-oprava", weight: 4, dashArray: "6 4", interactive: false })
           .bindTooltip(leg.name + ": " + T("opraveno ručně"), { permanent: false }), "track");
       }
+      // a white casing under the track: the colours of the loss would otherwise sink into the green and yellow of the map
+      l.casing = put(L.polyline(legPoints(leg), { className: "ob-podklad", weight: 7, opacity: leg.note.corrected ? 0.2 : 0.8,
+                                                  interactive: false }), "casing");
       l.track = put(L.polyline(legPoints(leg), { className: "ob-z" + grade(leg.loss) + (leg.note.corrected ? " ob-gps-slaba" : ""),
                                                  weight: 4, opacity: leg.note.corrected ? 0.35 : 0.95 }), "track")
         .bindTooltip(leg.name + ": " + mmss(leg.time) + (leg.loss >= 20 ? ", " + T("ztráta %(t)s", { t: mmss(leg.loss) }) : "") +
@@ -365,7 +370,8 @@
     D.legs.forEach(function (leg) {
       var l = lines[leg.n], sel = selected === leg.n;
       if (!l) { return; }
-      l.track.setStyle({ weight: sel ? 7 : 4 });
+      l.track.setStyle({ weight: sel ? 5 : 4 });
+      l.casing.setStyle({ weight: sel ? 9 : 7 });
       if (l.best) {
         l.under.setStyle({ weight: sel ? 8 : 6 });
         l.best.setStyle({ weight: sel ? 5 : 3 });
@@ -505,6 +511,12 @@
       b.className = "ob-cip z" + grade(l.loss);
       b.dataset.n = l.n;
       b.textContent = l.name;
+      // the loss in numbers too: the colour alone is not enough for everybody
+      if (l.loss >= 60) {
+        var t = document.createElement("small");
+        t.textContent = " +" + Math.round(l.loss / 60) + "′";
+        b.appendChild(t);
+      }
       b.title = l.name + ": " + mmss(l.time) + (l.loss >= 20 ? ", " + T("ztráta %(t)s", { t: mmss(l.loss) }) : "") + (l.mistake ? " · " + l.mistake.label : "");
       b.setAttribute("aria-pressed", selected === l.n ? "true" : "false");
       b.addEventListener("click", function () { select(l.n); });
@@ -522,11 +534,22 @@
   function totals() {
     var t = D.totals, sum = t.route + t.mistake + t.fatigue, parts = [];
     if (D.has_routes) { parts.push(T("volba postupu %(t)s", { t: mmss(t.route) })); }
-    parts.push(D.has_routes ? T("chyby v provedení %(t)s", { t: mmss(t.mistake) }) : T("odhad ztráty z GPS %(t)s", { t: mmss(t.mistake) }));
+    parts.push(D.has_routes ? T("chyby %(t)s", { t: mmss(t.mistake) }) : T("odhad ztráty z GPS %(t)s", { t: mmss(t.mistake) }));
     if (t.fatigue >= 1) { parts.push(T("únava %(t)s", { t: mmss(t.fatigue) })); }
     $("totals").innerHTML = T("Ztráta celkem <b>%(sum)s</b>:", { sum: mmss(sum) }) + " " + parts.join(", ") + "." +
       (t.deliberate >= 1 ? " " + T("Schválné zastávky %(t)s se jako chyba nepočítají.", { t: mmss(t.deliberate) }) : "") +
       (D.rerouting ? " <b>" + T("Zakázané přechody se změnily, postupy se přepočítávají.") + "</b>" : "");
+  }
+
+  // the main loss of a leg: never negative (faster than the model is said in words in the panel)
+  function lossCell(l) {
+    return l.loss_total !== null && l.loss_total < -20 ?
+      "<span title='" + T("rychleji než model o %(t)s", { t: mmss(-l.loss_total) }) + "'>0:00</span>" : mmss(l.loss, true) || "0:00";
+  }
+
+  // the model and the class split times disagree on the leg by more than a minute
+  function disagree(l) {
+    return l.ws && l.best && Math.abs(l.loss - l.ws.loss) > 60;
   }
 
   function marks(leg) {
@@ -541,29 +564,34 @@
   }
 
   function table() {
-    var off = D.legs.some(function (l) { return l.official !== null; }), R = D.has_routes;
-    var W = D.legs.some(function (l) { return l.ws; });
+    // the official time only when it differs from the time of the track somewhere
+    var off = D.legs.some(function (l) { return l.official !== null && Math.abs(l.official - l.time) >= 1; });
+    var R = D.has_routes, W = D.legs.some(function (l) { return l.ws; });
     var h = "<thead><tr><th>" + T("Úsek") + "</th><th class='num'>" + T("Čas") + "</th>" + (off ? "<th class='num'>" + T("Oficiálně") + "</th>" : "") +
-      (R ? "<th class='num'>" + T("Nejlepší") + "</th><th class='num'>" + T("Ztráta") + "</th><th class='num'>" + T("volbou") + "</th><th class='num'>" + T("provedením") + "</th>"
+      (R ? "<th class='num' title='" + T("čas nejlepšího postupu podle tvého modelu rychlosti") + "'>" + T("Ideál") + "</th>" +
+           "<th class='num'>" + T("Ztráta") + "</th><th class='num' title='" + T("zvolil jsi pomalejší variantu") + "'>" + T("Volba postupu") + "</th>" +
+           "<th class='num' title='" + T("bloudění, přeběhnutí, kroužení a dohledávání u kontroly, zastavení") + "'>" + T("Chyba") + "</th>"
          : "<th class='num'>" + T("Odhad ztráty") + "</th>") +
-      (W ? "<th class='num' title='" + T("ztráta proti tvému normálu podle mezičasů kategorie") + "'>" + T("Podle mezičasů") + "</th>" : "") +
-      "<th class='num'>" + T("Stání") + "</th><th>" + T("Model") + "</th><th>" + T("Typ chyby") + "</th><th>" + T("Co se stalo") + "</th><th>" + T("Vysvětlení") + "</th></tr></thead><tbody>";
+      (W ? "<th class='num ob-siroky' title='" + T("ztráta proti tvému obvyklému tempu podle mezičasů kategorie") + "'>" + T("Podle mezičasů") + "</th>" : "") +
+      "<th>" + T("Typ chyby") + "</th><th class='ob-siroky'>" + T("Vysvětlení") + "</th>" +
+      "<th class='ob-siroky' title='" + T("z úseku bez chyby se učí tvůj model rychlosti") + "'>" + T("Učí model") + "</th></tr></thead><tbody>";
     D.legs.forEach(function (l) {
-      var what = l.flags.concat(marks(l).map(function (x) { return "<b>" + x + "</b>"; }));
+      var m = marks(l), text = (l.explain || "") + (l.mistake ? " " + l.mistake.text : ""), cut = text.indexOf(". ");
+      var first = cut < 0 ? text : text.slice(0, cut + 1);
       h += "<tr data-n='" + l.n + "'" + (selected === l.n ? " class='sel'" : "") + ">" +  // kept up to date by mark()
         "<td><i class='sw z" + grade(l.loss) + "'></i> " + esc(l.name) + "</td>" +
         "<td class='num'>" + mmss(l.time) + "</td>" + (off ? "<td class='num'>" + mmss(l.official) + "</td>" : "") +
-        (R ? "<td class='num'>" + mmss(l.best ? l.best.time : null) + "</td><td class='num'><b>" + mmss(l.loss_total, true) +
+        (R ? "<td class='num'>" + mmss(l.best ? l.best.time : null) + "</td><td class='num'><b>" + lossCell(l) +
              "</b></td><td class='num'>" + (l.balanced ? "<span title='" + T("postupy jsou vyrovnané") + "'>≈</span> " : "") +
-             mmss(l.loss_route, true) + "</td><td class='num'>" + mmss(l.loss_exec, true) + "</td>"
+             (l.best ? mmss(l.parts.route) : "") + "</td><td class='num'>" + (l.best ? mmss(l.parts.mistake + l.parts.fatigue) : "") + "</td>"
            : "<td class='num'>" + mmss(l.est_loss) + "</td>") +
-        (W ? "<td class='num'>" + (l.ws ? (l.ws.mistake ? "<b class='ob-typ'>" + mmss(l.ws.loss, true) + "</b>" : mmss(l.ws.loss, true)) : "") + "</td>" : "") +
-        "<td class='num'>" + (l.stop_time >= 1 ? Math.round(l.stop_time) + " s" : "") + "</td>" +
-        "<td>" + (l.in_model ? "✓" : "") + "</td>" +
-        "<td>" + (l.mistake ? "<span class='ob-typ'>" + esc(l.mistake.label) + "</span>" : "") + "</td>" +
-        "<td class='co'>" + what.join("; ") +
+        (W ? "<td class='num ob-siroky'>" + (l.ws ? (l.ws.mistake ? "<b class='ob-typ'>" + mmss(l.ws.loss, true) + "</b>" : mmss(l.ws.loss, true)) +
+             (disagree(l) ? " <span class='ob-nesouhlas' title='" + T("model a mezičasy kategorie se tu rozcházejí o víc než minutu") + "'>≠</span>" : "") : "") + "</td>" : "") +
+        "<td>" + (l.mistake ? "<span class='ob-typ'>" + esc(l.mistake.label) + "</span>" : "") +
+        (m.length ? "<div class='small'>" + m.map(esc).join(", ") + "</div>" : "") + "</td>" +
+        "<td class='explain ob-siroky'>" + esc(first) + (first.length < text.length ? " <span class='muted'>(" + T("víc v panelu úseku") + ")</span>" : "") +
         (l.note.text ? "<div class='notetext'>" + esc(l.note.text) + "</div>" : "") + "</td>" +
-        "<td class='explain'>" + esc(l.explain || "") + (l.mistake ? " " + esc(l.mistake.text) : "") + "</td></tr>";
+        "<td class='ob-siroky'>" + (l.in_model ? "✓" : "") + "</td></tr>";
     });
     $("legs").innerHTML = h + "</tbody>";
     Array.prototype.forEach.call($("legs").querySelectorAll("tr[data-n]"), function (tr) {
@@ -641,7 +669,7 @@
     var leg = current(), pts = legPoints(leg).concat(leg.best_route || []);
     (leg.alts || []).forEach(function (a) { pts = pts.concat(a.route); });
     if (leg.generic && leg.generic.route) { pts = pts.concat(leg.generic.route); }
-    map.fitBounds(L.latLngBounds(pts).pad(0.25), { maxZoom: 19 });
+    map.fitBounds(L.latLngBounds(pts).pad(0.25), { maxZoom: 17 });
     mark();
     panel();
     if (scroll) { $("map").scrollIntoView({ behavior: "smooth", block: "nearest" }); }
@@ -654,32 +682,48 @@
     $("souhrn").hidden = !leg;
     if (!leg) { return; }
     $("souhrn").innerHTML = "<b>" + esc(leg.name) + "</b> · " + T("čas %(t)s", { t: mmss(leg.time) }) +
-      (leg.best ? " · " + T("ztráta %(t)s", { t: mmss(leg.loss_total, true) }) : " · " + T("odhad ztráty %(t)s", { t: mmss(leg.est_loss) })) +
+      (leg.best ? " · " + T("ztráta %(t)s", { t: lossCell(leg) }) : " · " + T("odhad ztráty %(t)s", { t: mmss(leg.est_loss) })) +
       (leg.mistake ? " · <span class='ob-typ'>" + esc(leg.mistake.label) + "</span>" : "");
-    var n = leg.note, num = [T("čas <b>%(t)s</b>", { t: mmss(leg.time) })];
-    if (leg.official !== null) { num.push(T("oficiálně %(t)s", { t: mmss(leg.official) })); }
+    var n = leg.note, num = [], head = "";
+    // one main number first, the parts of it after
     if (leg.best) {
-      num.push(T("nejlepší postup %(t)s (%(d)s m)", { t: mmss(leg.best.time), d: Math.round(leg.best.dist) }));
-      num.push(T("ztráta volbou %(t)s", { t: mmss(leg.loss_route, true) }));
-      num.push(T("provedením %(t)s", { t: mmss(leg.loss_exec, true) }));
+      var p = leg.parts, err = p.mistake + p.fatigue, cause = [];
+      if (p.route >= 1) { cause.push(T("volba postupu %(t)s", { t: mmss(p.route) })); }
+      if (err >= 1) {
+        cause.push(T(p.fatigue >= 1 ? "chyba a únava %(t)s" : leg.why === "control" ? "chyba u kontroly %(t)s" :
+                     leg.why === "wander" ? "bloudění %(t)s" : "chyba v provedení %(t)s", { t: mmss(err) }));
+      }
+      head = leg.loss_total !== null && leg.loss_total < -20 ?
+        T("Bez ztráty: podle modelu jsi úsek běžel o %(t)s rychleji než nejlepší postup.", { t: mmss(-leg.loss_total) }) :
+        leg.loss < 20 ? T("Bez ztráty (rozdíl do 20 s je v nepřesnosti modelu).") :
+        T("Ztráta asi <b>%(t)s</b>", { t: mmss(leg.loss) }) + (cause.length ? ": " + cause.join(", ") : "") + ".";
+      if (leg.why === "control") { head += " " + T("Smyčky u kontroly se počítají jako chyba, ne jako volba postupu."); }
+      if (leg.why === "wander") { head += " " + T("Stopa vypadá na bloudění, takže se to počítá jako chyba, ne jako volba postupu."); }
+      if (disagree(leg)) {
+        head += "<br><span class='ob-nesouhlas'>" + T("Podle mezičasů kategorie je to %(t)s proti tvému obvyklému tempu. Model a mezičasy se tu rozcházejí, ztrátu z modelu ber s rezervou.", { t: mmss(leg.ws.loss, true) }) + "</span>";
+      }
     } else {
-      num.push(T("odhad ztráty %(t)s", { t: mmss(leg.est_loss) }));
+      head = T("Odhad ztráty z GPS <b>%(t)s</b>.", { t: mmss(leg.est_loss) });
     }
+    num.push(T("čas %(t)s", { t: mmss(leg.time) }) + (leg.official !== null && Math.abs(leg.official - leg.time) >= 1 ?
+      " (" + T("oficiálně %(t)s", { t: mmss(leg.official) }) + ")" : ""));
+    if (leg.best) { num.push(T("nejlepší postup %(t)s (%(d)s m)", { t: mmss(leg.best.time), d: Math.round(leg.best.dist) })); }
     num.push(T("přímka %(s)s m, běženo %(r)s m", { s: Math.round(leg.straight), r: Math.round(leg.run) }));
-    if (leg.ws) {
-      num.push(T("podle mezičasů kategorie %(t)s proti tvému normálu", { t: mmss(leg.ws.loss, true) }) +
+    if (leg.ws && !disagree(leg)) {
+      num.push(T("podle mezičasů kategorie %(t)s proti tvému obvyklému tempu", { t: mmss(leg.ws.loss, true) }) +
                (leg.ws.mistake ? " (<b>" + T("chyba") + "</b>)" : ""));
     }
     $("p-title").textContent = T("Úsek %(name)s", { name: leg.name });
     metrics($("p-metriky"), leg.time, leg.best ? leg.best.time : null, leg.best ? leg.loss_total : leg.est_loss);
-    var gps = leg.corrected ? T("Stopa úseku je opravená ručně: ztráta volbou a provedením se počítá po nakreslené čáře, z osobního modelu je úsek vyřazený.")
+    var gps = leg.corrected ? T("Stopa úseku je opravená ručně: volba postupu a chyba se počítají po nakreslené čáře, z osobního modelu je úsek vyřazený.")
       : n.corrected ? T("Opravená stopa je uložená, postupy se přepočítávají.")
       : leg.gps_trouble || "";
     $("p-gps").textContent = gps;
     $("p-gps").hidden = !gps;
     $("b-gps").hidden = !n.corrected;
     $("b-oprava").textContent = n.corrected ? T("Nakreslit stopu znovu") : T("Opravit moji stopu");
-    $("p-numbers").innerHTML = num.join(" · ");
+    $("p-numbers").innerHTML = "<span class='ob-hlavni-cislo'>" + head + "</span><br><span class='small muted'>" +
+      num.join(" · ") + "</span>";
     $("p-mistake").textContent = leg.mistake ? leg.mistake.label + ": " + leg.mistake.text : "";
     $("p-mistake").hidden = !leg.mistake;
     $("p-explain").textContent = leg.explain || "";
@@ -687,7 +731,8 @@
     var avg = leg.generic;
     $("p-pro-tebe").textContent = avg ? (OB_LANG === "en" && avg.text_en ? avg.text_en : avg.text_cs) : "";
     $("p-pro-tebe").className = avg && avg.differs ? "nota ob-pro-tebe" : "hint";
-    $("p-pro-tebe").hidden = !avg;
+    // only where an average runner would go another way ("everybody would run the same" says nothing)
+    $("p-pro-tebe").hidden = !(avg && avg.differs);
     // the routes of the leg side by side, all priced by the same model: the best one, the planned one, the one
     // that was run, and the alternatives
     var alts = "", row = function (label, m, delta, attrs) {
@@ -756,7 +801,7 @@
     $("p-ztrata-telo").innerHTML = help;
     $("p-ztrata").querySelector("summary").textContent = T("Kdyby ses ztratil") + (rl && rl.lost ? " " + T("(tady jsi bloudil)") : "");
     if (leg.balanced) {
-      alts += "<p class='nota'>" + T("Postupy jsou vyrovnané: když se rychlosti v terénu posunou o 20 %, vyjde jako nejlepší jiná varianta. Ztrátu volbou postupu ber jen orientačně.") + "</p>";
+      alts += "<p class='nota'>" + T("Varianty jsou skoro stejně rychlé: rozdíl mezi nimi je menší, než jak přesný je model. Obě byly dobrá volba, ztrátu volbou postupu ber jen orientačně.") + "</p>";
     }
     // where to attack the control from (before it, on the way in) and what stops a runner who ran past it
     if (leg.relocate) {

@@ -19,6 +19,7 @@ CODES = (
     "no_start",           # control circles were read, the start triangle was not
     "no_finish",          # ... the finish (double circle) was not
     "track_off_course",   # the track does not come near the controls: another run, or it does not cover the race
+    "no_network",         # the elevation is not stored yet and could not be downloaded (no internet, service down)
 )
 
 

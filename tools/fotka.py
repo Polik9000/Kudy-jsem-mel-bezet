@@ -33,6 +33,10 @@ from PIL import Image, ImageFilter
 from scipy import ndimage as ndi
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# the real races: data/ and tests/golden, or the folder OB_TEST_DATA (tests/README.md)
+_EXT = os.environ.get("OB_TEST_DATA")
+DATA = _EXT or os.path.join(ROOT, "data")
+GOLDEN = os.path.join(_EXT, "golden") if _EXT else os.path.join(ROOT, "tests", "golden")
 sys.path.insert(0, ROOT)
 
 from oroute import georef  # noqa: E402
@@ -89,9 +93,9 @@ def cases():
 def sources(names=None):
     """dict(name, kmz, golden course.json or None) of the maps the set is made from."""
     out = []
-    for d in sorted(glob.glob(os.path.join(ROOT, "data", "*", "course.kmz"))):
+    for d in sorted(glob.glob(os.path.join(DATA, "*", "course.kmz"))):
         name = os.path.basename(os.path.dirname(d))
-        golden = os.path.join(ROOT, "tests", "golden", name, "course.json")
+        golden = os.path.join(GOLDEN, name, "course.json")
         out.append(dict(name=name, kmz=d, golden=golden if os.path.exists(golden) else None))
     for n in EXTRA:
         p = os.path.join(ROOT, "data-extra", n + ".kmz")
@@ -436,7 +440,7 @@ def compare_analysis(name, out, p=ANALYSIS_PHOTO):
         s = oris.parse_splits(json.load(f)["Data"], "BFM0903")
     official = dict(start_utc=oris.start_utc(date, s["start_local"]).isoformat(), cumulative=s["cumulative"])
     os.makedirs(out, exist_ok=True)
-    with open(os.path.join(out, "official.json"), "w") as f:
+    with open(os.path.join(out, "official.json"), "w", encoding="utf-8") as f:
         json.dump(official, f)
     fit_file = os.path.join(os.path.dirname(src["kmz"]), "run.fit")
     run = lambda kmz, where, *more: subprocess.run(

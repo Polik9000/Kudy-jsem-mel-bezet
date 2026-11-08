@@ -35,6 +35,10 @@
     <li>{% if user %}{% trans url=url_for('ob.upload') %}Zip nahraj v <a href="{{ url }}">Nahrát běhy</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.{% endtrans %}{% else %}{% trans %}Zip nahraj v Nahrát běhy, nebo v Podkladech závodu. Rozbalovat ho nemusíš.{% endtrans %}{% endif %}</li>
   </ol>
   <p class="hint">{% trans %}Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.{% endtrans %}</p>
+  <p>{% trans %}<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code>
+    jako soubory .fit.{% endtrans %}{% if local_app %} {% trans url=url_for('ob.upload') %}V aplikaci v <a href="{{ url }}">Nahrát běhy</a> klikni na
+    <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Novější hodinky (často na
+    Macu) se připojují přes MTP a jako disk se neukážou. Tam běhy exportuj z Garmin Connect, jak je popsáno výše.{% endtrans %}{% endif %}</p>
   <p>{% trans %}<b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):{% endtrans %}</p>
   <ol>
     <li>{% trans %}Otevři <a href="https://www.garmin.com/en-US/account/datamanagement/" target="_blank" rel="noopener">správu
@@ -55,9 +59,21 @@
     <li>{% trans %}Stáhni dvakrát: <b>Mapa s tratí</b>, formát <b>KMZ</b>, a <b>Pouze mapa</b>, formát <b>KMZ</b>.{% endtrans %}</li>
     <li>{% trans %}V Podkladech závodu nahraj první jako mapu s tratí a druhou jako mapu bez tratě.{% endtrans %}</li>
   </ol>
-  <p class="hint">{% trans %}Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy. Mapu bez tratě
-    stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.{% endtrans %}</p>
+  <p class="hint">{% trans %}Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy.{% endtrans %}
+    {% if local_app %}{% trans %}Mapy zůstávají jen v tomhle počítači. Jsou dílem pořadatele: používej je jen pro vlastní rozbor.{% endtrans %}
+    {% else %}{% trans %}Mapu bez tratě stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.{% endtrans %}{% endif %}</p>
 </div>
+
+{% if local_app %}
+<div class="karta" id="soubor">
+  <h3>Poslat závod kamarádovi</h3>
+  <p>Na stránce závodu v Podkladech je <b>Uložit závod do souboru</b>. Vznikne soubor <b>.obzavod</b> s mapami, tratí,
+    oficiálními časy, občerstvením a zakázanými čárami. Kamarád ho v Moje závody otevře přes <b>Načíst závod ze
+    souboru</b> a nahraje k němu svůj běh z hodinek; rozbor se mu spočítá podle něj. Tvůj běh a tvoje poznámky
+    v souboru jsou, jen když je zaškrtneš (třeba při přenosu na jiný počítač).</p>
+  <p class="hint">Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu.</p>
+</div>
+{% endif %}
 
 <div class="karta" id="bez-livelox">
   <h3>{% trans %}Když Livelox stažení nedovolí{% endtrans %}</h3>

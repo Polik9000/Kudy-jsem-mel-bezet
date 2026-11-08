@@ -292,7 +292,7 @@ def main():
         args.step = max(2, int(round(1.0 / gm.m_per_px_x)))
     print("reading terrain ...")
     cls = mapdata.terrain(gm, args.kmz, args.terrain_cache)
-    course = json.load(open(args.course))
+    course = json.load(open(args.course, encoding="utf-8"))
     pts_ll = [course["start"]] + course["controls"] + [course["finish"]]
     ctrl_px = [tuple(float(a) for a in gm.latlon_to_px(p["lat"], p["lon"])) for p in pts_ll]
     # what the map shows as impassable or hard to cross (fenced ground with a control in it can be entered)
@@ -319,7 +319,7 @@ def main():
     tr = gpstrim.apply(load_track(args.fit), args.gps_trim)
     punch, official = None, None
     if args.official:
-        tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official)))
+        tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official, encoding="utf-8")))
     x, y = track_xy(gm, tr)
     if punch is None:
         punch = find_punches(tr["t"], x, y, pts_xy)

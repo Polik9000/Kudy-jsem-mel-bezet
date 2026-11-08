@@ -33,15 +33,18 @@ no login; the data is in your own user folder. How the installers are built: `do
 
 ## Your data stays on your computer
 
-Run the app on your own machine (`docker compose up --build`, then http://localhost:8000/ob/). The maps and `.fit`
+Run the app on your own machine (`docker compose up --build`, then http://localhost:8000/ob/; no account, no login). The maps and `.fit`
 files you upload are kept in a local Docker volume and are never sent to anyone. The app itself only asks public
 services for what it cannot know: race details and split times from ORIS, elevation from ČÚZK or AWS Terrain Tiles,
 railways and roads from OpenStreetMap (Overpass). For elevation and OpenStreetMap it sends the area of the map, not
-your track.
+your track. The full list of what is requested and what goes out is in [`docs/soukromi.md`](docs/soukromi.md)
+(Czech); `tests/test_soukromi.py` keeps it complete.
 
 ## What is not in this repository
 
-This is a public copy of a private project. Left out on purpose:
+All development happens here (since 7 November 2026); the author's older private repository `OB_tracker` is an
+archive and gets no more changes. Data never go into this repository ([`docs/data-lokalne.md`](docs/data-lokalne.md),
+Czech). Left out on purpose:
 - **maps**: course and map-only KMZ from Livelox or ORIS belong to the race organisers and map authors;
   export your own from Livelox (KMZ, "map only" and "with course");
 - **runs**: no `.fit` files, no Garmin export, nothing derived from them, no demo races;
@@ -49,7 +52,8 @@ This is a public copy of a private project. Left out on purpose:
   are not here.
 
 Because of that, the tests that need the four reference races (`data/`, `tests/golden`) and all slow tests are
-skipped here (`needs the race maps and runs ... (not public)`); the rest run as usual. `oroute/personal_model.json`
+skipped here and in GitHub Actions (`needs the race maps and runs ... (not public)`); the rest run as usual, and
+those that only need *some* race use made-up races (`tests/synthetic.py`, see `tests/README.md`). `oroute/personal_model.json`
 and `oroute/slope_prior.json` are the author's own speed model, used as the default until you add your races.
 The docs in `docs/` are the development notes of the project, in Czech.
 
@@ -77,7 +81,10 @@ says what is being computed. The hardest of the four reference races (Petřvald)
 track is there after half a minute (`docs/validace.md`, part 11).
 
 What a runner does:
-1. **Account** from an ORIS registration number, the code of that number and a password at `/ob/register`. The
+1. **Account.** By default (`OB_LOCAL=1`, also in `docker-compose.yml`) the app is for one runner on their own
+   computer: no account, no login, the ORIS registration number is optional and set in Profile. A club server for
+   many runners runs with `OB_LOCAL=0`: an account from an ORIS registration number, the code of that number and a
+   password at `/ob/register`. The
    code comes from the administrator (`invite` below), so nobody makes an account on somebody else's number. The
    name and the ORIS id come from ORIS, the races load by themselves. One registration number has exactly one
    account and the number of an account cannot be changed. A login lasts 90 days.

@@ -168,7 +168,7 @@ def main():
     p = fit_slope(curve)
     if a.races:
         import csv
-        names = {row["fit_file"] for row in csv.DictReader(open(a.races)) if row.get("fit_file")}
+        names = {row["fit_file"] for row in csv.DictReader(open(a.races, newline="", encoding="utf-8")) if row.get("fit_file")}
         ra = [x for x in acts if x["file"] in names]
         rg, rr, rw, rk = relative_samples(ra, a.half_life, now)
         rc = binned_curve(rg, rr, rw)
@@ -180,7 +180,7 @@ def main():
              uphill_windows=int((g > 0.05).sum()), downhill_windows=int((g < -0.05).sum()),
              half_life_days=a.half_life, fitted=time.strftime("%Y-%m-%d"),
              curve=[dict(grade=round(c[0], 3), pace_mult=round(c[1], 3), n=c[2]) for c in curve])
-    json.dump(p, open(a.out, "w"), indent=1)
+    json.dump(p, open(a.out, "w", encoding="utf-8"), indent=1)
     print(f"{p['activities']} activities, {p['windows']} windows: up_k {p['up_k']}, down_gain {p['down_gain']}, "
           f"steep_down {p['steep_down']}")
 

@@ -10,11 +10,18 @@
   --ob-nejlepsi: var(--support);
   --ob-chyba: var(--accent);
   --ob-plan: var(--oranz-cit, var(--flag-b));
-  /* stopa podle ztráty: bez ztráty zelená oddílu, pak oranžová z trikolóry, nakonec červená */
-  --ob-ztrata-0: var(--flag-a);
-  --ob-ztrata-1: var(--flag-b);
-  --ob-ztrata-2: color-mix(in srgb, var(--flag-b) 45%, var(--accent));
-  --ob-ztrata-3: var(--accent);
+  /* stopa podle ztráty: barvy Okabe-Ito (rozliší je i barvoslepí) a tmavě červená, s rostoucí ztrátou tmavší.
+     Na mapě je obrázek mapy světlý i v tmavém režimu, proto jsou čáry natvrdo (--ob-z*), a pod stopou je bílý
+     podklad (map.js), aby zelená a oranžová nesplývaly s lesem a loukou. */
+  --ob-z0: #009E73;
+  --ob-z1: #E69F00;
+  --ob-z2: #D55E00;
+  --ob-z3: #8B0000;
+  --ob-ztrata-0: var(--ob-z0);
+  --ob-ztrata-1: var(--ob-z1);
+  --ob-ztrata-2: var(--ob-z2);
+  --ob-ztrata-3: var(--ob-z3);
+  accent-color: var(--brand);
   --ob-obrys: var(--bg-elev);
   /* postup průměrného běžce: neutrální tmavě šedá, na mapě (světlý obrázek i v tmavém režimu) natvrdo */
   --ob-prumer-mapa: #3E3E4A;
@@ -22,9 +29,10 @@
 /* totéž mimo mapu (grafy, legenda na tmavém podkladu) */
 :root { --ob-nejlepsi-graf: var(--support); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="svetly"]) { --ob-nejlepsi-graf: var(--support-svetla); }
+  :root:not([data-theme="svetly"]) { --ob-nejlepsi-graf: var(--support-svetla); --ob-ztrata-3: #E5484D;
+    accent-color: var(--brand-svetla); }
 }
-:root[data-theme="tmavy"] { --ob-nejlepsi-graf: var(--support-svetla); }
+:root[data-theme="tmavy"] { --ob-nejlepsi-graf: var(--support-svetla); --ob-ztrata-3: #E5484D; accent-color: var(--brand-svetla); }
 
 /* --- stránka s mapou: bez levého sloupce, přes celou šířku, nabídka pod třemi čárkami --- */
 .ob-siroka .sidemenu { display: none; }
@@ -111,13 +119,17 @@ legend { font-weight: 600; padding: 0 var(--s1); }
 .sw.dot { border-radius: 50%; background: var(--ink); }
 .sw.z0 { background: var(--ob-ztrata-0); } .sw.z1 { background: var(--ob-ztrata-1); }
 .sw.z2 { background: var(--ob-ztrata-2); } .sw.z3 { background: var(--ob-ztrata-3); }
-.sw.best { background: var(--ob-nejlepsi); } .sw.plan { background: var(--ob-plan); }
-.sw.alt { background: var(--ob-nejlepsi); opacity: .45; } .sw.zakaz { background: var(--ob-chyba); }
-.sw.prumer { background: var(--muted); }
+/* čáry postupů jako vzorek čáry (čárkovaná, tečkovaná), ne čtvereček: jak vypadají na mapě */
+.sw.best, .sw.alt, .sw.prumer, .sw.plan { width: 1.4rem; height: .26rem; border-radius: 0; vertical-align: .18em; }
+.sw.best { background: repeating-linear-gradient(90deg, var(--ob-nejlepsi-graf) 0 .45rem, transparent .45rem .65rem); }
+.sw.alt { background: repeating-linear-gradient(90deg, var(--ob-nejlepsi-graf) 0 .2rem, transparent .2rem .5rem); opacity: .7; }
+.sw.prumer { background: radial-gradient(circle, var(--ink-soft) 45%, transparent 50%) 0 50% / .4rem .26rem repeat-x; }
+.sw.plan { background: repeating-linear-gradient(90deg, var(--ob-plan) 0 .15rem, transparent .15rem .45rem); }
+.sw.zakaz { background: var(--ob-chyba); }
 /* čáry v mapě: Leaflet dává barvu atributem, třída ji přebije proměnnou (funguje i po přepnutí režimu) */
 path.ob-trat { stroke: var(--ob-trat-mapa); }
-path.ob-z0 { stroke: var(--ob-ztrata-0); } path.ob-z1 { stroke: var(--ob-ztrata-1); }
-path.ob-z2 { stroke: var(--ob-ztrata-2); } path.ob-z3 { stroke: var(--ob-ztrata-3); }
+path.ob-z0 { stroke: var(--ob-z0); } path.ob-z1 { stroke: var(--ob-z1); }
+path.ob-z2 { stroke: var(--ob-z2); } path.ob-z3 { stroke: var(--ob-z3); }
 path.ob-best { stroke: var(--ob-nejlepsi); }
 path.ob-alt { stroke: var(--ob-nejlepsi); }
 path.ob-prumer { stroke: var(--ob-prumer-mapa); }
@@ -136,10 +148,12 @@ path.ob-prechod { stroke: var(--brand); fill: var(--flag-a); }
 path.ob-stani { stroke: #fff; fill: #14181a; }
 path.ob-chyba-misto { stroke: var(--ob-chyba); fill: var(--ob-chyba); }
 path.ob-nabeh { stroke: var(--ob-nejlepsi); fill: #fff; }
-path.ob-zarazka { stroke: var(--ob-chyba); fill: #fff; }
-path.ob-zarazka-cara, path.ob-prekroceni { stroke: var(--ob-chyba); fill: none; }
+/* zarážka tmavě šedá, ne červená: červená na mapě znamená chybu */
+path.ob-zarazka { stroke: #2b2b2b; fill: #fff; }
+path.ob-zarazka-cara { stroke: #2b2b2b; fill: none; }
+path.ob-prekroceni { stroke: var(--ob-chyba); fill: none; }
 .sw.nabeh, .sw.zarazka { border-radius: 50%; background: #fff; border: 2px solid var(--ob-nejlepsi-graf); }
-.sw.zarazka { border-color: var(--ob-chyba); }
+.sw.zarazka { border-color: #2b2b2b; }
 path.ob-zachyt { stroke: var(--ob-trat-mapa); fill: #fff; }
 path.ob-zachyt-smer { stroke: var(--ob-trat-mapa); }
 path.ob-bloudeni { stroke: var(--ob-chyba); }
@@ -213,6 +227,11 @@ tr.ob-ja td { font-weight: 650; background: color-mix(in srgb, var(--brand-2) 22
 .ob-cip.z0 { border-bottom-color: var(--ob-ztrata-0); } .ob-cip.z1 { border-bottom-color: var(--ob-ztrata-1); }
 .ob-cip.z2 { border-bottom-color: var(--ob-ztrata-2); } .ob-cip.z3 { border-bottom-color: var(--ob-ztrata-3); }
 .ob-cip[aria-pressed="true"] { font-weight: 700; border-color: var(--ink); background: color-mix(in srgb, var(--brand-2) 22%, var(--bg-elev)); }
+.ob-cip small { font-weight: 400; color: var(--muted); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="svetly"]) .ob-cip[aria-pressed="true"] { background: color-mix(in srgb, var(--brand-svetla) 25%, var(--bg-elev)); }
+}
+:root[data-theme="tmavy"] .ob-cip[aria-pressed="true"] { background: color-mix(in srgb, var(--brand-svetla) 25%, var(--bg-elev)); }
 .ob-usek-souhrn { display: none; margin: 0; padding: var(--s2) var(--s3); background: var(--bg-elev);
   border: 1px solid var(--line); border-radius: var(--r2); }
 @media (max-width: 63.99rem) { .ob-usek-souhrn:not([hidden]) { display: block; } }
@@ -319,3 +338,22 @@ path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fi
 .menuseznam .ob-jazyk a:first-child { border-radius: 999px 0 0 999px; }
 .menuseznam .ob-jazyk a:last-child { border-radius: 0 999px 999px 0; margin-left: -1px; }
 .menuseznam .ob-jazyk a[aria-current] { opacity: 1; font-weight: 700; background: rgba(255, 255, 255, .18); }
+/* revize 1. 11. 2026: souhrn závodu, hlavní číslo úseku, rozpor modelu s mezičasy, úvod, mobil */
+.ob-jak { margin: 0 0 var(--s3); }
+.ob-jak > summary { color: var(--muted); }
+.ob-jak p { max-width: 72ch; }
+.ob-hlavni-cislo { font-size: 1.05em; }
+.ob-nesouhlas { color: var(--oranz-cit, var(--bronz)); font-weight: 600; }
+.ob-nejhorsi { list-style: none; padding: 0; margin: 0 0 var(--s2); }
+.ob-nejhorsi li { margin: 0 0 var(--s1, 4px); }
+.ob-uvod ol { margin: 0; padding-left: 1.3rem; }
+.ob-uvod li { margin-bottom: var(--s2); }
+.hint, .evhead, .karta > p { max-width: 80ch; }
+.ob-pas-useky { scroll-padding-inline: 2rem; }
+/* na telefonu: přetáhnout myší nedává smysl; záložky v jednom řádku, posunují se do strany */
+@media (hover: none) { .ob-mys { display: none; } }
+@media (max-width: 47.99rem) {
+  .taby { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
+  .taby .tab { white-space: nowrap; flex: none; }
+}
+footer.site a { display: inline-block; padding-block: .3rem; }

@@ -25,6 +25,17 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip)
 
 
+@pytest.fixture(autouse=True)
+def _made_up_races_without_the_real_ones(monkeypatch):
+    """Without the real races (the public repo) the demo races of webapp/seed.py are the made-up ones of
+    tests/synthetic.py, at the same place and time."""
+    if not have_data():
+        import synthetic
+
+        from webapp import seed
+        monkeypatch.setattr(seed, "demo_dir", lambda folder: os.path.dirname(synthetic.inputs(folder)[0]))
+
+
 def _run(*cmd):
     subprocess.run([sys.executable, *cmd], check=True, cwd=ROOT, capture_output=True)
 
@@ -127,7 +138,7 @@ def clear_jobs(app):
 def csrf(client, path="/login"):
     """The CSRF token of the session (every POST needs it)."""
     import re
-    html = client.get(path).get_data(as_text=True)
+    html = client.get(path, follow_redirects=True).get_data(as_text=True)   # the first start of the app redirects
     return re.search(r'name="csrf_token" value="([0-9a-f]+)"', html).group(1)
 
 

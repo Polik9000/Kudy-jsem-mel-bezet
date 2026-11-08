@@ -104,7 +104,7 @@ def main():
             # lines and the track then only check the order (order_by_track below).
             fx, fy = px_xy(det["finish"])
             circles = [c for c in det["controls"] if np.hypot(px_xy(c)[0] - fx, px_xy(c)[1] - fy) >= 25.0]
-            idx, how = order_controls(tr, gm, [px_xy(c) for c in circles], json.load(open(args.official)))
+            idx, how = order_controls(tr, gm, [px_xy(c) for c in circles], json.load(open(args.official, encoding="utf-8")))
             if idx is None:
                 print(f"control order from the purple lines, not from the official times: {how['reason']}")
             else:
@@ -131,7 +131,7 @@ def main():
         pts.append((float(x), float(y)))
     punch, official = None, None
     if args.official:
-        tr, punch, official = apply_official(tr, gm, pts, json.load(open(args.official)))
+        tr, punch, official = apply_official(tr, gm, pts, json.load(open(args.official, encoding="utf-8")))
     x, y = track_xy(gm, tr)
     if punch is None:
         punch = find_punches(tr["t"], x, y, pts)
