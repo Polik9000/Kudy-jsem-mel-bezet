@@ -357,3 +357,45 @@ path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fi
   .taby .tab { white-space: nowrap; flex: none; }
 }
 footer.site a { display: inline-block; padding-block: .3rem; }
+
+/* What is being computed for the race: a bar fixed at the bottom, out of the flow of the page, so nothing under it
+   moves while the job runs (issue 5). On a phone it sits above the bottom menu. */
+.ob-prubeh { position: fixed; z-index: 35; left: 50%; bottom: var(--s3); transform: translateX(-50%);
+  width: max-content; max-width: calc(100% - 2rem); margin: 0; padding: var(--s2) var(--s3);
+  display: flex; gap: var(--s2); align-items: center; box-sizing: border-box;
+  background: var(--bg-panel-primary, var(--bg-elev)); color: var(--text-primary, var(--ink));
+  border: 1px solid var(--border-strong, var(--line-2)); border-left: 3px solid var(--status-loss-amber, var(--flag-b));
+  border-radius: 8px; box-shadow: 0 4px 16px rgb(0 0 0 / 18%); }
+.ob-prubeh[hidden] { display: none; }
+.ob-prubeh::before { content: ""; flex: none; width: .8rem; height: .8rem; border: 2px solid currentColor;
+  border-right-color: transparent; border-radius: 50%; animation: ob-prubeh-toc 1s linear infinite; }
+@keyframes ob-prubeh-toc { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ob-prubeh::before { animation: none; } }
+body.ob-pocita { padding-bottom: 4.5rem; }
+@media (max-width: 63.99rem) {
+  .ob-prubeh { bottom: calc(64px + env(safe-area-inset-bottom) + .5rem); }
+  body.ob-pocita { padding-bottom: calc(64px + 4.5rem); }
+}
+.ob-prubeh-konec { cursor: pointer; border-left-color: var(--accent); }   /* the job ended badly: no spinner */
+.ob-prubeh-konec::before { display: none; }
+@media print { .ob-prubeh { display: none !important; } }
+
+/* Filled by map.js once the data are there: the place is kept from the start, the map does not move down then. */
+.ob-souhrn { min-height: 1.6em; }
+.ob-pas.ob-ceka { visibility: hidden; }
+
+/* Garmin Connect: the bar with the button stays in sight over the long table of activities (issue 8). On a phone
+   only its lower row (count, hill model, button) sticks; the filter row above scrolls away with the page. */
+.ob-garmin-lista { position: sticky; top: var(--vyska-hlavicky, 3.4rem); z-index: 20; display: flex; flex-direction: column;
+  gap: var(--s2); padding-block: var(--s3); }
+.ob-garmin-lista .controls { margin: 0; }
+.ob-garmin-model { display: inline-flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+.ob-garmin-model label.check { margin: 0; }
+.ob-garmin-co { margin: var(--s2) 0 var(--s3); }
+@media (max-width: 47.99rem) {
+  .ob-garmin-lista { display: contents; }
+  .ob-garmin-filtr { margin-bottom: var(--s2) !important; }
+  .ob-garmin-akce { position: sticky; top: var(--vyska-hlavicky, 3.4rem); z-index: 20; padding: var(--s2) var(--s3);
+    background: var(--bg-panel-primary, var(--bg-elev)); border: 1px solid var(--border-subtle, var(--line)); border-radius: 8px; }
+  .ob-garmin-akce .btn-hlavni { flex: 1 1 auto; }
+}

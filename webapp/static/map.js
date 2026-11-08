@@ -63,7 +63,7 @@
       var b = document.createElement("button");
       b.type = "button";
       b.className = "btn btn-maly";
-      b.textContent = "Zkusit znovu";
+      b.textContent = T("Zkusit znovu");
       b.addEventListener("click", retry);
       el.appendChild(document.createTextNode(" "));
       el.appendChild(b);
@@ -212,6 +212,8 @@
       });
     });
     if (location.hash.indexOf("#usek-") === 0) { select(Number(location.hash.slice(6))); }
+    // the page has its full height now: ob.js may put it back where it was before it loaded itself again
+    document.dispatchEvent(new CustomEvent("ob-vykresleno"));
   }
 
   // --- modes of the map click: refreshment point, forbidden line ---
@@ -344,7 +346,7 @@
         icon: L.divIcon({ className: "refresh-icon", html: "O", iconSize: [22, 22], iconAnchor: [11, 11] })
       }).addTo(groups.refresh);
       var box = document.createElement("div"), btn = document.createElement("button");
-      box.textContent = T("Občerstvovačka: zastávky do 30 m od ní jsou schválné.") + " " + (r.by ? T("Přidal: %(by)s.", { by: r.by }) + " " : "");
+      box.textContent = T("Občerstvovačka: zastávky do 30 m od ní jsou záměrné.") + " " + (r.by ? T("Přidal: %(by)s.", { by: r.by }) + " " : "");
       btn.textContent = T("Smazat");
       btn.className = "btn btn-maly";
       btn.addEventListener("click", function () { api(OB.refreshments + "/" + r.id, "DELETE").then(update); });
@@ -522,6 +524,7 @@
       b.addEventListener("click", function () { select(l.n); });
       box.appendChild(b);
     });
+    $("pas").classList.remove("ob-ceka");  // its place was kept while the data loaded (ob.css)
     $("pas").hidden = !D.legs.length;
   }
   // the leg before or after the selected one (the first or the last when none is selected)
@@ -537,7 +540,7 @@
     parts.push(D.has_routes ? T("chyby %(t)s", { t: mmss(t.mistake) }) : T("odhad ztráty z GPS %(t)s", { t: mmss(t.mistake) }));
     if (t.fatigue >= 1) { parts.push(T("únava %(t)s", { t: mmss(t.fatigue) })); }
     $("totals").innerHTML = T("Ztráta celkem <b>%(sum)s</b>:", { sum: mmss(sum) }) + " " + parts.join(", ") + "." +
-      (t.deliberate >= 1 ? " " + T("Schválné zastávky %(t)s se jako chyba nepočítají.", { t: mmss(t.deliberate) }) : "") +
+      (t.deliberate >= 1 ? " " + T("Záměrné zastávky %(t)s se jako chyba nepočítají.", { t: mmss(t.deliberate) }) : "") +
       (D.rerouting ? " <b>" + T("Zakázané přechody se změnily, postupy se přepočítávají.") + "</b>" : "");
   }
 
@@ -554,7 +557,7 @@
 
   function marks(leg) {
     var n = leg.note, m = [];
-    if (leg.deliberate_s >= 1) { m.push(leg.refreshment_s >= 1 && !n.deliberate_stop ? T("občerstvení") : T("schválná zastávka")); }
+    if (leg.deliberate_s >= 1) { m.push(leg.refreshment_s >= 1 && !n.deliberate_stop ? T("občerstvení") : T("záměrná zastávka")); }
     if (n.lost_contact) { m.push(T("ztráta kontaktu s mapou")); }
     if (n.green === "through") { m.push(T("zelenou proběhl")); }
     if (n.green === "around") { m.push(T("zelenou obíhal")); }
@@ -826,9 +829,9 @@
     if (!(typing && document.activeElement === $("n-text"))) { $("n-text").value = n.text || ""; }
     var eff = [];
     if (leg.refreshment_s >= 1) {
-      eff.push(T("Zastávka u občerstvovačky (%(s)s s) se bere jako schválná automaticky.", { s: Math.round(leg.refreshment_s) }));
+      eff.push(T("Zastávka u občerstvovačky (%(s)s s) se bere jako záměrná automaticky.", { s: Math.round(leg.refreshment_s) }));
     } else if (leg.deliberate_s >= 1) {
-      eff.push(T("Schválná zastávka: %(s)s s se nepočítá jako chyba.", { s: Math.round(leg.deliberate_s) }));
+      eff.push(T("Záměrná zastávka: %(s)s s se nepočítá jako chyba.", { s: Math.round(leg.deliberate_s) }));
     } else if (n.deliberate_stop) {
       eff.push(T("Na úseku není žádná zastávka delší než 6 s, takže se nic neodečítá."));
     }
@@ -893,6 +896,7 @@
     panel(typing);
     watchPlans();
     document.dispatchEvent(new CustomEvent("ob-data", { detail: D }));
+    document.dispatchEvent(new CustomEvent("ob-vykresleno"));
   }
 
   // A planned route is priced by the worker a few seconds after it is saved: until its numbers are there,

@@ -24,13 +24,26 @@
     svetly: SVG("<circle cx='8' cy='8' r='3'/><path d='M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3'/>"),
     tmavy: SVG("<path d='M13 10A6 6 0 0 1 6 3a6 6 0 1 0 7 7z' fill='currentColor' stroke='none'/>")
   };
-  var KEY = "ob-rezim";
-  function mode() {
-    try {
-      var m = localStorage.getItem(KEY);
-      return m || "";
-    } catch (e) { return ""; }
+  // The mode is kept with the account (POST to OBAPP.rezim) and comes back in <html data-rezim>: the app on one's
+  // own computer starts on another port each time, and localStorage belongs to the address with the port.
+  // localStorage stays as a copy for the pages without an account (the login).
+  var KEY = "ob-rezim", saveUrl = window.OBAPP && window.OBAPP.rezim, saved = root.getAttribute("data-rezim");
+  function copy() {
+    try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; }
   }
+  function mode() { return saved !== null ? saved : copy(); }
+  function keep(m) {
+    try { localStorage.setItem(KEY, m); } catch (e) { /* private mode */ }
+    if (!saveUrl) { return; }
+    saved = m;
+    root.setAttribute("data-rezim", m);
+    fetch(saveUrl, {
+      method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": window.OBAPP.csrf },
+      body: JSON.stringify({ rezim: m })
+    }).catch(function () { /* the next switch tries again */ });
+  }
+  if (saved === null && saveUrl && copy()) { keep(copy()); }  // chosen before it was kept with the account
+  else if (saved !== null && saved !== copy()) { try { localStorage.setItem(KEY, saved); } catch (e) { /* private mode */ } }
   function show(m) {
     if (m) { root.setAttribute("data-theme", m); } else { root.removeAttribute("data-theme"); }
     btn.innerHTML = SIGN[m] || SIGN[""];
@@ -41,7 +54,7 @@
     show(mode());
     btn.addEventListener("click", function () {
       var next = { "": "svetly", svetly: "tmavy", tmavy: "" }[mode()] || "";
-      try { localStorage.setItem(KEY, next); } catch (e) { /* private mode */ }
+      keep(next);
       show(next);
       document.dispatchEvent(new CustomEvent("ob-rezim"));
     });
@@ -102,16 +115,52 @@
         if (cell && j.message) { cell.textContent = j.message; }
         if (!cell && document.querySelector("[data-ulohy]")) { due = true; }  // the list still shows it waiting
       });
-      if (line && d.progress) { line.textContent = d.progress; }
-      if (line && d.progress === "") { due = true; }  // the job of the race ended, also when it failed
+      if (line && d.progress) {  // the bar fixed at the bottom (race.html): it covers nothing and moves nothing
+        line.textContent = d.progress;
+        line.classList.remove("ob-prubeh-konec");
+        line.hidden = false;
+        body.classList.add("ob-pocita");
+      }
+      // the job of the race ended, also when it failed (the bar is in every race page, shown only while a job runs)
+      if (line && !line.hidden && !line.classList.contains("ob-prubeh-konec") && d.progress === "") { due = true; }
       // the analysis the page shows was replaced: the track is ready before the routes, show it right away
       var replaced = d.analysis !== undefined && d.analysis !== body.dataset.analyza;
       if (((was && !d.active) || replaced) && body.hasAttribute("data-obnovit")) { due = true; }
-      if (due && !body.dataset.noReload && !unsaved()) { location.reload(); return; }
+      if (due && !body.dataset.noReload && !unsaved()) { keepPlace(); location.reload(); return; }
       was = d.active;
       next(d.active || due ? 3000 : 20000);
     }).catch(function () { next(20000); });
   }
+  var bar = document.getElementById("ob-prubeh");
+  if (bar && !bar.hidden) { document.body.classList.add("ob-pocita"); }  // room under the page for the bar
+
+  // Where the reader is, kept over that reload: the open tab and the element at the top of the window, in the
+  // sessionStorage of this tab only (without it nothing happens). The page may come back taller or shorter above
+  // that element (a note goes away, the map loads its data): the element goes back to the same place in the window.
+  var PLACE = "ob-pozice";
+  function here() { return location.pathname + location.search; }
+  function headBottom() { return head ? Math.max(0, head.getBoundingClientRect().bottom) : 0; }
+  function anchor() {
+    var top = headBottom(), below = null, over = null;
+    Array.prototype.forEach.call(document.querySelectorAll("main [id]"), function (el) {
+      if (el.id === "ob-prubeh") { return; }
+      var r = el.getBoundingClientRect();
+      if (r.height <= 0) { return; }
+      if (r.top >= top) { if (!below || r.top < below.top) { below = { id: el.id, top: r.top }; } }
+      else if (r.bottom > top && (!over || r.top > over.top)) { over = { id: el.id, top: r.top }; }
+    });
+    // the nearest element that starts in the window, else the one the top of the window is in
+    return below && (!over || below.top - top < window.innerHeight / 2) ? below : over;
+  }
+  function keepPlace() {
+    try {
+      var tab = document.querySelector(".tabpanel.aktivni"), a = anchor();
+      sessionStorage.setItem(PLACE, JSON.stringify({ path: here(), y: window.scrollY, tab: tab ? tab.id : null,
+                                                     id: a && a.id, top: a && a.top }));
+      history.scrollRestoration = "manual";
+    } catch (e) { /* no storage: the page loads at the place the browser picks */ }
+  }
+
   if (jobs) {
     poll();
     document.addEventListener("visibilitychange", function () { if (!document.hidden) { next(0); } });
@@ -265,6 +314,50 @@
     var wanted = location.hash.slice(1), first = box.dataset.vychozi || tabs[0].getAttribute("href").slice(1);
     show(wanted && box.querySelector(".tabpanel#" + CSS.escape(wanted)) ? wanted : first);
   });
+
+  // back to the place kept before the page loaded itself again (keepPlace above)
+  (function () {
+    var place = null, moved = false;
+    try {
+      place = JSON.parse(sessionStorage.getItem(PLACE) || "null");
+      sessionStorage.removeItem(PLACE);
+    } catch (e) { place = null; }
+    if (!place || place.path !== here()) { return; }
+    var named = location.hash.slice(1);
+    if (place.tab && !(named && document.querySelector(".tabpanel#" + CSS.escape(named)))) {
+      document.dispatchEvent(new CustomEvent("ob-tab-show", { detail: place.tab }));
+    }
+    function putBack() {
+      if (!place || moved) { return; }
+      var el = place.id ? document.getElementById(place.id) : null, r = el && el.getBoundingClientRect();
+      if (r && r.height > 0) { window.scrollBy(0, r.top - place.top); } else { window.scrollTo(0, place.y); }
+    }
+    // the reader's own scrolling wins: no more putting back after it
+    ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (name) {
+      window.addEventListener(name, function () { moved = true; }, { passive: true, once: true });
+    });
+    // a notice that came with the new page (the job failed) is at the top, out of sight: the bar says so for a while
+    var told = false;
+    function tellAbove() {
+      var note = document.querySelector("[data-hlaska]"), r = note && note.getBoundingClientRect();
+      if (told || !bar || !r || r.bottom > headBottom()) { return; }
+      told = true;
+      bar.textContent = note.dataset.hlaska + " " + t("Podrobnosti jsou nahoře na stránce.");
+      bar.classList.add("ob-prubeh-konec");
+      bar.hidden = false;
+      bar.addEventListener("click", function () { bar.hidden = true; note.scrollIntoView({ block: "center" }); });
+      setTimeout(function () { bar.hidden = true; }, 12000);
+    }
+    putBack();
+    document.addEventListener("ob-vykresleno", function () { putBack(); tellAbove(); });  // the page has its height
+    window.addEventListener("load", putBack);
+    setTimeout(function () {
+      putBack();
+      tellAbove();
+      place = null;
+      try { history.scrollRestoration = "auto"; } catch (e) { /* old browser */ }
+    }, 4000);
+  })();
 
   // the split-time graph (services/charts.splits_chart): the runner under the pointer or the finger, with the loss
   // on the reference at the nearest control; the line is highlighted

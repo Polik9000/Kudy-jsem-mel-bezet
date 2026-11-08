@@ -41,6 +41,8 @@ ADDED_COLUMNS = [
     ("leg_notes", "control_desc", "TEXT"),
     ("photos", "waiting_for_run", "INTEGER NOT NULL DEFAULT 0"),
     ("entries", "gps_trim", "TEXT"),
+    ("users", "theme", "TEXT"),
+    ("users", "lang", "TEXT"),
 ]
 
 

@@ -14,7 +14,7 @@ def test_help_page_is_open_and_linked_from_the_header_and_the_empty_list(app, cl
                   "tři čárky", "Mapa s tratí", "Pouze mapa", "Když Livelox stažení nedovolí", "fotka papírové mapy",
                   "Ctrl+Shift+M", "5000 × 4000", "Capture full size screenshot", "Mapu neposouvej ani nepřibližuj",
                   "Snímek z Livelox s tratí", "Snímek z Livelox bez tratě", "nesdílej je dál",
-                  "Schválná zastávka", "Ztráta kontaktu s mapou", "Únava", "Průměrný běžec",
+                  "Záměrná zastávka", "Ztráta kontaktu s mapou", "Únava", "Průměrný běžec",
                   "Ztratil jsem se u kontroly", "Nedalo se minout", "Neměl jsi hádat směr ke kontrole",
                   "Rozbor po závodě"):
         assert words in html, words

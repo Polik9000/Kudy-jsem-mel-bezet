@@ -220,7 +220,10 @@ def test_new_race_shows_the_track_first_and_finds_the_routes_once(app, client, u
     state = client.get(f"/jobs.json?entry={entry}").get_json()
     assert state["analysis"] == "" and state["progress"] == "Analýza závodu: čeká ve frontě."
     html = client.get(page).get_data(as_text=True)
-    assert 'id="ob-prubeh"' in html and 'data-analyza=""' in html and "data-obnovit" in html
+    assert 'data-analyza=""' in html and "data-obnovit" in html
+    # the progress is in the bar fixed at the bottom of the window, not in the flow above the map (issue 5)
+    assert '<p class="ob-prubeh" id="ob-prubeh" role="status" aria-live="polite">Analýza závodu: čeká ve frontě.</p>' in html
+    assert html.index('id="ob-prubeh"') > html.index('id="nastaveni"')
 
     log = []
     monkeypatch.setattr(runner, "_run", _fake_scripts(con, entry, log))
@@ -238,7 +241,8 @@ def test_new_race_shows_the_track_first_and_finds_the_routes_once(app, client, u
     state = client.get(f"/jobs.json?entry={entry}").get_json()
     assert state["analysis"] and state["progress"] == "" and state["active"] == 0 and state["running"] == []
     html = client.get(page).get_data(as_text=True)
-    assert 'id="ob-prubeh"' not in html and "data-obnovit" not in html and f'data-analyza="{state["analysis"]}"' in html
+    assert 'id="ob-prubeh" role="status" aria-live="polite" hidden>' in html   # its place is kept, nothing to show
+    assert "data-obnovit" not in html and f'data-analyza="{state["analysis"]}"' in html
     assert "Únava 1–3 jen popisuje" in html            # the panel says which fatigue values count
     assert con.execute("SELECT has_routes FROM analyses WHERE entry_id = ?", (entry,)).fetchone()[0] == 1
 

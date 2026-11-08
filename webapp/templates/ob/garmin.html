@@ -36,19 +36,43 @@
 <form method="post" id="garmin-vyber">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="akce" value="nacist">
-  {% if rows is not none %}
   {% if rows %}
   <p class="hint">{% trans %}Předvybrané jsou běhy, které v appce ještě nejsou. Načtené běhy se samy spárují se závody.{% endtrans %}</p>
-  <div class="controls karta">
-    <label>{{ _('Druh aktivity') }}
-      <select id="garmin-druh">
-        <option value="">{{ _('všechny druhy (%(n)s)', n=rows | length) }}</option>
-        {% for t, n in types %}<option value="{{ t }}">{{ t or _('neznámý') }} ({{ n }})</option>{% endfor %}
-      </select></label>
-    <button type="button" class="btn btn-maly" id="garmin-vse">{{ _('Zaškrtnout vše zobrazené') }}</button>
-    <button type="button" class="btn btn-maly" id="garmin-nic">{{ _('Zrušit zaškrtnutí') }}</button>
-    <span class="hint" id="garmin-pocet" role="status"></span>
+  {% endif %}
+  {# the bar with the button stays in sight over the long table of a year of runs (issue 8, ob.css): on a wide
+     window the whole bar, on a phone only its lower row with the button (the filter would take half the screen) #}
+  <div class="karta ob-garmin-lista">
+    {% if rows %}
+    <div class="controls ob-garmin-filtr">
+      <label>{{ _('Druh aktivity') }}
+        <select id="garmin-druh">
+          <option value="">{{ _('všechny druhy (%(n)s)', n=rows | length) }}</option>
+          {% for t, n in types %}<option value="{{ t }}">{{ t or _('neznámý') }} ({{ n }})</option>{% endfor %}
+        </select></label>
+      <button type="button" class="btn btn-maly" id="garmin-vse">{{ _('Zaškrtnout vše zobrazené') }}</button>
+      <button type="button" class="btn btn-maly" id="garmin-nic">{{ _('Zrušit zaškrtnutí') }}</button>
+    </div>
+    {% endif %}
+    <div class="controls ob-garmin-akce">
+      {% if rows %}<span class="hint" id="garmin-pocet" role="status"></span>{% endif %}
+      <span class="ob-garmin-model">
+        <label class="check"><input type="checkbox" name="model" value="1" id="garmin-model" checked>
+          <span>{% trans %}<b>Spočítat i model kopců</b> <span class="ob-siroky">ze všech běhů</span> za období{% endtrans %}</span></label>
+        <select name="dni_model" aria-label="{{ _('Období modelu kopců') }}">
+          {% for d in periods %}<option value="{{ d }}" {{ 'selected' if d == 365 }}>{{ period_names[d] }}</option>{% endfor %}
+        </select>
+      </span>
+      <button type="submit" class="btn btn-hlavni" data-garmin-odeslat>{{ _('Načíst vybrané a model kopců') }}</button>
+    </div>
   </div>
+  <details class="hint ob-garmin-co">
+    <summary>{{ _('Co tlačítko udělá') }}</summary>
+    <p>{% trans %}Zaškrtnuté běhy se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich,
+      jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů;
+      ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.{% endtrans %}</p>
+  </details>
+  {% if rows is not none %}
+  {% if rows %}
   <div class="tablewrap"><table>
     <thead><tr><th></th><th data-sort="text">{{ _('Start') }}</th><th data-sort="text">{{ _('Název') }}</th><th data-sort="text">{{ _('Druh') }}</th>
         <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">km</th><th>{{ _('V appce') }}</th></tr></thead>
@@ -62,25 +86,27 @@
     {% endfor %}
     </tbody>
   </table></div>
+  {# the same button again at the end of the table, for whoever went through it all #}
+  <div class="controls"><button type="submit" class="btn btn-hlavni" data-garmin-odeslat>{{ _('Načíst vybrané a model kopců') }}</button></div>
   {% else %}
   <p>{{ _('Za tohle období nejsou v Garmin Connect žádné aktivity.') }}</p>
   {% endif %}
   {% endif %}
-  <div class="karta">
-    <label><input type="checkbox" name="model" value="1" checked>
-      {% trans %}<b>Spočítat i model kopců</b> ze všech běhů za období{% endtrans %}</label>
-    <select name="dni_model" aria-label="{{ _('Období modelu kopců') }}">
-      {% for d in periods %}<option value="{{ d }}" {{ 'selected' if d == 365 }}>{{ period_names[d] }}</option>{% endfor %}
-    </select>
-    <p class="hint">{% trans %}Vybrané běhy výše se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich,
-      jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů;
-      ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.{% endtrans %}</p>
-    <div class="controls"><button type="submit" class="btn btn-hlavni">{{ _('Načíst vybrané a model kopců') }}</button></div>
-  </div>
 </form>
 <script>
 (function () {
   var form = document.getElementById("garmin-vyber"), sel = document.getElementById("garmin-druh");
+  var model = document.getElementById("garmin-model");
+  if (form && model) {
+    var both = {{ _('Načíst vybrané a model kopců') | tojson }}, only = {{ _('Načíst vybrané') | tojson }};
+    var label = function () {
+      Array.prototype.forEach.call(form.querySelectorAll("[data-garmin-odeslat]"), function (b) {
+        b.textContent = model.checked ? both : only;
+      });
+    };
+    model.addEventListener("change", label);
+    label();
+  }
   if (!form || !sel) return;
   var rows = Array.prototype.slice.call(form.querySelectorAll("tbody tr[data-druh]"));
   var info = document.getElementById("garmin-pocet");

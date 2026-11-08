@@ -15,6 +15,10 @@ CREATE TABLE IF NOT EXISTS users (
     reset_hash    TEXT,
     reset_until   TEXT,
     reset_tries   INTEGER NOT NULL DEFAULT 0,
+    -- the settings of the interface, kept here and not in the browser: the app on one's own computer starts on another
+    -- port each time and the browser keeps its storage per address with the port (docs/rozhodnuti.md, 8. 11. 2026)
+    theme         TEXT,              -- light / dark: 'svetly', 'tmavy', '' = as the device, NULL = not chosen yet
+    lang          TEXT,              -- 'cs' / 'en', NULL = the cookie or the default
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

@@ -230,3 +230,36 @@ def test_page_in_english(local):
     assert "Personal API key" in html and "Connect Garmin account" in html
     page = html[html.index("Runs from Garmin Connect</h2>"):html.index("<script")]
     assert not re.search("[ěščřžťďňůĚŠČŘŽŤĎŇŮ]", re.sub(r"<[^>]+>", " ", page))
+
+
+def test_button_above_the_long_table(local):
+    """Issue 8: the button that loads the ticked runs, with the hill model next to it, is in the bar above the table
+    (sticky, ob.css), so a year of runs does not hide it; the same button stays under the table too."""
+    c = local.test_client()
+    c.get("/")
+    _connect(local, c, FakeGarmin({i: (_now(i), "running") for i in range(1, 41)}))
+    html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
+    form = html[html.index('<form method="post" id="garmin-vyber">'):html.index("</form>", html.index('id="garmin-vyber"'))]
+    bar = form.index('class="karta ob-garmin-lista"')
+    first_submit, table = form.index('type="submit"'), form.index("<table")
+    assert bar < first_submit < table
+    assert bar < form.index('name="model"') < table and bar < form.index('name="dni_model"') < table
+    assert bar < form.index('id="garmin-pocet"') < table
+    assert form.count('type="submit"') == 2 and form.count('name="model"') == 1
+    css = c.get("/ob-static/ob.css").get_data(as_text=True)
+    assert ".ob-garmin-lista { position: sticky;" in css and ".ob-garmin-akce { position: sticky;" in css   # phone too
+
+
+def test_garmin_link_on_the_races_and_above_the_upload(local):
+    c = local.test_client()
+    races = c.get("/").get_data(as_text=True)
+    if "/upload/garmin" not in races:      # the first start goes to the profile first
+        races = c.get("/").get_data(as_text=True)
+    controls = races[races.index('<div class="controls">'):]
+    assert 'href="/upload/garmin"' in controls[:controls.index("</div>")]
+    upload = c.get("/upload").get_data(as_text=True)
+    assert upload.index('href="/upload/garmin"') < upload.index('enctype="multipart/form-data"')
+
+
+def test_no_garmin_link_on_the_server(app, user, client):
+    assert "/upload/garmin" not in client.get("/").get_data(as_text=True)

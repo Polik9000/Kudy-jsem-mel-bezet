@@ -562,7 +562,7 @@ EN = {
         "“Impassable” means a ban (infinite cost, ISOM 708 and 709). “Hardly passable” is not a ban, just a big loss of time (an impassable cliff, a thick fence): a route crosses it only when it pays off a lot.",
     "Občerstvovačka":
         "Refreshment control",
-    "Zastávky do 30 m od značky se berou jako schválné automaticky, všem běžcům závodu. Smazat ji může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).":
+    "Zastávky do 30 m od značky se berou jako záměrné automaticky, všem běžcům závodu. Smazat ji může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).":
         "Stops within 30 m of the mark count as deliberate automatically, for all runners of the race. Only the one who added it can delete it (by clicking the “O” mark on the map).",
     "Přidat občerstvovačku":
         "Add a refreshment control",
@@ -864,7 +864,7 @@ EN = {
         "Notes on a leg",
     "Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak appka čte ztrátu a z kterých úseků se učí tvůj model rychlosti.":
         "On the page of the race click a leg. Below the map is what happened on the leg. The notes change how the app reads the loss and which legs your speed model learns from.",
-    "Schválná zastávka":
+    "Záměrná zastávka":
         "Deliberate stop",
     "Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to appka pozná sama.":
         "A stop does not count as a mistake (a drink, a shoelace, helping someone). At a refreshment control the app recognises it itself.",
@@ -1366,7 +1366,7 @@ EN = {
         "Whole course",
     "Co se na úseku stalo":
         "What happened on the leg",
-    "schválná zastávka (nepočítá se jako chyba)":
+    "záměrná zastávka (nepočítá se jako chyba)":
         "deliberate stop (does not count as a mistake)",
     "ztráta kontaktu s mapou":
         "lost contact with the map",
@@ -1708,12 +1708,18 @@ EN = {
         'Select all shown',
     'Zrušit zaškrtnutí':
         'Clear selection',
-    '<b>Spočítat i model kopců</b> ze všech běhů za období':
-        '<b>Also fit the hill model</b> from all runs of the period',
+    '<b>Spočítat i model kopců</b> <span class="ob-siroky">ze všech běhů</span> za období':
+        '<b>Also fit the hill model</b> <span class="ob-siroky">from all runs</span> of the period',
     'Období modelu kopců':
         'Period for the hill model',
-    'Vybrané běhy výše se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.':
-        'The runs you selected above are saved and stay. On top of that the app downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Of those only the race runs stay; the others (they show where you live) are deleted. Both happen in one go.',
+    'Zaškrtnuté běhy se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.':
+        'The runs you tick are saved and stay. On top of that the app downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Of those only the race runs stay; the others (they show where you live) are deleted. Both happen in one go.',
+    'Načíst z Garmin Connect':
+        'Load from Garmin Connect',
+    'Běhy přímo z tvého účtu Garmin, bez ručního exportu':
+        'Runs straight from your Garmin account, without a manual export',
+    'Co tlačítko udělá':
+        'What the button does',
     'Načíst vybrané a model kopců':
         'Load selected and hill model',
     'Zaškrtnuto':
@@ -2015,6 +2021,10 @@ EN.update({
 })
 
 EN_JS = {
+    'Podrobnosti jsou nahoře na stránce.':
+        'The details are at the top of the page.',
+    'Zkusit znovu':
+        'Try again',
     "Roh obdélníku":
         "Corner of the rectangle",
     "Mapa: %(w)s × %(h)s px ze snímku %(W)s × %(H)s px.":
@@ -2085,7 +2095,7 @@ EN_JS = {
         "loss %(t)s",
     "stání %(s)s s":
         "standing %(s)s s",
-    "Občerstvovačka: zastávky do 30 m od ní jsou schválné.":
+    "Občerstvovačka: zastávky do 30 m od ní jsou záměrné.":
         "Refreshment control: stops within 30 m of it are deliberate.",
     "možnost %(n)s":
         "option %(n)s",
@@ -2117,13 +2127,13 @@ EN_JS = {
         "fatigue %(t)s",
     "Ztráta celkem <b>%(sum)s</b>:":
         "Total loss <b>%(sum)s</b>:",
-    "Schválné zastávky %(t)s se jako chyba nepočítají.":
+    "Záměrné zastávky %(t)s se jako chyba nepočítají.":
         "Deliberate stops %(t)s do not count as a mistake.",
     "Zakázané přechody se změnily, postupy se přepočítávají.":
         "The impassable crossings changed, the routes are being recomputed.",
     "občerstvení":
         "refreshment",
-    "schválná zastávka":
+    "záměrná zastávka":
         "deliberate stop",
     "ztráta kontaktu s mapou":
         "lost contact with the map",
@@ -2263,9 +2273,9 @@ EN_JS = {
         "Catching feature (what you meet if you run past the control):",
     "do 200 m za kontrolou není cesta, voda ani nic velkého, co by tě zastavilo":
         "within 200 m beyond the control there is no path, water or anything big that would stop you",
-    "Zastávka u občerstvovačky (%(s)s s) se bere jako schválná automaticky.":
+    "Zastávka u občerstvovačky (%(s)s s) se bere jako záměrná automaticky.":
         "A stop at a refreshment control (%(s)s s) counts as deliberate automatically.",
-    "Schválná zastávka: %(s)s s se nepočítá jako chyba.":
+    "Záměrná zastávka: %(s)s s se nepočítá jako chyba.":
         "Deliberate stop: %(s)s s do not count as a mistake.",
     "Na úseku není žádná zastávka delší než 6 s, takže se nic neodečítá.":
         "There is no stop longer than 6 s on the leg, so nothing is subtracted.",
