@@ -8,3 +8,14 @@ races
 fits
 *.zip
 .env
+# data stay out of the image (docs/data-lokalne.md); the tests get them through the mounted folder
+data
+tests/golden
+private
+data-extra
+kontrola
+zalohy
+*.fit
+*.FIT
+*.kmz
+*.obzavod
