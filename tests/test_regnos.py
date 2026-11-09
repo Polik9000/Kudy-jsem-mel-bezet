@@ -1,6 +1,8 @@
 """More registration numbers after a move to another club (issue 2, docs/oris.md). The fake ORIS answers as the
 real one did for runners who moved: one person id for both numbers, getUser only for the number of today, the
 entries of that id list the old races under the old number (here BFM0903 of the saved responses)."""
+import inspect
+
 import pytest
 from conftest import FakeOris, csrf, post, register
 
@@ -8,6 +10,9 @@ from webapp import db as dbm
 from webapp import oris
 from webapp.services import regnos, sync_oris
 from webapp.services import splits as class_splits
+
+# the password the register() helper of conftest gives to a made-up test account
+_TEST_PASSWORD = inspect.signature(register).parameters["password"].default
 
 
 class Moved(FakeOris):
@@ -70,7 +75,7 @@ def test_account_with_the_new_number_finds_the_old_races(app, client):
     assert t["me"] is not None and t["runners"][t["me"]]["regno"] == "BFM0903"
     # and the old number logs in to the same account
     client.post("/logout", data=dict(csrf_token=csrf(client)))
-    r = post(client, "/login", username="BFM0903", password="tajneheslo")
+    r = post(client, "/login", username="BFM0903", password=_TEST_PASSWORD)
     assert r.status_code == 302
     with client.session_transaction() as s:
         assert s["user_id"] == uid
