@@ -20,13 +20,14 @@ def test_user():
 
 def test_entries():
     e = {x["event_id"]: x for x in oris.parse_entries(oris_fixture("getUserEventEntries.json"))}
-    assert e[8989] == dict(event_id=8989, class_id=202420, class_name="H16C", date="2025-05-17")
+    assert e[8989] == dict(event_id=8989, class_id=202420, class_name="H16C", date="2025-05-17", regno="BFM0903")
     assert e[9827]["class_name"] == "H18"
 
 
 def test_event():
     ev = oris.parse_event(oris_fixture("getEvent_9827.json"))
     assert ev["name"] == "Mistrovství oblasti na dlouhé trati" and ev["date"] == "2026-03-28"
+    assert ev["stages"] == [] and ev["parent_id"] is None          # an ordinary race: no stages, no umbrella
     assert ev["livelox_id"] == "182468" and ev["place"] == "Petřvald u Karviné"
     h18 = next(c for c in ev["classes"] if c["name"] == "H18")
     assert h18 == dict(oris_id=215134, name="H18", distance_km=7.88, climb_m=280.0, controls=19)

@@ -23,8 +23,10 @@ from ..services import (
     oris_class,
     plans,
     race_file,
+    regnos,
     results,
     screens,
+    stages,
     storage,
     view,
 )
@@ -37,7 +39,7 @@ ENTRY_SQL = (
     " c.course_source, c.course_rms, c.course_n, c.course_edge_m,"
     " ev.name AS event_name, ev.date, ev.place, ev.oris_id AS event_oris_id, ev.livelox_id, ev.maponly_file,"
     " ev.links, ev.locations, ev.lat AS event_lat, ev.lon AS event_lon, ev.maponly_by,"
-    " ev.maponly_source, ev.maponly_res_m, ev.maponly_acc_m,"
+    " ev.maponly_source, ev.maponly_res_m, ev.maponly_acc_m, ev.discipline, ev.stage_n, ev.stage_count,"
     # osm_mode, hatch_mode: what holds for this runner (their own setting, else the one of the race)
     " ev.osm_mode AS event_osm_mode, ev.hatch_mode AS event_hatch_mode,"
     " COALESCE(e.own_osm_mode, ev.osm_mode) AS osm_mode, COALESCE(e.own_hatch_mode, ev.hatch_mode) AS hatch_mode,"
@@ -73,6 +75,12 @@ def status(e, job):
     if not e["course_file"]:
         return _("chybí mapa"), "ob-warn", "mapa"
     return _("připraveno"), "", "jine"
+
+
+def last_sync(db, user_id):
+    """The latest load of the runner's races from ORIS (a job), or None."""
+    return db.execute("SELECT * FROM jobs WHERE user_id = ? AND kind = 'sync_oris' ORDER BY id DESC LIMIT 1",
+                      (user_id,)).fetchone()
 
 
 def last_jobs(db, user_id):
@@ -143,8 +151,10 @@ def races():
         return redirect(url_for("ob.profile"))
     rows = db.execute(ENTRY_SQL + " WHERE e.user_id = ? ORDER BY ev.date DESC, e.id DESC", (g.user["id"],)).fetchall()
     lj = last_jobs(db, g.user["id"])
-    sync = db.execute("SELECT * FROM jobs WHERE user_id = ? AND kind = 'sync_oris' ORDER BY id DESC LIMIT 1",
-                      (g.user["id"],)).fetchone()
+    sync = last_sync(db, g.user["id"])
+    # the load from ORIS that ended a moment ago: its result stays on the page for a while
+    sync_done = sync is not None and sync["status"] == "done" and sync["message"] and db.execute(
+        "SELECT 1 FROM jobs WHERE id = ? AND finished_at >= datetime('now', '-10 minutes')", (sync["id"],)).fetchone()
     seasons = sorted({e["date"][:4] for e in rows}, reverse=True)
     if "sezona" in request.args:
         session["sezona"] = request.args["sezona"]  # the chosen season stays for the next visit
@@ -160,7 +170,9 @@ def races():
     # the last analysed race of the runner: a quick way back to it from the list
     analysed = [e for e, _st in listed if e["analysis_id"] and e["finished_at"]]
     last = max(analysed, key=lambda e: e["finished_at"]) if analysed else None
-    return render_template("ob/races.html", entries=shown, sync=sync, last=last,
+    return render_template("ob/races.html", entries=shown, sync=sync, last=last, sync_done=bool(sync_done),
+                           sync_active=sync is not None and sync["status"] in ("queued", "running"),
+                           numbers=regnos.of(db, g.user["id"]),
                            conf=texts.confidence(), livelox=oris.livelox_url, oris_url=oris.event_url,
                            seasons=seasons, season=season, only=only, counts=counts)
 
@@ -193,7 +205,12 @@ def sync():
     if not g.user["oris_regno"]:
         flash(_("Tenhle účet nemá registrační číslo ORIS, závody z něj načíst nejde. Přidej závod ručně."), "error")
         return redirect(url_for("ob.races"))
-    jobs.enqueue(get_db(), "sync_oris", user_id=g.user["id"])
+    db = get_db()
+    last = last_sync(db, g.user["id"])
+    if last is not None and last["status"] in ("queued", "running"):
+        flash(_("Závody z ORIS se už načítají, průběh je vidět nahoře."), "ok")   # not a second job
+        return redirect(url_for("ob.races"))
+    jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
     flash(_("Načítám závody z ORIS, za chvíli se objeví."), "ok")
     return redirect(url_for("ob.races"))
 
@@ -240,7 +257,7 @@ def race_oris():
                 return redirect(url_for("ob.race_oris_class", oris_id=oris_id))
             except oris_class.Refused as err:
                 flash(str(err), "error")
-    return render_template("ob/race_oris.html", ev=None, classes=[], have=None, aktivni="races")
+    return render_template("ob/race_oris.html", ev=None, classes=[], have=None, umbrella=None, aktivni="races")
 
 
 @bp.route("/races/oris/<int:oris_id>", methods=["GET", "POST"])
@@ -248,6 +265,12 @@ def race_oris():
 def race_oris_class(oris_id):
     """The classes of a race from ORIS (loaded by race_oris): the runner picks the one they ran."""
     db = get_db()
+    umb = stages.known(db, oris_id)
+    if umb is not None:
+        # a multi-stage event: the runner picks the stage, then its class
+        return render_template("ob/race_oris.html", ev=None, classes=[], have=None, umbrella=umb,
+                               stage_races=stages.stages_of(db, oris_id), oris_url=oris.event_url(oris_id),
+                               aktivni="races")
     ev = db.execute("SELECT * FROM events WHERE oris_id = ?", (oris_id,)).fetchone()
     if ev is None:
         return redirect(url_for("ob.race_oris"))
@@ -261,7 +284,7 @@ def race_oris_class(oris_id):
     have = db.execute("SELECT e.id, c.name FROM entries e JOIN classes c ON c.id = e.class_id"
                       " WHERE e.user_id = ? AND c.event_id = ? ORDER BY e.id LIMIT 1", (g.user["id"], ev["id"])).fetchone()
     return render_template("ob/race_oris.html", ev=ev, classes=oris_class.event_classes(db, ev["id"]), have=have,
-                           oris_url=oris.event_url(oris_id), aktivni="races")
+                           umbrella=None, oris_url=oris.event_url(oris_id), aktivni="races")
 
 
 MAX_RACE_FILE = 400 * 1024 * 1024      # two KMZ from Livelox and a .fit
@@ -368,7 +391,7 @@ def race(entry_id):
         refreshes=refreshments(db, e["event_id"]), wide=bool(analysis),
         trim=gps_trim_view(e, analysis),
         progress=entry_progress(db, entry_id), stamp=analysis_stamp(db, entry_id),
-        sp=class_splits.view(db, e, g.user["oris_regno"], _model_times(db, analysis)),
+        sp=class_splits.view(db, e, regnos.of(db, g.user["id"]), _model_times(db, analysis)),
         model_stale=bool(analysis and analysis["has_routes"] and model and analysis["model_id"] != model["id"]),
         # the catching features around the controls come from an older oroute/relocate.py, or from none at all
         relocate_stale=bool(analysis and analysis["has_routes"] and summary.get("relocate") != results.RELOCATE),
@@ -399,7 +422,7 @@ def _model_times(db, analysis):
 
 def _ws(db, e):
     """Loss per leg by the split times of the class, for the leg table of the map."""
-    t = class_splits.table(db, e["class_id"], g.user["oris_regno"])
+    t = class_splits.table(db, e["class_id"], regnos.of(db, g.user["id"]))
     return dict(class_splits.by_leg(t), n_legs=t["n_legs"]) if t and t["me"] is not None else None
 
 
@@ -846,16 +869,57 @@ def profile():
                 return redirect(url_for("ob.profile"))
             db.execute("UPDATE users SET oris_regno = ?, oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
                        (regno, person["oris_user_id"], person["name"], g.user["id"]))
+            db.execute("UPDATE user_regnos SET name = ? WHERE user_id = ? AND regno = ?",
+                       (person["name"], g.user["id"], regno))
             db.commit()
             jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
-            flash(_("Uloženo: %(regno)s patří v ORIS jménu %(name)s. Závody z ORIS se načítají."
+            flash(_("Uloženo: %(regno)s patří v ORIS jménu %(name)s. Teď se z ORIS načítají všechny tvoje závody."
+                    " Trvá to chvíli (podle počtu závodů i několik minut), průběh vidíš nahoře v Přehledu závodů."
                     " Když to nejsi ty, napiš autorovi aplikace.", regno=regno, name=person['name']), "ok")
             return redirect(url_for("ob.races"))
         db.commit()
         flash(_("Uloženo."), "ok")
         return redirect(url_for("ob.profile"))
-    return render_template("ob/profile.html", has=accounts.summary(get_db(), g.user["id"]), releases=RELEASES,
+    db = get_db()
+    numbers = regnos.rows(db, g.user["id"])
+    return render_template("ob/profile.html", has=accounts.summary(db, g.user["id"]), releases=RELEASES,
+                           numbers=numbers, removable={r["regno"] for r in numbers
+                                                       if cfg().local and regnos.removable(db, g.user["id"], r["regno"])},
                            data_mb=local_data.folder_size(cfg().instance) / 1e6 if cfg().local else 0)
+
+
+@bp.route("/profile/cisla", methods=["POST"])
+@login_required
+def regno_add():
+    """The app on one's own computer: another registration number after a move to another club
+    (services/regnos.py). On the server the number of an account stays as it is."""
+    if not cfg().local:
+        abort(404)
+    db = get_db()
+    try:
+        got = regnos.add(db, cfg(), g.user, request.form.get("regno"))
+    except regnos.Refused as err:
+        flash(str(err), "error")
+        return redirect(url_for("ob.profile") + "#cisla")
+    jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
+    flash((_("Přidáno: %(regno)s (v ORIS %(name)s).", regno=got["regno"], name=got["name"]) if got["name"] else
+           _("Přidáno: %(regno)s.", regno=got["regno"]))
+          + " " + _("Závody z ORIS se načítají znovu, průběh vidíš nahoře."), "ok")
+    return redirect(url_for("ob.races"))
+
+
+@bp.route("/profile/cisla/<regno>/smazat", methods=["POST"])
+@login_required
+def regno_remove(regno):
+    """Remove a number added by mistake (only one added in the profile that no race was found under)."""
+    if not cfg().local:
+        abort(404)
+    try:
+        regnos.remove(get_db(), g.user["id"], accounts.clean_regno(regno))
+        flash(_("Číslo %(regno)s je smazané.", regno=accounts.clean_regno(regno)), "ok")
+    except regnos.Refused as err:
+        flash(str(err), "error")
+    return redirect(url_for("ob.profile") + "#cisla")
 
 
 RELEASES = "https://github.com/Polik9000/Kudy-jsem-mel-bezet/releases/latest"

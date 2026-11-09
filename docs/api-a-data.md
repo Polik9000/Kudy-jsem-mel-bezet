@@ -24,10 +24,12 @@ Aplikace běží pod předponou `OB_URL_PREFIX` (výchozí `/ob`); všechny adre
 | `/races/<id>/barriers`, `/…/<bid>` | POST JSON, DELETE | zakázaná čára: `{kind: forbidden\|hard, line: [[lat, lon], …]}` (sdílená pro závod); smazat ji smí jen ten, kdo ji nakreslil |
 | `/races/<id>/barriers/<bid>/delete` | POST | totéž z formuláře |
 | `/races/new` | GET, POST | závod mimo ORIS |
-| `/races/oris` | GET, POST | závod z ORIS podle čísla nebo odkazu (`zavod`): jedno `getEvent`, uloží všechny kategorie |
-| `/races/oris/<ORIS ID>` | GET, POST | výběr kategorie (`class_id`): jedno `getSplits` (jen když mezičasy kategorie nejsou v DB), nový závod s `entries.class_chosen = 1` |
+| `/races/oris` | GET, POST | závod z ORIS podle čísla nebo odkazu (`zavod`): jedno `getEvent`, uloží všechny kategorie; u etapového závodu načte etapy (`getEvent` každé) |
+| `/races/oris/<ORIS ID>` | GET, POST | výběr kategorie (`class_id`): jedno `getSplits` (jen když mezičasy kategorie nejsou v DB), nový závod s `entries.class_chosen = 1`; pro zastřešující etapový závod výběr etapy |
 | `/races/<id>/class` | POST | „běžel jsem jinou kategorii“: `class_id` = jiná kategorie téhož závodu (mezičasy z ní, rozbor a poznámky dosavadní kategorie se smažou, nový rozbor); bez `class_id` načte kategorie závodu z ORIS |
-| `/sync` | POST | načíst závody z ORIS |
+| `/sync` | POST | načíst závody z ORIS (když už načítání čeká nebo běží, druhé se nezakládá) |
+| `/profile/cisla` | POST | jen lokální appka: další registrační číslo po přestupu (`regno`), ověří se v ORIS ([`oris.md`](oris.md)) |
+| `/profile/cisla/<číslo>/smazat` | POST | jen lokální appka: smazat ručně přidané číslo, pod kterým není žádný závod |
 | `/upload` | GET, POST | `.fit` (víc najednou) nebo zip (celý export Garmin); seznam nahraných běhů, u nespárovaných běhů ze dne a místa závodu tlačítka Přiřadit a Smazat |
 | `/activities/<id>/delete` | POST | smazat nahraný běh, který není spárovaný se závodem |
 | `/model`, `/model/refit` | GET, POST | osobní model rychlosti |
@@ -80,19 +82,21 @@ Vše jsou veřejná data. Uživatelská data (stopy, poznámky, mapy) se nikam n
 
 | Služba | Volání | Kdy | Cache | Vypnutí |
 |---|---|---|---|---|
-| ORIS | `getUser?rgnum=`, `getUserEventEntries?userid=`, `getEvent?id=`, `getSplits?classid=` | registrace (jen `getUser`), „Načíst závody z ORIS“ | závody, kategorie a mezičasy v databázi; na třídu se ptá jednou | `OB_ORIS_URL` |
+| ORIS | `getUser?rgnum=`, `getUserEventEntries?userid=`, `getEvent?id=`, `getSplits?classid=` | registrace (jen `getUser`), „Načíst závody z ORIS“ | závody, kategorie a mezičasy v databázi; na třídu se ptá jednou, na zastřešující etapový závod jednou | `OB_ORIS_URL` |
 | ČÚZK DMR 5G | `…/dmr5g/ImageServer/exportImage` (TIFF, `F32`, WGS 84) | první analýza s mapou bez tratě u českého závodu | `dem/event_<id>_cuzk.npz` | `OB_DEM=aws` |
 | AWS Terrain Tiles | `elevation-tiles-prod/terrarium/15/x/y.png` | závody mimo Česko, nebo když ČÚZK neodpoví | `dem/event_<id>.npz` | (není, je to záloha) |
 | Overpass (OSM) | jeden dotaz na obdélník mapy, viz `oroute/osm.py` | první analýza s mapou bez tratě | `osm/event_<id>.json` | `OB_OSM=0`, nebo u závodu „nepoužívat“ |
 
-Z `getEvent` se čte `Name`, `Date`, `Place`, `Discipline`, `LiveloxID`, `GPSLat`, `GPSLon`, `Locations` (místa závodu, pro párování aktivit), `Links` (OResults), `Classes`. Z `getSplits` řádek každého běžce: `ResName`, `RegNo`, `ResClub`, `ResPlace`, `ResTime`, `StartTime`, `FinishTime`, `TotalTime1…n`.
+Z `getEvent` se čte `Name`, `Date`, `Place`, `Discipline`, `LiveloxID`, `GPSLat`, `GPSLon`, `Locations` (místa závodu, pro párování aktivit), `Links` (OResults), `Classes`, `Stages`, `Stage1…7`, `ParentID` (etapové závody). Z `getUserEventEntries` i `RegNo` (číslo, pod kterým přihláška byla). Podrobnosti, přestup a etapové závody: [`oris.md`](oris.md). Z `getSplits` řádek každého běžce: `ResName`, `RegNo`, `ResClub`, `ResPlace`, `ResTime`, `StartTime`, `FinishTime`, `TotalTime1…n`.
 
 ## Databáze (SQLite, `webapp/schema.sql`)
 
 | Tabulka | Obsah | Čí |
 |---|---|---|
 | `users` | účet, registrační číslo (jedno číslo = jeden účet, unikátní index; číslo účtu nejde přepsat, trigger `users_regno_fixed`), ORIS ID, vlastní model kopců; `reset_hash`, `reset_until`, `reset_tries` (jednorázový kód k novému heslu, jen hash) | uživatel |
-| `events` | závod; `links`, `locations`, mapa bez tratě; `osm_mode`, `hatch_mode` = výchozí nastavení závodu pro běžce bez vlastního | **sdílené** |
+| `user_regnos` | všechna registrační čísla účtu (po přestupu i staré), ORIS ID a jméno podle ORIS, odkud číslo je (`ucet`, `rucne`, `oris`); jedno číslo = jeden účet | uživatel |
+| `events` | závod; `links`, `locations`, mapa bez tratě; `osm_mode`, `hatch_mode` = výchozí nastavení závodu pro běžce bez vlastního; `stage_parent`, `stage_n`, `stage_count` u etapy etapového závodu | **sdílené** |
+| `oris_umbrellas` | zastřešující etapové závody z ORIS (jen seznam etap, závodem nejsou) | **sdílené** |
 | `classes` | kategorie, mapa s tratí | **sdílené** v kategorii |
 | `class_splits` | mezičasy všech běžců kategorie z ORIS | **sdílené** (veřejná data) |
 | `refreshments`, `barriers` | občerstvovačky, ruční zakázané čáry | **sdílené** pro závod |

@@ -554,6 +554,12 @@ Co hotové není nebo nesedí:
     Windows a v Chromu jsem to ověřil (8. 11.), Mac jsem neměl.
 48. Garmin Connect na telefonu nebo iPadu: lišta s tlačítkem Načíst vybrané zůstává při posunu tabulky nahoře (na
     telefonu jen spodní řádek lišty, asi pětina výšky). Nepřekáží? Je z ní jasné, co tlačítko udělá?
+49. KITL 2025: v ORIS to není etapový závod, ale dva samostatné závody, střední trať 6. 9. (8228) a dlouhá 7. 9.
+    (8229); v appce jsou oba se svou disciplínou. V zadání byly etapy 5. a 6. 9. Běželi jste ještě něco 5. 9. (třeba
+    sprint v pátek)? Jiný KITL jsem v ORIS kolem těch dnů nenašel (`docs/oris.md`).
+50. Přestoupil někdy Tobias nebo táta do jiného oddílu (jiné registrační číslo)? Ověřoval jsem na cizích běžcích z
+    výsledků (Jiří Vlach AOV7900 → SFM7900, Matěj Toman LBM0909 → ZBM0919): ORIS ID zůstává, staré závody nesou staré
+    číslo. Kdyby to u vás vypadalo jinak, napiš.
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

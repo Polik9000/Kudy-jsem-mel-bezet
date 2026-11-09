@@ -30,6 +30,29 @@ BEGIN
     SELECT RAISE(ABORT, 'the registration number of an account cannot be changed');
 END;
 
+-- Every registration number of an account (docs/oris.md): after a move to another club the runner has a new
+-- number and ORIS keeps the old races under the old one. users.oris_regno stays the first number of the account;
+-- the triggers below copy it here, so whatever sets it (registration, profile, seed, tools) needs nothing more.
+CREATE TABLE IF NOT EXISTS user_regnos (
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    regno        TEXT NOT NULL UNIQUE,  -- one number, one account
+    oris_user_id INTEGER,
+    name         TEXT,                  -- the name ORIS gives for the number
+    -- ucet: the number of the account | rucne: added in the profile ("I moved to another club")
+    -- | oris: seen in the runner's own entries in ORIS (the same ORIS person)
+    source       TEXT NOT NULL DEFAULT 'ucet',
+    added_at     TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, regno)
+);
+CREATE TRIGGER IF NOT EXISTS users_regno_listed AFTER INSERT ON users WHEN NEW.oris_regno IS NOT NULL
+BEGIN
+    INSERT OR IGNORE INTO user_regnos (user_id, regno, oris_user_id) VALUES (NEW.id, NEW.oris_regno, NEW.oris_user_id);
+END;
+CREATE TRIGGER IF NOT EXISTS users_regno_listed_later AFTER UPDATE OF oris_regno ON users WHEN NEW.oris_regno IS NOT NULL
+BEGIN
+    INSERT OR IGNORE INTO user_regnos (user_id, regno, oris_user_id) VALUES (NEW.id, NEW.oris_regno, NEW.oris_user_id);
+END;
+
 -- a race day; from ORIS (oris_id set) or entered by hand (races outside ORIS)
 CREATE TABLE IF NOT EXISTS events (
     id           INTEGER PRIMARY KEY,
@@ -54,8 +77,25 @@ CREATE TABLE IF NOT EXISTS events (
     maponly_source TEXT,
     maponly_res_m  REAL,             -- snimek: metres per pixel of the map kept
     maponly_acc_m  REAL,             -- snimek: how far off the map may be (metres)
+    -- a stage of a multi-stage event: ORIS id of the umbrella event, which stage, of how many (stage_n 0: the
+    -- race was checked and is no stage; NULL: not known)
+    stage_parent INTEGER,
+    stage_n      INTEGER,
+    stage_count  INTEGER,
     created_by   INTEGER REFERENCES users(id),
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- The umbrella event of a multi-stage race in ORIS: entries are made to it, the stages are the races (maps,
+-- courses, split times). It is not kept as a race; this row only spares ORIS a second getEvent.
+-- kept_event_id: an umbrella from before that a runner had a run or a map in and could not be moved to a stage.
+CREATE TABLE IF NOT EXISTS oris_umbrellas (
+    oris_id       INTEGER PRIMARY KEY,
+    name          TEXT NOT NULL,
+    date          TEXT NOT NULL,
+    stages        TEXT NOT NULL,     -- JSON [ORIS id of stage 1, stage 2, ...]
+    kept_event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
+    fetched_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS classes (

@@ -48,8 +48,10 @@ def parse_user(data):
 
 
 def parse_entries(data):
+    """The runner's entries. regno: the registration number they were entered under (after a move to another
+    club ORIS keeps the old races under the old number, docs/oris.md)."""
     return [dict(event_id=int(e["EventID"]), class_id=int(e["ClassID"]), class_name=e["ClassDesc"],
-                 date=e["EventDate"]) for e in _items(data)]
+                 date=e["EventDate"], regno=(e.get("RegNo") or "").strip().upper() or None) for e in _items(data)]
 
 
 def _links(d):
@@ -73,9 +75,36 @@ def _locations(d):
     return out
 
 
+def _stages(d):
+    """ORIS ids of the stages of a multi-stage event (Stages, Stage1..Stage7; "0" = none), [] for any other."""
+    try:
+        n = int(d.get("Stages") or 0)
+    except (TypeError, ValueError):
+        n = 0
+    out = []
+    for i in range(1, max(n, 0) + 1):
+        try:
+            v = int(d.get(f"Stage{i}") or 0)
+        except (TypeError, ValueError):
+            v = 0
+        if v:
+            out.append(v)
+    return out
+
+
+def _int(v):
+    try:
+        return int(v) or None
+    except (TypeError, ValueError):
+        return None
+
+
 def parse_event(data):
+    """stages: ORIS ids of the stages when the event is the umbrella of a multi-stage event (entries are made to
+    it, but maps, courses and split times belong to the stages); parent_id: that umbrella, for a stage."""
     d = data
     return dict(
+        stages=_stages(d), parent_id=_int(d.get("ParentID")),
         oris_id=int(d["ID"]), name=d["Name"], date=d["Date"], place=d.get("Place") or None,
         discipline=(d.get("Discipline") or {}).get("NameCZ") if isinstance(d.get("Discipline"), dict) else None,
         livelox_id=_valid_livelox_id(d.get("LiveloxID")), lat=_num(d.get("GPSLat")), lon=_num(d.get("GPSLon")),
@@ -129,15 +158,24 @@ def oresults_url(links):
     return None
 
 
-def parse_splits(data, regno):
-    """One runner's official times in a class, or None when the class has no splits for them.
+def numbers(regnos):
+    """A registration number or several (an account keeps the old ones after a move to another club): upper case."""
+    if isinstance(regnos, str):
+        regnos = [regnos]
+    return {r.strip().upper() for r in regnos or () if r and r.strip()}
+
+
+def parse_splits(data, regnos):
+    """One runner's official times in a class, or None when the class has no splits for them. regnos: their
+    registration number, or all of them.
 
     Returns dict(control_codes, start_local 'HH:MM:SS', time_s, place,
                  cumulative = seconds from the start to each control and last to the finish; None = no punch).
     """
     if not data or not isinstance(data, dict):
         return None
-    row = next((p for p in _items(data.get("Splits")) if (p.get("RegNo") or "").upper() == regno.upper()), None)
+    mine = numbers(regnos)
+    row = next((p for p in _items(data.get("Splits")) if (p.get("RegNo") or "").strip().upper() in mine), None)
     if row is None:
         return None
     codes = _codes(data)
@@ -196,8 +234,8 @@ class Oris:
     def event(self, oris_id):
         return parse_event(self.call("getEvent", id=oris_id))
 
-    def splits(self, class_id, regno):
-        return parse_splits(self.class_splits_raw(class_id), regno)
+    def splits(self, class_id, regnos):
+        return parse_splits(self.class_splits_raw(class_id), regnos)
 
     def class_splits_raw(self, class_id):
         """The getSplits answer of a class as ORIS sent it (parse with parse_splits / parse_class_splits)."""

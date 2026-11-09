@@ -33,12 +33,19 @@ def leg_names(n):
     return [f"{'S' if k == 1 else k - 1}-{'F' if k == n else k}" for k in range(1, n + 1)]
 
 
-def table(con, class_id, regno):
-    """oroute.splits.class_table of the class, or None when it has no stored splits."""
+def my_regno(runners, regnos):
+    """Which of the runner's numbers (the account may have several, services/regnos.py) the class results have."""
+    mine = oris.numbers(regnos)
+    return next(((r.get("regno") or "").upper() for r in runners if (r.get("regno") or "").upper() in mine), None)
+
+
+def table(con, class_id, regnos):
+    """oroute.splits.class_table of the class, or None when it has no stored splits. regnos: the runner's number,
+    or all of them."""
     data = load(con, class_id)
     if not data or not data["runners"]:
         return None
-    t = S.class_table(data["runners"], regno)
+    t = S.class_table(data["runners"], my_regno(data["runners"], regnos))
     t["control_codes"] = data["control_codes"]
     return t if t["n_legs"] else None
 
@@ -73,9 +80,9 @@ def agreement(t, model_times):
     return a
 
 
-def view(con, entry, regno, model_times=None):
+def view(con, entry, regnos, model_times=None):
     """Everything the tab "Mezičasy kategorie" shows, or None when the class has no stored splits."""
-    t = table(con, entry["class_id"], regno)
+    t = table(con, entry["class_id"], regnos)
     if t is None:
         return None
     n, names, me = t["n_legs"], leg_names(t["n_legs"]), t["me"]

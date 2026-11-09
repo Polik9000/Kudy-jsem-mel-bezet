@@ -9,7 +9,8 @@
 {% endblock %}
 {% block content %}
 <h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ e.event_name }} <span class="stav {{ status[1] }}">{{ status[0] }}</span></h2>
-<p class="evhead">{{ e.date | datum }}{% if e.place %} · {{ e.place }}{% endif %} · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}
+<p class="evhead">{{ e.date | datum }}{% if e.place %} · {{ e.place }}{% endif %}{% if e.discipline %} · {{ e.discipline }}{% endif %}
+  {%- if e.stage_n %} · {% trans n=e.stage_n, of=e.stage_count %}etapa {{ n }} / {{ of }}{% endtrans %}{% endif %} · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}
   {%- if e.distance_km %} · {{ e.distance_km }} km{% endif %}{% if e.climb_m %}, {% trans m=e.climb_m | int %}{{ m }} m stoupání{% endtrans %}{% endif %}
   {%- if e.controls %}, {% trans n=e.controls %}{{ n }} kontrol{% endtrans %}{% endif %}
   {%- if e.official_time_s %} · {{ _('oficiální čas') }} <b>{{ e.official_time_s | mmss }}</b>{% endif %}
