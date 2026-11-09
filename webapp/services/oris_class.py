@@ -3,13 +3,14 @@ or a race from ORIS they are not entered in under their registration number. ORI
 getEvent per race (all its classes are kept) and one getSplits per class (kept in class_splits), never again
 for what the database already holds."""
 import re
+import time
 
 from .. import oris
 from ..db import dumps
 from ..i18n import _
-from . import matching
+from . import matching, regnos, stages
 from . import splits as class_splits
-from .sync_oris import upsert_class, upsert_event
+from .sync_oris import PAUSE_S, upsert_class, upsert_event
 
 
 class Refused(ValueError):
@@ -28,26 +29,57 @@ def event_classes(con, event_id):
                        (event_id,)).fetchall()
 
 
-def load_event(con, conf, oris_id, client=None):
-    """events.id of the race from ORIS with all its classes. getEvent is asked only when the race, or more than
-    the one class a runner was entered in, is not in the database yet."""
-    row = con.execute("SELECT id FROM events WHERE oris_id = ?", (oris_id,)).fetchone()
-    if row and len(event_classes(con, row["id"])) > 1:
-        return row["id"]
+def _ask_event(client, oris_id):
     try:
-        ev = (client or oris.client(conf)).event(oris_id)
+        return client.event(oris_id)
     except (oris.OrisError, KeyError, TypeError, ValueError) as e:
         raise Refused(_("Závod %(oris_id)s se z ORIS načíst nepodařilo. Je číslo závodu správně?", oris_id=oris_id)) from e
-    if ev["cancelled"]:
-        raise Refused(_("Závod %(name)s je v ORIS zrušený.", name=ev['name']))
+
+
+def _save(con, ev):
     event_id = upsert_event(con, ev)
     for c in ev["classes"]:
         upsert_class(con, event_id, c)
-    con.commit()
     return event_id
 
 
-def runner_times(con, conf, cls, regno, client=None):
+def load_event(con, conf, oris_id, client=None, pause=PAUSE_S):
+    """events.id of the race from ORIS with all its classes. getEvent is asked only when the race, or more than
+    the one class a runner was entered in, is not in the database yet. The umbrella of a multi-stage event is no
+    race (services/stages.py): its stages are loaded instead and None is returned (race_oris_class offers them)."""
+    client = client or oris.client(conf)
+    umb = stages.known(con, oris_id)
+    if umb is None:
+        row = con.execute("SELECT id FROM events WHERE oris_id = ?", (oris_id,)).fetchone()
+        if row and len(event_classes(con, row["id"])) > 1 and not stages.suspect(con, row["id"]):
+            return row["id"]
+        ev = _ask_event(client, oris_id)
+        if ev["cancelled"]:
+            raise Refused(_("Závod %(name)s je v ORIS zrušený.", name=ev['name']))
+        if not ev["stages"]:
+            if row:
+                stages.not_umbrella(con, row["id"])
+            event_id = _save(con, ev)
+            con.commit()
+            return event_id
+        umb = stages.remember(con, ev)
+    for sid in umb["stages"]:
+        row = con.execute("SELECT id FROM events WHERE oris_id = ?", (sid,)).fetchone()
+        if row and len(event_classes(con, row["id"])) > 1:
+            continue
+        time.sleep(pause)
+        try:
+            sev = _ask_event(client, sid)
+        except Refused:
+            continue          # one stage ORIS does not give: the others can still be chosen
+        if not sev["cancelled"]:
+            _save(con, sev)
+    stages.mark(con, oris_id, umb["stages"])
+    con.commit()
+    return None
+
+
+def runner_times(con, conf, cls, regnos, client=None):
     """The runner's official times in a class from ORIS (dict as oris.parse_splits gives it), or None when the
     class has no split times or the runner is not in its results. getSplits is asked once per class."""
     data = class_splits.load(con, cls["id"])
@@ -60,7 +92,8 @@ def runner_times(con, conf, cls, regno, client=None):
         if data is None:
             class_splits.store_none(con, cls["id"])
             return None
-    me = next((r for r in data["runners"] if regno and (r["regno"] or "").upper() == regno.upper()), None)
+    mine = oris.numbers(regnos)
+    me = next((r for r in data["runners"] if (r["regno"] or "").upper() in mine), None)
     if me is None:
         return None
     return dict(control_codes=data["control_codes"], start_local=me["start_local"], time_s=me["time_s"],
@@ -94,7 +127,7 @@ def change_class(con, conf, user, entry_id, class_id, client=None):
         return _("Kategorie %(name)s zůstává.", name=cls['name'])
     if con.execute("SELECT 1 FROM entries WHERE user_id = ? AND class_id = ?", (user["id"], cls["id"])).fetchone():
         raise Refused(_("Závod v kategorii %(name)s už mezi svými závody máš.", name=cls['name']))
-    t = runner_times(con, conf, cls, user["oris_regno"], client)
+    t = runner_times(con, conf, cls, regnos.of(con, user["id"]), client)
     con.execute("UPDATE entries SET class_id = ?, class_chosen = 1 WHERE id = ?", (cls["id"], entry_id))
     _put_times(con, entry_id, cls, t)
     con.execute("DELETE FROM analyses WHERE entry_id = ?", (entry_id,))      # the legs of another course
@@ -117,7 +150,7 @@ def add_race(con, conf, user, class_id, client=None):
                        (user["id"], cls["event_id"])).fetchone()
     if have:
         return have["id"], _("Tenhle závod už mezi svými závody máš; kategorii změníš na jeho stránce.")
-    t = runner_times(con, conf, cls, user["oris_regno"], client)
+    t = runner_times(con, conf, cls, regnos.of(con, user["id"]), client)
     entry_id = con.execute("INSERT INTO entries (user_id, class_id, class_chosen) VALUES (?, ?, 1)",
                            (user["id"], cls["id"])).lastrowid
     _put_times(con, entry_id, cls, t)

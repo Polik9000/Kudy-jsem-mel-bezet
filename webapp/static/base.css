@@ -829,6 +829,13 @@ code { font-size: .92em; background: var(--bg-soft); padding: .05rem .3rem; bord
   border-left: .25rem solid var(--accent);
   border-radius: var(--r2); padding: .55rem .8rem;
 }
+/* Přehled závodů: z ORIS se právě načítají závody (nebo právě doběhlo
+   načtení). Řádek nad přehledem, aby prázdná stránka nevypadala jako chyba. */
+.ob-nacitani {
+  display: flex; flex-wrap: wrap; gap: .2rem .8rem; align-items: baseline;
+  border-left: .25rem solid var(--brand);
+}
+.ob-nacitani .hint { flex-basis: 100%; margin: 0; }
 /* Poznámka k závodu (zástupný závod z plánu, výpadek zdroje, přehrání
    dat pořadatelem). Tišší než varování o mrtvém cronu, ale pořád rámeček
    — v prostém odstavci se ztrácela. */

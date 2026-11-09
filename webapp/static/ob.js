@@ -126,6 +126,10 @@
       // the analysis the page shows was replaced: the track is ready before the routes, show it right away
       var replaced = d.analysis !== undefined && d.analysis !== body.dataset.analyza;
       if (((was && !d.active) || replaced) && body.hasAttribute("data-obnovit")) { due = true; }
+      // a job the page shows as waiting or running (data-ceka-na="job id") has ended, also before the first look
+      Array.prototype.forEach.call(document.querySelectorAll("[data-ceka-na]"), function (el) {
+        if ((d.ids || []).indexOf(+el.getAttribute("data-ceka-na")) < 0) { due = true; }
+      });
       if (due && !body.dataset.noReload && !unsaved()) { keepPlace(); location.reload(); return; }
       was = d.active;
       next(d.active || due ? 3000 : 20000);

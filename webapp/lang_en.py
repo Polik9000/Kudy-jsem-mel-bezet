@@ -1890,8 +1890,6 @@ EN = {
         'An image can only be uploaded as the map with the course. Upload the map without the course as a KMZ from Livelox.',
     'Fotka je uložená. Až doplníš běh z hodinek a mezičasy z ORIS, usadí se automaticky.':
         'The photo is saved. It is placed automatically once you add the watch run and the ORIS split times.',
-    'Uloženo: %(regno)s patří v ORIS jménu %(name)s. Závody z ORIS se načítají. Když to nejsi ty, napiš autorovi aplikace.':
-        'Saved: %(regno)s belongs to %(name)s in ORIS. Your races are being loaded from ORIS. If that is not you, write to the author of the app.',
     'Mapa bez tratě je uložená.':
         'The map without the course is saved.',
     'Složka neexistuje.':
@@ -2018,6 +2016,65 @@ EN.update({
         "%(app)s is running at %(url)s (to quit: Quit the app in the menu, or Ctrl+C)",
     "Aplikace se nespustila: %(error)s\nData: %(data)s":
         "The app did not start: %(error)s\nData: %(data)s",
+})
+
+# loading from ORIS, more registration numbers after a move to another club, multi-stage events (docs/oris.md)
+EN.update({
+    "Nejdřív zadej svoje registrační číslo ORIS.": "First enter your ORIS registration number.",
+    "Číslo %(regno)s už máš.": "You already have the number %(regno)s.",
+    "Číslo %(regno)s patří jinému účtu.": "The number %(regno)s belongs to another account.",
+    "Číslo %(regno)s patří v ORIS jménu %(name)s, ne tobě. Přidat jde jen tvoje vlastní číslo.":
+        "In ORIS the number %(regno)s belongs to %(name)s, not to you. Only your own number can be added.",
+    "Číslo %(regno)s smazat nejde: jsou pod ním závody, nebo je to číslo účtu.":
+        "The number %(regno)s cannot be removed: there are races under it, or it is the number of the account.",
+    "ORIS teď neodpovídá, zkus číslo přidat později.": "ORIS is not answering right now, try adding the number later.",
+    "Registrační číslo %(regno)s v ORIS není ani mezi tvými závody.":
+        "The registration number %(regno)s is neither in ORIS nor among your races.",
+    "zatím %(done)s z %(total)s závodů": "%(done)s of %(total)s races so far",
+    "Závody z ORIS se už načítají, průběh je vidět nahoře.": "Your races are already being loaded from ORIS, see the progress at the top.",
+    "Závody z ORIS se načítají znovu, průběh vidíš nahoře.": "Your races are being loaded from ORIS again, see the progress at the top.",
+    "Číslo %(regno)s je smazané.": "The number %(regno)s is removed.",
+    "Uloženo: %(regno)s patří v ORIS jménu %(name)s. Teď se z ORIS načítají všechny tvoje závody. Trvá to chvíli"
+    " (podle počtu závodů i několik minut), průběh vidíš nahoře v Přehledu závodů. Když to nejsi ty, napiš autorovi"
+    " aplikace.":
+        "Saved: %(regno)s belongs to %(name)s in ORIS. All your races are being loaded from ORIS now. It takes a while"
+        " (several minutes with many races); see the progress at the top of the race overview. If that is not you,"
+        " write to the author of the app.",
+    "Přidáno: %(regno)s (v ORIS %(name)s).": "Added: %(regno)s (%(name)s in ORIS).",
+    "Přidáno: %(regno)s.": "Added: %(regno)s.",
+    "Po uložení se z ORIS načtou všechny tvoje závody. Trvá to chvíli (podle počtu závodů i několik minut), průběh"
+    " uvidíš v Přehledu závodů.":
+        "Once saved, all your races are loaded from ORIS. It takes a while (several minutes with many races); you will"
+        " see the progress in the race overview.",
+    "Registrační čísla ORIS": "ORIS registration numbers",
+    "číslo účtu": "number of the account",
+    "podle tvých přihlášek v ORIS": "from your entries in ORIS",
+    "přidané po přestupu": "added after a move to another club",
+    "Smazat (přidané omylem)": "Remove (added by mistake)",
+    "Přestoupil jsem do jiného oddílu: přidat další registrační číslo":
+        "I moved to another club: add another registration number",
+    "Další registrační číslo ORIS": "Another ORIS registration number",
+    "Nové číslo po přestupu, nebo staré číslo z dřívějšího oddílu. Ověří se v ORIS: musí patřit tobě (stejný člověk"
+    " v ORIS, stejné jméno). Závody pod oběma čísly pak uvidíš tady a mezičasy se najdou i u starých závodů.":
+        "The new number after the move, or the old number of your former club. It is checked in ORIS: it must be"
+        " yours (the same person in ORIS, the same name). Then you see the races under both numbers here, and the"
+        " split times are found for the old races too.",
+    "Přidat číslo": "Add the number",
+    "etapa %(n)s / %(of)s": "stage %(n)s / %(of)s",
+    "Etapový závod: mapy, tratě a mezičasy patří k jednotlivým etapám. Vyber etapu, kterou jsi běžel, pak kategorii.":
+        "A multi-stage event: maps, courses and split times belong to the single stages. Pick the stage you ran, then"
+        " the class.",
+    "Etapy se z ORIS načíst nepodařilo, zkus to později.": "The stages could not be loaded from ORIS, try again later.",
+    "Registrační čísla: %(numbers)s.": "Registration numbers: %(numbers)s.",
+    "Načítám závody z ORIS…": "Loading races from ORIS…",
+    "Trvá to chvíli (podle počtu závodů i několik minut). Stránka se sama obnoví, až to doběhne.":
+        "It takes a while (several minutes with many races). The page reloads itself when it is done.",
+    "Načteno z ORIS. %(message)s": "Loaded from ORIS. %(message)s",
+    "<b>Registrační číslo ORIS</b> %(regno)s máš zadané: tvoje závody, kategorie a oficiální mezičasy se z ORIS"
+    " načítají samy (průběh je vidět nahoře).":
+        "Your <b>ORIS registration number</b> %(regno)s is entered: your races, classes and official split times are"
+        " loaded from ORIS by themselves (see the progress at the top).",
+    "etapa etapového závodu": "a stage of a multi-stage event",
 })
 
 EN_JS = {

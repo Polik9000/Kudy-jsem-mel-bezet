@@ -12,7 +12,7 @@ from .. import cfg, get_db, i18n
 from ..auth import login_required
 from ..db import loads
 from ..i18n import N_, _
-from ..services import charts, jobs, personal
+from ..services import charts, jobs, personal, regnos
 from ..services import splits as class_splits
 from . import bp
 
@@ -129,7 +129,7 @@ FIT_RACES = 10   # "Jak dobře model sedí": the latest races with best routes a
 def class_fit(db, user):
     """How well the speed model orders the legs as the class does (services/splits.agreement), for the latest
     analysed races with the split times of the whole class: [{entry_id, name, date, agreement}]."""
-    out = []
+    out, mine = [], regnos.of(db, user["id"])
     rows = db.execute(
         "SELECT e.id, e.class_id, ev.name, ev.date, a.id AS analysis_id FROM entries e JOIN classes c ON c.id = e.class_id"
         " JOIN events ev ON ev.id = c.event_id JOIN analyses a ON a.entry_id = e.id"
@@ -138,7 +138,7 @@ def class_fit(db, user):
     for r in rows:
         times = [(loads(x["data"]).get("best") or {}).get("time")
                  for x in db.execute("SELECT data FROM legs WHERE analysis_id = ? ORDER BY n", (r["analysis_id"],))]
-        a = class_splits.agreement(class_splits.table(db, r["class_id"], user["oris_regno"]), times)
+        a = class_splits.agreement(class_splits.table(db, r["class_id"], mine), times)
         if a is not None:
             out.append(dict(entry_id=r["id"], name=r["name"], date=r["date"], agreement=a))
     return out

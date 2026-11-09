@@ -18,8 +18,9 @@ import re
 import unicodedata
 import zipfile
 
+from .. import oris
 from ..db import dumps, loads
-from . import matching, storage
+from . import matching, regnos, storage
 from . import splits as class_splits
 
 FORMAT = "obzavod"
@@ -254,11 +255,11 @@ def _extras(con, doc, event_id, class_id, user_id):
                      dumps(line), user_id))
 
 
-def _my_times(con, class_id, regno):
+def _my_times(con, class_id, regnos):
     """The runner's own official result from the stored times of the class (no ORIS call), or None."""
     data = class_splits.load(con, class_id)
-    me = next((r for r in (data or {}).get("runners", [])
-               if regno and (r.get("regno") or "").upper() == regno.upper()), None)
+    mine = oris.numbers(regnos)
+    me = next((r for r in (data or {}).get("runners", []) if (r.get("regno") or "").upper() in mine), None)
     if me is None:
         return None
     return dict(official_time_s=me["time_s"], start_local=me["start_local"], result_place=me["place"],
@@ -283,7 +284,7 @@ def load(con, conf, user, data):
             entry_id = con.execute("INSERT INTO entries (user_id, class_id, class_chosen) VALUES (?, ?, 1)",
                                    (uid, class_id)).lastrowid
             new_entry = True
-            res = _my_times(con, class_id, user["oris_regno"])
+            res = _my_times(con, class_id, regnos.of(con, uid))
             if res is None and isinstance(mine.get("result"), dict):
                 r = mine["result"]
                 res = dict(official_time_s=r.get("official_time_s") if isinstance(r.get("official_time_s"), int)

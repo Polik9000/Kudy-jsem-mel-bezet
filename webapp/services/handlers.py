@@ -18,7 +18,8 @@ from . import garmin_api, jobs, matching, personal, plans, results, runner, stor
 
 @jobs.handler("sync_oris")
 def _sync_oris(ctx, job):
-    message = sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"])
+    message = sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"],
+                                  progress=lambda text: jobs.progress(ctx.con, job["id"], text))
     matching.queue_waiting_photos(ctx.con, job["user_id"])
     matching.queue_waiting_screens(ctx.con, job["user_id"])
     return message

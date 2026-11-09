@@ -43,6 +43,9 @@ ADDED_COLUMNS = [
     ("entries", "gps_trim", "TEXT"),
     ("users", "theme", "TEXT"),
     ("users", "lang", "TEXT"),
+    ("events", "stage_parent", "INTEGER"),
+    ("events", "stage_n", "INTEGER"),
+    ("events", "stage_count", "INTEGER"),
 ]
 
 
@@ -63,6 +66,10 @@ def migrate(con):
                                              " GROUP BY oris_regno HAVING COUNT(*) > 1")]
             print(f"warning: several accounts share a registration number ({', '.join(dup)}); remove the extra "
                   "ones with: flask --app webapp.wsgi delete-account NAME --yes", flush=True)
+    # the number of every account is in the list of its numbers (a database from before the list)
+    if con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'user_regnos'").fetchone():
+        con.execute("INSERT OR IGNORE INTO user_regnos (user_id, regno, oris_user_id) SELECT id, oris_regno,"
+                    " oris_user_id FROM users WHERE oris_regno IS NOT NULL ORDER BY id")
 
 
 def init(path):

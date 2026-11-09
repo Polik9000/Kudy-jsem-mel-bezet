@@ -101,8 +101,8 @@ def register():
         elif not accounts.code_ok(cfg(), regno, request.form.get("code")):
             # before the check below: without the code nobody learns which numbers have an account
             flash(_("Kód k tomuhle registračnímu číslu nesedí. Kód ti dá správce aplikace."), "error")
-        elif db.execute("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE OR oris_regno = ?",
-                        (regno, regno)).fetchone():
+        elif db.execute("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE OR oris_regno = ?"
+                        " UNION SELECT 1 FROM user_regnos WHERE regno = ?", (regno, regno, regno)).fetchone():
             flash(_("Účet s tímhle registračním číslem už existuje. Přihlas se."), "error")
         else:
             person, note = None, None
@@ -131,12 +131,13 @@ def login():
     if request.method == "POST":
         name = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        # The login name or the registration number (one number has one account; a database from before
-        # that rule may hold more, then the password says which one is meant).
+        # The login name or the registration number, also another number of the account after a move to another
+        # club (one number has one account; a database from before that rule may hold more, then the password
+        # says which one is meant).
         db = get_db()
         found = db.execute("SELECT * FROM users WHERE username = ? COLLATE NOCASE", (name,)).fetchall()
-        found += db.execute("SELECT * FROM users WHERE oris_regno = ? ORDER BY id",
-                            (accounts.clean_regno(name),)).fetchall()
+        found += db.execute("SELECT * FROM users WHERE oris_regno = ? OR id IN (SELECT user_id FROM user_regnos"
+                            " WHERE regno = ?) ORDER BY id", (accounts.clean_regno(name),) * 2).fetchall()
         row = next((r for r in found if check_password_hash(r["password_hash"], password)), None)
         if row:
             nxt = _safe_next()
