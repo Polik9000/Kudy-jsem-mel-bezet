@@ -516,3 +516,69 @@ def test_fenced_ground_with_a_control_in_it_can_be_entered():
     box = (200, 100, 320, 220)
     assert mapdata.obstacles(Sheet, cls, box)["blocked"][152, 255]
     assert not mapdata.obstacles(Sheet, cls, box, open_at=[(255.0, 152.0)])["blocked"].any()
+
+
+def test_a_person_can_take_a_recognised_fence_off_the_map_and_the_others_stay():
+    from PIL import Image
+
+    from oroute import mapdata
+    from oroute.kmzmap import GeoMap
+    mpp = 0.6
+    rgb, cls = fence_sheet(mpp)
+    gm = GeoMap(Image.fromarray(rgb), 50.001, 50.0, 18.001, 18.0)
+    gm.m_per_px_x = gm.m_per_px_y = mpp
+    obs = mapdata.obstacles(gm, cls)
+    fences = [e for e in obs["elements"] if e["kind"] == "fence"]
+    assert len(fences) == 1 and obs["hard"][60, 200] and fences[0]["action"] is None
+    # the key of the fence is its centre: a correction made from it, a few metres off, still finds it
+    for off in (0, 5):
+        over = [dict(kind="fence", u=fences[0]["u"] + off / mpp, v=fences[0]["v"], action="remove")]
+        gone = mapdata.obstacles(gm, cls, overrides=over)
+        assert not gone["hard"].any() and gone["elements"][0]["action"] == "remove"
+        # nothing is a path any more where the fence was, as before (a line that is no fence is no path either)
+        assert not (gone["cls"][59:62, 80:360] == T.PATH).any()
+    # a correction of another kind, or far from the fence, changes nothing
+    for over in ([dict(kind="enclosure", u=fences[0]["u"], v=fences[0]["v"], action="remove")],
+                 [dict(kind="fence", u=fences[0]["u"] + 100 / mpp, v=fences[0]["v"], action="remove")]):
+        assert mapdata.obstacles(gm, cls, overrides=over)["hard"][60, 200]
+    # a fence to climb can be made impassable, and the other way round
+    tall = mapdata.obstacles(gm, cls, overrides=[dict(kind="fence", u=fences[0]["u"], v=fences[0]["v"], action="tall")])
+    assert tall["blocked"][60, 200] and not tall["hard"][60, 200]
+    # the same corrections read from barriers.json: lat/lon, in map pixels
+    import json
+    import tempfile
+    la, lo = gm.px_to_latlon(fences[0]["u"], fences[0]["v"])
+    with tempfile.TemporaryDirectory() as d:
+        path = f"{d}/barriers.json"
+        json.dump(dict(lines=[], overrides=[dict(kind="fence", lat=la, lon=lo, action="remove")]), open(path, "w"))
+        read = mapdata.overrides(path, gm)
+        assert len(read) == 1 and abs(read[0]["u"] - fences[0]["u"]) < 1 and read[0]["action"] == "remove"
+        assert mapdata.overrides(f"{d}/none.json", gm) is None
+        assert mapdata.overrides(None, gm) is None
+
+
+def test_a_power_line_is_no_fence_however_its_bars_are_drawn():
+    """The poles of a power line or a lift: a bar across the line, bars to alternate sides, a square on the line.
+    None of them is a fence (a fence has its ticks to one side, in a row)."""
+    from PIL import Image, ImageDraw
+    mpp = 0.6
+    px = lambda m: m / mpp
+    for kind in ("across", "alternate", "square", "slanted"):
+        im = Image.new("RGB", (420, 160), (194, 225, 192))
+        d = ImageDraw.Draw(im)
+        d.line([40, 80, 380, 80], fill=(0, 0, 0), width=3)
+        for i, u in enumerate(range(70, 380, int(px(25)))):
+            if kind == "across":
+                d.line([u, 80 - px(4), u, 80 + px(4)], fill=(0, 0, 0), width=2)
+            elif kind == "alternate":
+                d.line([u, 80, u, 80 + (px(4) if i % 2 else -px(4))], fill=(0, 0, 0), width=2)
+            elif kind == "square":
+                d.rectangle([u - 3, 76, u + 3, 84], fill=(0, 0, 0))
+            else:
+                d.line([u - px(2), 80 - px(4), u + px(2), 80 + px(4)], fill=(0, 0, 0), width=2)
+        rgb = np.asarray(im)
+        mask, found = R.fences(rgb, np.zeros(rgb.shape[:2], np.uint8), mpp)
+        assert found == [] and not mask.any(), kind
+    # ... and the same line next to a real fence leaves the fence alone
+    rgb, cls = fence_sheet(mpp)
+    assert len(R.fences(rgb, cls, mpp)[1]) == 1

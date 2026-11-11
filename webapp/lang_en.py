@@ -2571,4 +2571,26 @@ EN_JS = {
         'getting lost %(t)s',
     'chyba v provedení %(t)s':
         'execution mistake %(t)s',
+    "plot": "fence",
+    "neprůchozí plot": "impassable fence",
+    "oplocenka": "enclosure",
+    "šrafy (zakázaný prostor)": "hatching (out of bounds)",
+    "OSM: železnice": "OSM: railway",
+    "OSM: dálnice": "OSM: motorway",
+    "OSM: plot nebo zeď": "OSM: fence or wall",
+    "Opraveno: není překážka": "Corrected: not an obstacle",
+    "Opraveno: jen těžký průchod": "Corrected: only hard to cross",
+    "Opraveno: neprůchozí": "Corrected: impassable",
+    "Opraveno: plot": "Corrected: a fence",
+    "Není překážka": "Not an obstacle",
+    "Jen těžký průchod": "Only hard to cross",
+    "Neprůchozí plot": "Impassable fence",
+    "Je plot": "It is a fence",
+    "Vrátit původní": "Restore the original",
 }
+
+
+EN.update({
+    "Rozpoznané překážky": "Recognised obstacles",
+    "rozpoznaná překážka (vrstva 4: kliknutím ji opravíš)": "recognised obstacle (layer 4: click it to correct it)",
+})

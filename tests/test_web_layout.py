@@ -397,3 +397,72 @@ def test_race_page_keeps_its_place_when_it_loads_itself_again():
     assert 'document.dispatchEvent(new CustomEvent("ob-vykresleno"))' in read("webapp", "static", "map.js").decode("utf-8")
     css = read("webapp", "static", "ob.css").decode("utf-8")
     assert ".ob-prubeh { position: fixed;" in css and ".ob-pas.ob-ceka { visibility: hidden; }" in css
+
+
+def test_a_runners_correction_of_a_recognised_obstacle_is_only_theirs(app, client, user):
+    import json as _json
+
+    from webapp.services import barriers as bar
+    con = dbm.connect(app.config["OB"].db_path)
+    conf = app.config["OB"]
+    sync_oris.sync_user(con, conf, user, client=FakeOris(), today=dt.date(2026, 10, 6), pause=0)
+    mine = con.execute("SELECT e.id, c.event_id FROM entries e JOIN classes c ON c.id = e.class_id JOIN events ev"
+                       " ON ev.id = c.event_id WHERE ev.oris_id = 9827").fetchone()
+    found = [dict(kind="fence", lat=49.8301, lon=18.3701, tall=False, action=None, area=None,
+                  line=[[49.83, 18.37], [49.8302, 18.3702]]),
+             dict(kind="enclosure", lat=49.84, lon=18.38, tall=False, action=None, area=900,
+                  line=[[49.8399, 18.3799], [49.8399, 18.3801], [49.8401, 18.38]])]
+    con.execute("INSERT INTO analyses (entry_id, has_routes, summary) VALUES (?, 1, ?)",
+                (mine["id"], _json.dumps(dict(obstacles=found))))
+    con.commit()
+    clear_jobs(app)
+    token = csrf(client)
+    url = f"/races/{mine['id']}/obstacles"
+    key = bar.key_of(49.8301, 18.3701)
+    ask = lambda **d: client.post(url, json=d, headers={"X-CSRF-Token": token})
+    r = ask(kind="fence", key=key, action="remove")
+    assert r.status_code == 200 and r.get_json()["rerouting"] is True
+    shown = {o["kind"]: o["action"] for o in r.get_json()["obstacles"]}
+    assert shown == {"fence": "remove", "enclosure": None}
+    assert [x["entry_id"] for x in con.execute("SELECT entry_id FROM jobs WHERE status = 'queued'")] == [mine["id"]]
+    # not allowed: unknown kind or action, a key that is no place, no CSRF token
+    assert ask(kind="wall", key=key, action="remove").status_code == 400
+    assert ask(kind="fence", key=key, action="fence").status_code == 400
+    assert ask(kind="fence", key="here", action="remove").status_code == 400
+    assert client.post(url, json=dict(kind="fence", key=key, action="remove")).status_code == 400
+    # the routes get it: the fence is in the file of bestroute.py, found again after a new reading (a few metres off)
+    fixes = bar.overrides(con, mine["id"])
+    out = bar.for_routing(con, conf, mine["event_id"], "forbid", None, fixes)
+    assert out["overrides"] == [dict(kind="fence", lat=49.8301, lon=18.3701, action="remove")]
+    near = [dict(fixes[0], lat=49.83014, lon=18.37014)]
+    assert bar._action(near, "fence", [49.8301, 18.3701]) == "remove"
+    assert bar._action(near, "enclosure", [49.8301, 18.3701]) is None
+    assert bar._action(near, "fence", [49.84, 18.38]) is None
+    # an OSM line and a hatched area can be taken off or made hard too, and then they are not drawn as forbidden
+    line = [[49.85, 18.39], [49.851, 18.391], [49.852, 18.392]]
+    bar.save_osm(conf, mine["event_id"], dict(lines=[dict(line=line, kind="forbidden", what="railway")], crossings=[]))
+    assert [l["kind"] for l in bar.for_routing(con, conf, mine["event_id"], "forbid")["lines"]] == ["forbidden"]
+    okey = bar.key_of(*bar.center(line))
+    assert ask(kind="osm", key=okey, action="hard").status_code == 200
+    assert [l["kind"] for l in bar.for_routing(con, conf, mine["event_id"], "forbid", None,
+                                                bar.overrides(con, mine["id"]))["lines"]] == ["hard"]
+    assert ask(kind="osm", key=okey, action="remove").status_code == 200
+    assert bar.for_routing(con, conf, mine["event_id"], "forbid", None, bar.overrides(con, mine["id"]))["overrides"]
+    shown = ask(kind="osm", key=okey, action="remove").get_json()
+    assert shown["osm"]["lines"] == [] and any(o["kind"] == "osm" and o["action"] == "remove" for o in shown["obstacles"])
+    # a clubmate at the same event has none of it
+    post(client, "/logout")
+    register(client, "BFM0001")
+    other = con.execute("SELECT id FROM users WHERE username = 'BFM0001'").fetchone()["id"]
+    cls = con.execute("INSERT INTO classes (event_id, name) VALUES (?, 'D21C')", (mine["event_id"],)).lastrowid
+    theirs = con.execute("INSERT INTO entries (user_id, class_id) VALUES (?, ?)", (other, cls)).lastrowid
+    con.commit()
+    assert bar.overrides(con, theirs) == []
+    assert client.post(url, json=dict(kind="fence", key=key, action="remove"),
+                       headers={"X-CSRF-Token": csrf(client)}).status_code == 404         # not their entry
+    # taking a correction back
+    post(client, "/logout")
+    assert post(client, "/login", username="BFM0903", password="tajneheslo").status_code == 302
+    token = csrf(client)
+    assert ask(kind="fence", key=key, action=None).status_code == 200
+    assert [o["kind"] for o in bar.overrides(con, mine["id"])] == ["osm"]

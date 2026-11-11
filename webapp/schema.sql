@@ -181,6 +181,18 @@ CREATE TABLE IF NOT EXISTS barriers (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- what a runner corrected of the obstacles read from the map, for their own routes only (not shared):
+-- kind: fence | enclosure (read from the picture), osm | hatch (the lines of OpenStreetMap, the hatched areas);
+-- key: "lat,lon" of the centre of the obstacle, the way to find it again after a new reading of the map
+CREATE TABLE IF NOT EXISTS barrier_overrides (
+    entry_id   INTEGER NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+    kind       TEXT NOT NULL,
+    key        TEXT NOT NULL,
+    action     TEXT NOT NULL,        -- remove | hard | tall | fence | forbidden (what it is instead)
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (entry_id, kind, key)
+);
+
 -- official split times of every runner of a class (ORIS getSplits), kept so ORIS is asked once
 CREATE TABLE IF NOT EXISTS class_splits (
     class_id   INTEGER PRIMARY KEY REFERENCES classes(id) ON DELETE CASCADE,

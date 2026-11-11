@@ -20,7 +20,7 @@ import zipfile
 
 from .. import oris
 from ..db import dumps, loads
-from . import matching, regnos, storage
+from . import barriers, matching, regnos, storage
 from . import splits as class_splits
 
 FORMAT = "obzavod"
@@ -93,6 +93,8 @@ def export(con, conf, entry_id, track=False, mine=False):
             files["run.fit"] = conf.path(act["file"])
     if mine:
         own["settings"] = dict(own_osm_mode=e["own_osm_mode"], own_hatch_mode=e["own_hatch_mode"])
+        own["obstacles"] = [dict(kind=o["kind"], key=o["key"], action=o["action"])
+                            for o in barriers.overrides(con, entry_id)]
         own["leg_notes"] = [_row(r, NOTE_FIELDS) for r in con.execute(
             "SELECT * FROM leg_notes WHERE entry_id = ? ORDER BY leg_n", (entry_id,))]
     if own:
@@ -299,6 +301,11 @@ def load(con, conf, user, data):
             con.execute("UPDATE entries SET own_osm_mode = ?, own_hatch_mode = ? WHERE id = ?",
                         (s.get("own_osm_mode") if s.get("own_osm_mode") in ("forbid", "penalty", "off") else None,
                          s.get("own_hatch_mode") if s.get("own_hatch_mode") in ("forbid", "off") else None, entry_id))
+        for o in (mine.get("obstacles") or [])[:barriers.MAX_OVERRIDES]:
+            try:
+                barriers.set_override(con, entry_id, o["kind"], o["key"], o["action"])
+            except (KeyError, TypeError, ValueError, AttributeError):
+                continue        # not what this version knows: left out, the rest of the file is still read
         for n in mine.get("leg_notes") or []:
             if not isinstance(n, dict) or not isinstance(n.get("leg_n"), int):
                 continue

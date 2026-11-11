@@ -846,11 +846,12 @@ def race_data(entry_id):
         abort(404)
     maps = map_layers(e)
     legs, totals = view.legs_view(db, e, analysis, e["event_id"], _ws(db, e))
-    lines, osm = barriers.for_map(db, cfg(), e["event_id"], e["osm_mode"], g.user["id"])
+    lines, _osm = barriers.for_map(db, cfg(), e["event_id"], e["osm_mode"], g.user["id"])
+    found, osm, areas = barriers.obstacles_view(db, cfg(), e, loads(analysis["summary"], {}))
     return jsonify(maps=maps, course=loads(analysis["course"]), track=loads(analysis["track"]), legs=legs,
                    totals=totals, total_time=analysis["total_time_s"], has_routes=bool(analysis["has_routes"]),
                    refreshments=refreshments(db, e["event_id"]), barriers=lines, osm=osm,
-                   areas=barriers.hatch_areas(cfg(), e["class_id"], e["hatch_mode"]),
+                   areas=areas, obstacles=found,
                    rerouting=rerouting(db, entry_id), plans_pending=plans.pending(db, entry_id))
 
 

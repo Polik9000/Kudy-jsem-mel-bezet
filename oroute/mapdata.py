@@ -8,6 +8,7 @@ import zipfile
 
 import numpy as np
 from scipy.ndimage import binary_dilation, distance_transform_edt
+from scipy.ndimage import label as ndi_label
 
 from . import terrain as T
 from .dem import TerrariumDEM, load_dem
@@ -16,6 +17,7 @@ from .errors import InputError
 OUTLINE_M = 2.5      # a black line this close to an out-of-bounds area is the outline of that area
 OUTLINE_WIDE_M = 4.0  # ... and so is the black joined to it up to this far on
 WALL_OPEN_M = 4.0     # an impassable wall of a sprint map is open this close around a control of the course
+MATCH_M = 15.0        # an override belongs to the recognised obstacle whose centre lies this close to its own
 PEN_IN_M = 5.0        # fenced ground opens for a control in it or this close to it, as before (decision of q22);
                       # only that ground, not one beside it within the same distance
 
@@ -45,7 +47,34 @@ def terrain(gm, kmz, cache=None):
     return cls
 
 
-def obstacles(gm, cls, box=None, open_at=None):
+def _pick(overrides, kind, u, v, mpp):
+    """The action of the person's override (dict(kind, u, v, action), map pixels) for the obstacle of this kind
+    with its centre at (u, v): the nearest one within MATCH_M, or None."""
+    best, at = None, (MATCH_M / mpp) ** 2
+    for o in overrides or []:
+        d = (o["u"] - u) ** 2 + (o["v"] - v) ** 2
+        if o["kind"] == kind and d <= at:
+            best, at = o["action"], d
+    return best
+
+
+def _hull(us, vs, step):
+    """The outline of a set of pixels as a polygon [(u, v)] (convex hull; for showing an enclosure on a map)."""
+    pts = np.c_[us, vs][::step].astype(float)
+    try:
+        from scipy.spatial import ConvexHull
+        return [tuple(map(float, pts[i])) for i in ConvexHull(pts).vertices]
+    except Exception:  # fewer than three points or all on a line
+        return [tuple(map(float, p)) for p in pts[:2]]
+
+
+def _pen_element(pen, sl, part, action):
+    vs, us = np.nonzero(part)
+    return dict(kind="enclosure", u=float(pen[0]), v=float(pen[1]), tall=False, action=action, area=float(pen[2]),
+                line=_hull(us + sl[1].start, vs + sl[0].start, max(1, len(us) // 400)))
+
+
+def obstacles(gm, cls, box=None, open_at=None, overrides=None):
     """What the picture of the map shows that a route cannot go through or can hardly cross, read in one
     place for everything that finds or prices a route (bestroute.py, oroute/planned.py, oroute/relocate.py,
     tools/kontrola.py), so that all of them see the same:
@@ -64,15 +93,23 @@ def obstacles(gm, cls, box=None, open_at=None):
     open_at = [(u, v)]: the controls of the course. Fenced ground with a control in it can be entered (nobody
     sets a control where one must not go: the fence has a gate, or the ground was read as fenced by mistake,
     as the yards between the houses of a sprint map are): it is taken out of blocked, fenced and pens.
+    overrides = [dict(kind, u, v, action)] (map pixels): what a person corrected by hand, as a recognised obstacle
+    is told by its kind and its centre (within MATCH_M, so that it survives a new reading of the map). kind "fence":
+    action "remove" (no obstacle), "hard" (a fence to climb, if it was an impassable one) or "tall" (impassable);
+    kind "enclosure": "remove" or "fence" (not closed in, but its outline is a fence to climb).
+    elements = [dict(kind, u, v, line, tall?, action)] is what was recognised, for the person to see on a map.
     The recognising itself lives in oroute/relocate.py."""
     from . import relocate  # here, not at the top: relocate imports this module
     if box is not None:
         u0, v0, u1, v1 = box
         cut = (slice(max(v0, 0), min(v1, gm.H)), slice(max(u0, 0), min(u1, gm.W)))
-        part = obstacles(_Cut(gm, cut), cls[cut],
-                         open_at=[(u - cut[1].start, v - cut[0].start) for u, v in open_at or []])
-        out = dict(cls=cls.copy(), pens=[(u + cut[1].start, v + cut[0].start, a) for u, v, a in part["pens"]],
-                   fences=[[(u + cut[1].start, v + cut[0].start) for u, v in line] for line in part["fences"]])
+        du, dv = cut[1].start, cut[0].start
+        part = obstacles(_Cut(gm, cut), cls[cut], open_at=[(u - du, v - dv) for u, v in open_at or []],
+                         overrides=[dict(o, u=o["u"] - du, v=o["v"] - dv) for o in overrides or []])
+        out = dict(cls=cls.copy(), pens=[(u + du, v + dv, a) for u, v, a in part["pens"]],
+                   fences=[[(u + du, v + dv) for u, v in line] for line in part["fences"]],
+                   elements=[dict(e, u=e["u"] + du, v=e["v"] + dv, line=[(u + du, v + dv) for u, v in e["line"]])
+                             for e in part["elements"]])
         out["cls"][cut] = part["cls"]
         out["sprint"] = part["sprint"]
         for k in ("blocked", "hard", "fenced", "outline", "walls", "climb"):
@@ -83,31 +120,72 @@ def obstacles(gm, cls, box=None, open_at=None):
     # the fences first: where two of them end a gate apart, the ground they close in is fenced all the same
     high = []
     hard, lines = relocate.fences(rgb, cls, gm.m_per_px_x, high=high)
+    mpp = gm.m_per_px_x
+    elements = []
+    quiet = np.zeros(cls.shape, bool)
+    if lines:
+        from PIL import Image, ImageDraw
+        width = max(2, int(round(2 * relocate.FENCE_HALF_M / mpp)))
+        keep, gone_lines = [], []
+        for k, line in enumerate(lines):
+            mid = line[len(line) // 2]
+            act = _pick(overrides, "fence", mid[0], mid[1], mpp)
+            elements.append(dict(kind="fence", u=float(mid[0]), v=float(mid[1]), tall=k in high, action=act,
+                                 line=[tuple(map(float, q)) for q in line[::max(1, len(line) // 12)]]))
+            if act == "remove":
+                gone_lines.append(line)
+            else:
+                keep.append(k)
+        if gone_lines:
+            # no obstacle: the black of that fence is only a line on the map, no path either way
+            canvas = Image.new("1", (hard.shape[1], hard.shape[0]), 0)
+            draw = ImageDraw.Draw(canvas)
+            for line in gone_lines:
+                draw.line([tuple(q) for q in line], fill=1, width=width)
+            # (the ticks too: every piece of the mask that the fence touches goes)
+            lab, _ = ndi_label(hard, structure=np.ones((3, 3)))
+            hit = np.unique(lab[np.array(canvas, bool) & hard])
+            taken = np.isin(lab, hit[hit > 0])
+            quiet |= taken            # still a black line, so no path: the terrain beside it, no fence to cross
+            hard = hard & ~taken
+        was_high = set(high)
+        lines = [lines[k] for k in keep]
+        high[:] = [i for i, k in enumerate(keep) if k in was_high and elements[k]["action"] != "hard"]
+        high.extend(i for i, k in enumerate(keep) if k not in was_high and elements[k]["action"] == "tall")
     grounds = []
     grey = T.sprint_greys(rgb, gm.m_per_px_x)[0]
     sprint = grey is not None     # (its paved areas are a lighter brown)
     (fenced, blocked), pens = relocate.enclosures(rgb, cls, gm.m_per_px_x, grow_m=(5.0, relocate.ROUTE_FENCE_M),
                                                   fence_lines=lines, grounds=grounds, sprint=sprint)
-    if open_at and blocked.any():
+    corner = []        # outlines of enclosures a person turned into a fence to climb
+    if (open_at or overrides) and blocked.any():
         H, W = blocked.shape
-        mpp = gm.m_per_px_x
         inside = max(1, int(round(PEN_IN_M / mpp)))
         gone = np.zeros((H, W), bool)
         keep = []
         for pen, (sl, part) in zip(pens, grounds):
+            act = _pick(overrides, "enclosure", pen[0], pen[1], mpp)
+            elements.append(_pen_element(pen, sl, part, act))
             # a control stands in this ground or at its fence: the whole of it opens
             near = relocate._grow(part, inside)
-            if any(sl[0].start <= int(round(v)) < sl[0].stop and sl[1].start <= int(round(u)) < sl[1].stop
-                   and near[int(round(v)) - sl[0].start, int(round(u)) - sl[1].start] for u, v in open_at):
+            if act in ("remove", "fence") or any(
+                    sl[0].start <= int(round(v)) < sl[0].stop and sl[1].start <= int(round(u)) < sl[1].stop
+                    and near[int(round(v)) - sl[0].start, int(round(u)) - sl[1].start] for u, v in open_at or []):
                 g = np.zeros((H, W), bool)
                 g[sl] = relocate._grow(part, max(2, int(round((5.0 + 1.0) / mpp))))
                 gone |= g
+                if act == "fence":
+                    ring = np.zeros((H, W), bool)
+                    ring[sl] = part & ~binary_dilation(~part, iterations=max(1, int(round(1.5 / mpp))))
+                    corner.append(ring)
+                if act is None:
+                    elements.pop()     # opened by a control: it is no obstacle to show
             else:
                 keep.append(pen)
         # a control on the fence itself (outside it, at a corner): the fence is open just around it, so that the
         # control can be reached, the ground behind stays closed
         r = (relocate.ROUTE_FENCE_M + 1.0) / mpp
-        for u, v in open_at:
+        for u, v in open_at or []:
             ui, vi = int(round(u)), int(round(v))
             if 0 <= ui < W and 0 <= vi < H and blocked[vi, ui] and not gone[vi, ui]:
                 pad = int(r) + 1
@@ -117,6 +195,8 @@ def obstacles(gm, cls, box=None, open_at=None):
                 blocked[v0:v0 + hole.shape[0], u0:u0 + hole.shape[1]] &= ~hole
         if gone.any():
             blocked, fenced, pens = blocked & ~gone, fenced & ~gone, keep
+    else:
+        elements.extend(_pen_element(pen, sl, part, None) for pen, (sl, part) in zip(pens, grounds))
     if high:
         # an impassable fence (ISOM 518, in ISOM 2000 524 "high fence": ticks in pairs) is not climbed: blocked as
         # the fence of fenced ground is, a path along it stays open
@@ -130,6 +210,8 @@ def obstacles(gm, cls, box=None, open_at=None):
         tall = relocate._grow(tall, max(1.0, 1.0 / gm.m_per_px_x))
         blocked = blocked | tall
         hard = hard & ~tall
+    for ring in corner:
+        hard |= ring & ~blocked
     hard &= ~blocked
     # The black line around an area that must not be entered (ISOM 520: a settlement, a private garden) is
     # its fence or its edge, with or without ticks: no path either. A road along it keeps its paved surface.
@@ -173,7 +255,7 @@ def obstacles(gm, cls, box=None, open_at=None):
         climb &= ~blocked & ~walls
         # (relocate.fences takes the dots of a passable wall for the ticks of a fence: it is a wall to climb)
         hard &= ~binary_dilation(climb, iterations=2)
-    off = hard | outline | climb
+    off = hard | outline | climb | quiet
     if off.any():
         # such a line is drawn in black like a path, but nobody runs along it at the speed of one: the
         # terrain under it is what lies beside it
@@ -182,7 +264,7 @@ def obstacles(gm, cls, box=None, open_at=None):
         cls = cls.copy()
         cls[fix] = cls[iy[fix], ix[fix]]
     return dict(cls=cls, blocked=blocked, hard=hard, fenced=fenced, pens=pens, fences=lines, outline=outline,
-                walls=walls, climb=climb, sprint=sprint)
+                walls=walls, climb=climb, sprint=sprint, elements=elements)
 
 
 class _Cut:
@@ -204,6 +286,20 @@ def barriers(path, gm):
                 origin=[dict(source=l.get("source"), what=l.get("what")) for l in forbidden],
                 hard=[px(l["line"]) for l in b.get("lines", []) if l.get("kind") == "hard"],
                 crossings=px(b.get("crossings", [])), areas=[px(a) for a in b.get("areas", [])])
+
+
+def overrides(path, gm):
+    """The corrections a person made to the recognised obstacles (barriers.json "overrides": [dict(kind, lat, lon,
+    action)]) in map pixels, for obstacles(). Nothing (None) without a file or without any."""
+    if not path or not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        raw = json.load(f).get("overrides") or []
+    out = []
+    for o in raw:
+        u, v = gm.latlon_to_px(o["lat"], o["lon"])
+        out.append(dict(kind=o["kind"], u=float(u), v=float(v), action=o["action"]))
+    return out or None
 
 
 def corner_box(gm):

@@ -386,7 +386,7 @@ def _routing_inputs(con, conf, info, out, extra, notes):
         extra = [*extra, "--corrections", os.path.join(best, "corrections.json")]
     elif os.path.exists(os.path.join(best, "corrections.json")):
         os.remove(os.path.join(best, "corrections.json"))
-    b = barriers.for_routing(con, conf, info["event_id"], info["osm_mode"], areas)
+    b = barriers.for_routing(con, conf, info["event_id"], info["osm_mode"], areas, barriers.overrides(con, info["id"]))
     if b:
         _write_json(os.path.join(best, "barriers.json"), b)
         extra = [*extra, "--barriers", os.path.join(best, "barriers.json")]

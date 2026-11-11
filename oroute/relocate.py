@@ -1260,7 +1260,7 @@ def prepare(kmz, ctrl_ll, best_dir, dem="aws", used=None, terrain_cache=None, ba
     north = T.north_lines(rgb, gm.header_px)["angle_deg"]
     marks = symbols.find(rgb, mpp, gm.header_px, skip=no_symbols(cls, mpp))
     ctrl = [tuple(float(a) for a in gm.latlon_to_px(la, lo)) for la, lo in ctrl_ll]
-    obs = mapdata.obstacles(gm, cls, open_at=ctrl)
+    obs = mapdata.obstacles(gm, cls, open_at=ctrl, overrides=mapdata.overrides(barriers_file, gm))
     return dict(gm=gm, mpp=mpp, rgb=rgb, cls=obs["cls"], blue=blue, marks=marks, ctrl=ctrl, obs=obs, north=north,
                 fence_line=_grow(obs["hard"], max(1.0, 1.5 / mpp)),
                 dem=mapdata.elevation(gm, best_dir, dem, used=used),

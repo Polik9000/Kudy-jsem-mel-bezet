@@ -6,7 +6,7 @@ from ..db import dumps
 
 SLOW = ["light green (slow run)", "green (walk)", "dark green (fight)", "undergrowth (stripes)", "marsh"]
 RELOCATE = 8   # oroute.relocate.VERSION the pages expect; an analysis with another one is offered to be redone
-ROUTES = 11    # the same for the best routes (bestroute.VERSION)
+ROUTES = 12    # the same for the best routes (bestroute.VERSION)
 
 
 GPS_FAR_M = 30.0        # the track at the punch farther than this from the control ...
@@ -100,7 +100,8 @@ def store(con, conf, entry_id, rel, has_routes, model_id):
     con.execute("DELETE FROM analyses WHERE entry_id = ?", (entry_id,))
     summary = dict(vref=A["vref"], rref=A["rref"], offset_m=A["offset_m"], est_loss=A["est_loss"],
                    weak_order=A["weak_order"], official=A["official"], dem=top.get("dem"),
-                   barriers=top.get("barriers"), relocate=version, routes=top.get("version", 1) if B else None,
+                   barriers=top.get("barriers"), obstacles=top.get("obstacles"), relocate=version,
+                   routes=top.get("version", 1) if B else None,
                    course_check=A.get("course_check"))
     aid = con.execute(
         "INSERT INTO analyses (entry_id, has_routes, total_time_s, start_utc, model_id, summary, course, track, out_dir)"
