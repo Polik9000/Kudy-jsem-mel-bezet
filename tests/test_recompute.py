@@ -6,6 +6,7 @@ import os
 from conftest import post
 from test_web_races import con_of, work
 
+from oroute import course as course_mod
 from oroute.speedmodel import SpeedModel
 from webapp.seed import seed_demo
 from webapp.services import jobs, personal, results, runner
@@ -36,7 +37,7 @@ def _scripts(log):
                 json.dump(dict(start="2026-03-28T09:00:00+00:00", total_time=210.0, est_loss=15.0, vref=3.0, rref=1.1,
                                offset_m=[0, 0], weak_order=[], official=None, course=[p] * 4, punch=[0, 1, 2, 3],
                                track=dict(t=[0, 70, 140, 210], lat=[49.6] * 4, lon=[18.3] * 4, speed=[3.0] * 4),
-                               legs=legs), f)
+                               legs=legs, course_version=course_mod.VERSION), f)
         elif "--samples-only" in cmd:
             log.append(("samples", os.path.basename(os.path.dirname(cmd[4]))))
             open(os.path.join(cmd[4], "leg_samples.npz"), "wb").close()
@@ -123,6 +124,21 @@ def test_recompute_all_uses_one_model_and_does_nothing_twice(app, client, user, 
     assert not os.path.exists(conf.path("races", f"entry_{one}.new"))
     assert os.path.exists(conf.path("races", f"entry_{one}", "best", "samples.json"))
     assert set(_models(con).values()) == {model["id"]}
+
+    # the course of one race was read from the map by older code (a newer bestroute.VERSION goes with it): the
+    # course of that one is read again, the others only get their routes
+    del log[:]
+    path = conf.path("races", f"entry_{one}", "analysis.json")
+    with open(path, encoding="utf-8") as f:
+        A = json.load(f)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(dict(A, course_version=0), f)
+    con.execute("UPDATE analyses SET summary = json_set(summary, '$.routes', 1)")
+    con.commit()
+    jobs.enqueue(con, "recompute_all", user_id=user)
+    work(app)
+    assert [x for x in log if x[0] == "analyze"] == [("analyze",)]
+    assert len([x for x in log if x[0] == "routes"]) == 4
 
 
 def test_recompute_all_shows_progress_by_race(app, client, user, monkeypatch):

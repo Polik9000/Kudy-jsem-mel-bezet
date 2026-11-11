@@ -60,7 +60,9 @@ def _kmz(path, image, lat, lon):
         z.writestr("map.png", buf.getvalue())
 
 
-def _course_image(pts, r=28):
+def _course_image(pts, r=28, cut=None):
+    """cut: {control number: [(from, to) in degrees]}: those parts of its circle are not printed, as a cartographer
+    cuts a circle open so that it does not hide a detail of the map (ISOM)."""
     im = Image.new("RGB", SIZE, (255, 255, 255))
     d = ImageDraw.Draw(im)
     for (ax, ay), (bx, by) in zip(pts, pts[1:]):
@@ -70,8 +72,10 @@ def _course_image(pts, r=28):
     sx, sy = pts[0]
     d.polygon([(sx + 1.25 * r * math.sin(a), sy - 1.25 * r * math.cos(a)) for a in (0, 2.0944, 4.1888)],
               outline=PURPLE, width=3)
-    for x, y in pts[1:-1]:
+    for k, (x, y) in enumerate(pts[1:-1], 1):
         d.ellipse([x - r, y - r, x + r, y + r], outline=PURPLE, width=3)
+        for a, b in (cut or {}).get(k, []):
+            d.arc([x - r - 3, y - r - 3, x + r + 3, y + r + 3], a, b, fill=(255, 255, 255), width=8)
     fx, fy = pts[-1]
     for q in (r + 2, r - 5):
         d.ellipse([fx - q, fy - q, fx + q, fy + q], outline=PURPLE, width=3)
@@ -111,6 +115,30 @@ def build(folder, dest):
     with open(os.path.join(out, "run.fit"), "wb") as f:
         f.write(_run(pts, spec, TZ))
     return out
+
+
+def build_cut(folder, dest, cut):
+    """The made-up race `folder` with some control circles cut open (see _course_image) and official.json with
+    the start and the split times of its run (oroute/official.py), into dest; returns (course.kmz, run.fit,
+    official.json, the centres of the controls in pixels)."""
+    import json
+
+    from oroute.garmin import TZ
+    spec = RACES[folder]
+    os.makedirs(dest, exist_ok=True)
+    pts = points(spec["n"])
+    _kmz(os.path.join(dest, "course.kmz"), _course_image(pts, cut=cut), spec["lat"], spec["lon"])
+    with open(os.path.join(dest, "run.fit"), "wb") as f:
+        f.write(_run(pts, spec, TZ))
+    legs = [math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:])]
+    run_s = spec.get("run_s", spec["time_s"])
+    cum = [round(sum(legs[:k + 1]) / sum(legs) * run_s) for k in range(len(legs))]
+    h, m, s = (int(p) for p in spec["start"].split(":"))
+    local = dt.datetime.combine(dt.date.fromisoformat(spec["date"]), dt.time(h, m, s), tzinfo=TZ)
+    with open(os.path.join(dest, "official.json"), "w", encoding="utf-8") as f:
+        json.dump(dict(start_utc=local.astimezone(dt.timezone.utc).isoformat(), cumulative=cum), f)
+    return (os.path.join(dest, "course.kmz"), os.path.join(dest, "run.fit"), os.path.join(dest, "official.json"),
+            pts[1:-1])
 
 
 _cache = {}

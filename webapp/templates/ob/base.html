@@ -113,7 +113,8 @@
 {% endif %}
 <script>window.OBAPP = { jobs: {{ (url_for('ob.jobs_json') if user else '') | tojson }}, lang: {{ lang | tojson }}, t: {{ js_i18n | tojson }},
   external: {{ (url_for('ob.external_open') if local_app else '') | tojson }},
-  rezim: {{ (url_for('ob.set_theme') if user else '') | tojson }}, csrf: {{ csrf_token() | tojson }} };</script>
+  rezim: {{ (url_for('ob.set_theme') if user else '') | tojson }}, csrf: {{ csrf_token() | tojson }},
+  maxUpload: {{ config.MAX_CONTENT_LENGTH | tojson }} };</script>
 <script src="{{ url_for('ob.static', filename='ob.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

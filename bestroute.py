@@ -53,7 +53,7 @@ from oroute.routing import (  # noqa: E402
 )
 from oroute.speedmodel import SpeedModel  # noqa: E402
 
-VERSION = 9      # goes up when the routes of the same race would come out different (stored analyses are
+VERSION = 10     # goes up when the routes of the same race would come out different (stored analyses are
                  # then offered to be redone): 2 = ponds with a bank line and fenced ground are impassable;
                  # 3 = fences and rows of dots are no paths, a fence is hard to cross, the start is the triangle;
                  # 4 = inside a settlement only the streets; 5 = the route of an average runner next to yours;
@@ -61,7 +61,8 @@ VERSION = 9      # goes up when the routes of the same race would come out diffe
                  # 7 = your track along a path within 15 m of it is on the path (the model learns it so too);
                  # 8 = sprint maps: an impassable wall is a building, a passable one (with dots) slow to climb;
                  # 9 = pens on coarse pictures, their fence and point, gates, impassable fences; north lines at
-                 #     any angle are no streams (night 25. 10., Bělá)
+                 #     any angle are no streams (night 25. 10., Bělá); 10 = the course read from the map:
+                 #     a thick ring is no finish, cut-open circles found at the punches (oroute.course.VERSION 1)
 HEADER_PX = 145  # Livelox header bar at the top of the exported image (main() takes it from the map)
 NOISE_S = 15.0   # routes closer than this in model time are equally good
 RUN_IN_M = 60.0  # the time starts at least this far from the start triangle: a marked route leads to it

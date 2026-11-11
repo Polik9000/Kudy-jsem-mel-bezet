@@ -88,12 +88,19 @@ def test_upload_refuses_other_files(app, client, user):
     r = client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"x"), "photo.jpg")),
                     content_type="multipart/form-data")
     assert "jen .fit nebo .zip" in r.get_data(as_text=True)
-    client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"not a fit"), "bad.fit")),
+    # a file that does not even begin as a .fit or a zip is refused at once, by its name (test_nahravani.py)
+    r = client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"not a fit"), "bad.fit")),
+                    content_type="multipart/form-data", follow_redirects=True)
+    assert "bad.fit: není soubor z hodinek" in r.get_data(as_text=True)
+    assert not con_of(app).execute("SELECT 1 FROM jobs").fetchone()
+    # one that begins as one and is broken further on fails in its own job
+    client.post("/upload", data=dict(csrf_token=csrf(client),
+                                     files=(io.BytesIO(b"\x0e\x10\x00\x00\x00\x00\x00\x00.FITnot a fit"), "bad.fit")),
                 content_type="multipart/form-data")
     work(app)
     job = con_of(app).execute("SELECT * FROM jobs").fetchone()
     assert job["status"] == "failed" and "není aktivita" in job["error"]
-    client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"not a zip"), "export.zip")),
+    client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"PK not a zip"), "export.zip")),
                 content_type="multipart/form-data")
     work(app)
     job = con_of(app).execute("SELECT * FROM jobs ORDER BY id DESC").fetchone()

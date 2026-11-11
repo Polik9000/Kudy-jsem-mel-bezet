@@ -660,3 +660,48 @@ V obou dvojicích byl delší závod pomalejší. Průměrný tep z Garminu je n
 Zisk je malý a na čtyřech závodech v šumu; rozhodne až víc závodů různé délky (sprinty a zimní liga z `data-extra/`). Na tom, **který postup je nejlepší, to nic nemění** (všechny postupy úseku se zrychlí nebo zpomalí stejně); mění se časy postupů a rozdělení ztráty na volbu postupu a provedení. `oroute/personal_model.json` v repu se nepřepočítal (vzorky v `data/` nemají délku závodu), webová appka si exponent spočítá při dalším přepočtu modelu z `leg_samples.npz`.
 
 **Stav k 24. 10. 2026.** Kód je v `main` od sloučení `ae21cbf` (19. 10.), tenhle oddíl se tehdy při konfliktu ve `docs/validace.md` ztratil (na jeho místě je oddíl 18 o kontrole tras) a vrací se sem beze změny obsahu. Model v repu (`oroute/personal_model.json`) už exponent má: `dur_exp` 0,073, tedy 15 min ×1,11, 30 min ×1,05, 90 min ×0,97. Test `tests/test_race_length.py`.
+
+## 24. Kolečka kontrol proti ORIS (11. 11. 2026, větev `kontroly-podle-oris`)
+
+Issue 9: appka u tátových KITL 2025 (H45B) nepoznala některé kontroly, na Macu jednou našla 6 z 19, jindy 169
+„koleček“ místo 18. Nástroj `tools/kolecka.py` porovná u každé mapy na tomhle počítači kolečka z `detect_course`
+(počítaná jako v `analyze.py`, 25 m a dál od cíle) s počtem kontrol podle ORIS (počet mezičasů, jinak kódy kontrol
+kategorie). S během a oficiálními časy ukáže i kolečka dohledaná u míst ražení (+) a vynechaná (−). S `--rozbor` uloží
+výřezy do `kontrola/kitl-kolecka/`. Tátovy KITL tu nejsou (`docs/co-zbyva.md`, otázka 51); Tobiasovy H16B z týchž dnů
+sedí (13 z 13, 12 z 12).
+
+**Počet z ORIS.** `classes.controls` („Controls“ z `getEvent`) nesedí s mezičasy u 12 z 83 přihlášek v databázi
+autora: vždy říká víc (SZL 15. 2. 2025: 28, mapa i popisy kontrol mají 26; Zkouška sirén 6. 11. 2024: 20 proti 16).
+Kódy kontrol z mezičasů sedí s mezičasy vždy. Porovnává se proto jen s nimi.
+
+**30 map.** U 23 map s počtem z ORIS vycházelo před změnou:
+
+| Mapa | ORIS | Kolečka | Proč |
+|---|---|---|---|
+| Bohemia 2025 E1 (H16B) | 11 | 2 | Mapa 0,43 m/px, čára kolečka 7 px. Jedno kolečko se trefí na několika poloměrech až 7 px od sebe a `_circles` bral každou skupinu s rozpětím ≥ 5 px jako cíl. Dvě kolečka (4, 6) jsou navíc rozřezaná. |
+| Přebor BFM+SFM 2026 | 13 | 14 | Číslo „10“ vytištěné přes „4“: nula se čte jako kolečko (vnitřek 0,22 fialové, 105 m od všech ražení). |
+| Grand Prix Silesia E1 (H16B) | 22 | 21 | Kontrola 16 je rozřezaná černou kresbou: skóre 0,33 (práh 0,35), obvod 69 %, největší mezera 55°. Mapa nemá běh, takže se nedohledá; zbývá ruční oprava. |
+| ostatních 20 | = | = | |
+
+**Rozřezaná kolečka.** Celé kolečko z Livelox má skóre `hough_circles` kolem 0,5 a skóre klesá s vytištěnou částí obvodu
+(na umělé mapě 0,51 · podíl). Práh 0,35 tak nevezme kolečko, kterému chybí víc než asi třetina. Naměřené
+rozřezané kontroly:
+
+| Kontrola | Obvod | Největší mezera | Spojnice | Od hodinek |
+|---|---|---|---|---|
+| Bohemia E1, 4 | 69 % | 40° | 0,97 | 10,7 m |
+| Bohemia E1, 6 | 65 % | 55° | 0,93 | 18,1 m |
+| GPS E1, 16 | 69 % | 55° | (bez běhu) | |
+
+**Po změně** (`oroute/course.VERSION` 1): Bohemia E1 9 koleček + 2 dohledaná = 11 a oficiální časy se použily (dřív
+GPS); Přebor 14 − 1 = 13 a oficiální časy se použily. Ostatních 28 map dává stejný počet koleček a najde start i cíl
+jako před změnou (porovnání `vse-pred.json` a `vse-po.json`). Změnilo se jen, kdy je skupina kruhů cíl;
+kdyby se některá zařadila jinak, změnil by se počet. Zlaté soubory čtyř referenčních závodů viz níže. Hledání u míst ražení se pouští jen tam, kde počet nesedí, takže
+se jejich trať nemůže změnit. Na umělé mapě (`tests/test_kolecka.py`) se dohledají kolečka s 64 % a 43 % obvodu (ve třech
+obloucích), s 33 % a 28 % ne. Číslo kontroly, šrafy a křížení spojnic u místa ražení kolečko nedají.
+
+**Referenční závody** (`tests/test_regression.py`, `tests/test_official_races.py`, 11. 11. na Windows, Python 3.14):
+`legs.csv` a `course.json` Pohory a Petřvaldu jsou stejné jako zlaté soubory, i s oficiálními časy. Bajtově testy na
+Windows neprojdou kvůli koncům řádků (`\r\n` proti `\n` ve zlatých souborech z Linuxu). `best_legs.csv` se od zlatých
+liší o pár metrů v `best_path_m` a `best_green_m` (časy stejné). Stejně ale vyjde i `bestroute.py` z `main` na stejných
+vstupech, takže to dělá prostředí, ne tahle změna. Zlaté soubory se nemění.

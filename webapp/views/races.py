@@ -7,6 +7,7 @@ import zipfile
 
 from flask import abort, current_app, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
 
+from oroute import errors as oroute_errors
 from oroute import garmin
 
 from .. import cfg, club, get_db, i18n, oris, texts
@@ -31,7 +32,7 @@ from ..services import (
     view,
 )
 from ..services import splits as class_splits
-from . import bp, go
+from . import bp, go, skipped
 from .jobs import analysis_stamp, entry_progress
 
 ENTRY_SQL = (
@@ -396,7 +397,31 @@ def race(entry_id):
         # the catching features around the controls come from an older oroute/relocate.py, or from none at all
         relocate_stale=bool(analysis and analysis["has_routes"] and summary.get("relocate") != results.RELOCATE),
         # ... and the best routes from an older bestroute.py (a new analysis finds both again)
-        routes_stale=bool(analysis and analysis["has_routes"] and summary.get("routes", 1) != results.ROUTES))
+        routes_stale=bool(analysis and analysis["has_routes"] and summary.get("routes", 1) != results.ROUTES),
+        course_check=course_check(summary), course_failed=course_failed(job), max_fit=MAX_FIT,
+        course_by_hand=bool(e["course_file"]) and storage.course_by_hand(cfg(), e["course_file"]))
+
+
+def course_check(summary):
+    """What the race page says about the course read from the map against ORIS (analyze.py course_check): dict(have,
+    expected, added, removed, wrong) or None when there is nothing to say (no ORIS, a course given by hand, all fine).
+    wrong: the number of controls does not agree with ORIS even after the circles added and left out."""
+    c = summary.get("course_check") or {}
+    if not c.get("expected") or c.get("source") != "map":
+        return None
+    have = c["found"] + c.get("added", 0) - c.get("removed", 0)
+    out = dict(have=have, found=c["found"], expected=c["expected"], added=c.get("added", 0),
+               removed=c.get("removed", 0), wrong=have != c["expected"])
+    return out if out["wrong"] or out["added"] or out["removed"] else None
+
+
+def course_failed(job):
+    """True when the last analysis failed because the course could not be read from the map (no circles, no start, no
+    finish): a course given by hand (Doplnit kontroly) goes round it."""
+    if not job or job["status"] != "failed" or not job["error"]:
+        return False
+    known = oroute_errors.parse(job["error"].splitlines())
+    return bool(known) and known[0] in ("no_course_print", "no_start", "no_finish")
 
 
 PHOTO_SOURCES = ("image", "photo", "manual", "screen")
@@ -603,11 +628,9 @@ def _take_map(db, e, kind, f):
 
 
 def _take_screens(db, e, course, maponly):
-    """Keep either Livelox screenshot (or both) in any order; place them when FIT and ORIS splits exist."""
-    for f in (course, maponly):
-        if f is not None and os.path.splitext(f.filename)[1].lower() not in storage.IMAGE_EXT:
-            flash(_("%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).", filename=f.filename), "error")
-            return None
+    """Keep either Livelox screenshot (or both) in any order; place them when FIT and ORIS splits exist. A screenshot
+    that cannot be used (not a picture, too large, too small) gets its own message and the other one is kept anyway,
+    as when it is uploaded alone (issue 6: one file too large threw away both)."""
     if maponly is not None and e["maponly_file"] and (e["maponly_source"] or "kmz") == "kmz":
         flash(_("Pro závod už je mapa bez tratě z KMZ, která je přesnější. Snímek bez tratě se nepoužil."), "error")
         maponly = None
@@ -616,6 +639,9 @@ def _take_screens(db, e, course, maponly):
         for key, f in (("course", course), ("maponly", maponly)):
             if f is None:
                 continue
+            if os.path.splitext(f.filename)[1].lower() not in storage.IMAGE_EXT:
+                flash(_("%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).", filename=f.filename), "error")
+                continue
             rel, tmp = storage.incoming(cfg(), os.path.splitext(f.filename)[1].lower())
             f.save(tmp)
             try:
@@ -623,10 +649,11 @@ def _take_screens(db, e, course, maponly):
             except ValueError as err:
                 if os.path.exists(tmp):
                     os.remove(tmp)
-                raise ValueError(f"{f.filename}: {err}") from err
+                flash(f"{f.filename}: {err}", "error")
+                continue
             sent[key] = tmp
         if not sent:
-            return []
+            return None
         screens.save_pending(db, cfg(), e["class_id"], g.user["id"],
                              course_path=sent.get("course"), maponly_path=sent.get("maponly"))
     except ValueError as err:
@@ -682,12 +709,13 @@ def race_files(entry_id):
     sent = {k: f for k, f in ((k, request.files.get(k))
                               for k in ("fit", "course", "course_photo", "maponly", "screen_course", "screen_maponly"))
             if f and f.filename}
+    skipped()
     # the photo of the paper map has its own field (the third way to the map), but it is the map with the course
     if "course_photo" in sent:
         photo = sent.pop("course_photo")
         sent.setdefault("course", photo)
     again = set()
-    if not sent:
+    if not sent and not request.form.get("vynechano"):
         flash(_("Vyber aspoň jeden soubor."), "error")
     if "fit" in sent:
         data = sent["fit"].read(MAX_FIT + 1)

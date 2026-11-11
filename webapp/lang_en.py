@@ -2077,6 +2077,71 @@ EN.update({
     "etapa etapového závodu": "a stage of a multi-stage event",
 })
 
+
+# the course against ORIS and the page Doplnit kontroly (views/coursefix.py)
+EN.update({
+    "Doplnit kontroly": "Fix the controls",
+    "Zkontrolovat kontroly": "Check the controls",
+    "Počet kontrol nesedí s ORIS.": "The number of controls does not agree with ORIS.",
+    "Kontrol na mapě: %(have)s, v ORIS: %(oris)s. Rozbor proto nemusí sedět (pořadí kontrol, mezičasy, úseky).":
+        "Controls on the map: %(have)s, in ORIS: %(oris)s. So the analysis may be off (order of the controls, splits, "
+        "legs).",
+    "Na mapě jsou kolečka některých kontrol přerušená; %(n)s jsem dohledal podle místa, kde byly hodinky v čase "
+    "ražení, a trať má %(oris)s kontrol jako v ORIS.":
+        "The circles of some controls are cut open on the map; %(n)s I found where the watch was at the punch time, "
+        "and the course has %(oris)s controls as in ORIS.",
+    "Když je mapa s tratí správná, označ kontroly, start a cíl ručně: <a href=\"%(fix)s\">Doplnit kontroly</a>.":
+        "If the map with the course is the right one, mark the controls, the start and the finish by hand: "
+        "<a href=\"%(fix)s\">Fix the controls</a>.",
+    "Kontroly tratě jsou označené ručně (<a href=\"%(fix)s\">Doplnit kontroly</a>).":
+        "The controls of the course are marked by hand (<a href=\"%(fix)s\">Fix the controls</a>).",
+    "Chybí na mapě některá kontrola, nebo je některá navíc? <a href=\"%(fix)s\">Doplnit kontroly</a>.":
+        "Is a control missing on the map, or is there one too many? <a href=\"%(fix)s\">Fix the controls</a>.",
+    "Trať má podle ORIS <b>%(n)s kontrol</b>.": "By ORIS the course has <b>%(n)s controls</b>.",
+    "Na mapě jsem jich našel %(found)s.": "I found %(found)s on the map.",
+    "Čísla mají kolečka podle místa, kde byly tvoje hodinky při ražení.":
+        "The circles are numbered by where your watch was at the punches.",
+    "Vyber v seznamu kontrolu, která chybí, a klikni na mapě na střed jejího kolečka (start: střed trojúhelníku, cíl: "
+    "střed dvojkolečka). Špatně umístěný bod přetáhni, nebo ho smaž (×). Šedá kolečka jsem na mapě našel navíc: do "
+    "tratě nepatří, pokud je sám neoznačíš.":
+        "Pick a missing control in the list and click the centre of its circle on the map (start: the centre of the "
+        "triangle, finish: the centre of the double circle). Drag a point that is in the wrong place, or remove it (×). "
+        "The grey circles I found on the map in addition: they are not part of the course unless you mark them "
+        "yourself.",
+    "Počet kontrol": "Number of controls",
+    "Změnit": "Change",
+    "Závod není v ORIS, počet kontrol zadej sám.": "The race is not in ORIS, enter the number of controls yourself.",
+    "Uložená trať platí pro celou kategorii a přežije i přepočet novou verzí aplikace, dokud nenahraješ novou mapu "
+    "s tratí. Analýza všech běžců kategorie se pustí znovu.":
+        "The saved course holds for the whole category, also when a new version of the app computes it again, until "
+        "you upload a new map with the course. The analysis of all runners of the category runs again.",
+    "Smazat ruční trať a číst ji zase z mapy": "Remove the course marked by hand and read it from the map again",
+    "Bod %(n)s je %(v)s m od místa, kde byly hodinky při ražení: asi je na jiné kontrole.":
+        "Point %(n)s is %(v)s m from where the watch was at the punch: it is likely on another control.",
+    "Chybí: %(names)s.": "Missing: %(names)s.",
+    "Všechny kontroly jsou označené. Uložením se trať kategorie nahradí touhle.":
+        "All controls are marked. Saving replaces the course of the category with this one.",
+    "Označ všechny kontroly, start i cíl.": "Mark all controls, the start and the finish.",
+    "Trať kategorie je uložená (%(n)s kontrol). Analýza se spustí znovu.":
+        "The course of the category is saved (%(n)s controls). The analysis runs again.",
+    "Ruční trať je smazaná, trať se zase čte z mapy. Analýza se spustí znovu.":
+        "The course marked by hand is removed, the course is read from the map again. The analysis runs again.",
+})
+
+# one file that cannot be uploaded does not stop the others (issue 6)
+EN.update({
+    "%(filename)s: není soubor z hodinek (.fit), nebo je poškozený. Nenahrál se, ostatní ano.":
+        "%(filename)s: not a file from a watch (.fit), or it is broken. It was not uploaded, the others were.",
+    "%(filename)s: není zip, nebo je poškozený. Nenahrál se, ostatní ano.":
+        "%(filename)s: not a zip, or it is broken. It was not uploaded, the others were.",
+    "%(filename)s je větší než %(mb)s MB, a tak se nenahrál. Ostatní soubory ano.":
+        "%(filename)s is larger than %(mb)s MB, so it was not uploaded. The other files were.",
+    "%(filename)s je větší, než server přijme, a tak se nenahrál. Ostatní soubory ano.":
+        "%(filename)s is larger than the server takes, so it was not uploaded. The other files were.",
+    "Soubory jsou dohromady větší, než server přijme (nejvýš %(mb)s MB). Nahraj je po jednom.":
+        "The files together are larger than the server takes (at most %(mb)s MB). Upload them one at a time.",
+})
+
 EN_JS = {
     'Podrobnosti jsou nahoře na stránce.':
         'The details are at the top of the page.',
@@ -2364,6 +2429,9 @@ EN_JS = {
         "Uploading…",
     "Nahráno, server soubory ukládá…":
         "Uploaded, the server is saving the files…",
+    "Klikni na mapě: %(name)s.": "Click on the map: %(name)s.",
+    "Žádný soubor se nenahrál: všechny jsou větší, než server přijme.":
+        "No file was uploaded: all of them are larger than the server takes.",
     "Soubor je větší, než server přijme.":
         "The file is larger than the server accepts.",
     "Nahrání se nepovedlo (HTTP %(status)s). Zkus to znovu.":
