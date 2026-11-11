@@ -13,6 +13,7 @@ import sys
 import threading
 from contextlib import contextmanager
 
+from oroute import course as course_mod
 from oroute import errors, osm
 from oroute import personal as fitter
 from oroute.kmzmap import GeoMap
@@ -120,7 +121,8 @@ def _stages(say, n_legs, from_grid=False):
 
 def entry_info(con, entry_id):
     return con.execute(
-        "SELECT e.*, c.name AS class_name, c.course_file, c.course_source, c.id AS cid, ev.id AS event_id,"
+        "SELECT e.*, c.name AS class_name, c.course_file, c.course_source, c.id AS cid, c.control_codes,"
+        " ev.id AS event_id,"
         " ev.name AS event_name,"
         " ev.date, ev.oris_id AS event_oris_id, ev.maponly_file, a.file AS fit_file,"
         # the runner's own setting of the race, else what the race has
@@ -145,6 +147,14 @@ def gps_trim(info):
         return "off"
     lo, hi = t.get("start_s"), t.get("end_s")
     return f"{'' if lo is None else round(float(lo), 1)}:{'' if hi is None else round(float(hi), 1)}"
+
+
+def oris_controls(info):
+    """How many controls the course of the class has by ORIS, or None: the control codes of its split times.
+    Not classes.controls ("Controls" of getEvent): in 12 of 83 races of the author it said more than the split
+    times have (a control left out on the day, the start or the finish counted in), 28 for a course of 26."""
+    codes = loads(info["control_codes"])
+    return len(codes) if codes else None
 
 
 def official_times(info):
@@ -386,6 +396,18 @@ def analyse_entry(con, conf, entry_id, routes_only=False, progress=None, after_c
     return rel, has_routes, model_id, notes
 
 
+def course_current(out):
+    """True when folder `out` holds a course read by the code reading courses now (oroute.course.VERSION): the
+    routes alone may be found again on it. A course read by older code is read again, with the whole analysis."""
+    if not os.path.exists(os.path.join(out, "course.json")):
+        return False
+    try:
+        with open(os.path.join(out, "analysis.json"), encoding="utf-8") as f:
+            return json.load(f).get("course_version", 0) == course_mod.VERSION
+    except (OSError, ValueError):
+        return False
+
+
 def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_routes, model):
     """analyse_entry in folder rel: (has routes, model id, notes)."""
     out, best = conf.path(rel), conf.path(rel, "best")
@@ -393,7 +415,7 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
     os.makedirs(out, exist_ok=True)
 
     extra = _official(info, out)
-    if not (routes_only and os.path.exists(os.path.join(out, "course.json"))):
+    if not (routes_only and course_current(out)):
         say(_("čtu trať z mapy a stopu z hodinek"))
         # a photo of the map: the course comes from its placing (the controls matched to the circles), not
         # from the purple of the photo, which is not the Livelox purple analyze.py reads
@@ -401,7 +423,8 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
         if os.path.exists(conf.path(storage.course_json(info["course_file"]))):
             shutil.copyfile(conf.path(storage.course_json(info["course_file"])), os.path.join(out, "course.json"))
             given = ["--course", os.path.join(out, "course.json")]
-        _run("analyze.py", course, fit, out, "--no-images", "--gps-trim", gps_trim(info), *given, *extra)
+        oris_n = ["--oris-controls", str(oris_controls(info))] if oris_controls(info) else []
+        _run("analyze.py", course, fit, out, "--no-images", "--gps-trim", gps_trim(info), *given, *extra, *oris_n)
         if after_course:
             after_course(rel)
     if not info["maponly_file"]:

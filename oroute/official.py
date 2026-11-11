@@ -103,6 +103,24 @@ def clock_shift(t, x, y, points, moments):
     return (float(best), miss(best)) if miss(best) < zero - 5.0 else (0.0, zero)
 
 
+def punch_places(track, official):
+    """Where the watch was at each official control punch: [(lat, lon) or None] (not the start and the finish;
+    None where the punch is missing or the recording does not show that moment). No clock difference is
+    corrected: the caller looks around these places (course.find_missing)."""
+    cum = official.get("cumulative") or []
+    start = dt.datetime.fromisoformat(official["start_utc"])
+    rec = track["start"] if track["start"].tzinfo else track["start"].replace(tzinfo=dt.timezone.utc)
+    t0 = (start - rec).total_seconds()
+    t = track["t"]
+    out = []
+    for c in cum[:-1]:
+        if c is None or not (t[0] <= t0 + c <= t[-1]):
+            out.append(None)
+        else:
+            out.append((float(np.interp(t0 + c, t, track["lat"])), float(np.interp(t0 + c, t, track["lon"]))))
+    return out
+
+
 def order_controls(track, geomap, circles, official):
     """The order of the course from the organiser's split times: which control circle was punched when.
 

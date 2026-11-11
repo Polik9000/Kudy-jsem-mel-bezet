@@ -5,7 +5,15 @@ from .. import cfg, get_db
 from ..auth import login_required
 from ..i18n import _
 from ..services import garmin_api, jobs, matching, storage, watch
-from . import bp, go
+from . import bp, go, skipped
+
+
+def _looks_like(f, kind):
+    """True when the start of the file is what a .fit (".FIT" at bytes 8 to 11) or a zip ("PK") starts with. A
+    broken file is told at once, by its name, and the others of the same upload still go through."""
+    head = f.stream.read(12)
+    f.stream.seek(0)
+    return head[8:12] == b".FIT" if kind == "fit" else head[:2] == b"PK"
 
 
 @bp.route("/upload", methods=["GET", "POST"])
@@ -14,12 +22,19 @@ def upload():
     db = get_db()
     if request.method == "POST":
         n = 0
+        skipped()
         for f in request.files.getlist("files"):
             name = (f.filename or "").lower()
             kind = "fit" if name.endswith(".fit") else "zip" if name.endswith(".zip") else None
             if kind is None:
                 if name:
                     flash(_("%(filename)s: nahrát jde jen .fit nebo .zip.", filename=f.filename), "error")
+                continue
+            if not _looks_like(f, kind):
+                flash(_("%(filename)s: není soubor z hodinek (.fit), nebo je poškozený. Nenahrál se, ostatní ano.",
+                        filename=f.filename) if kind == "fit" else
+                      _("%(filename)s: není zip, nebo je poškozený. Nenahrál se, ostatní ano.", filename=f.filename),
+                      "error")
                 continue
             rel, path = storage.incoming(cfg(), "." + kind)
             f.save(path)  # streamed to disk; a Garmin export can have gigabytes

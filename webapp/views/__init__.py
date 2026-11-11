@@ -14,5 +14,20 @@ def go(url):
     return redirect(url)
 
 
+def skipped():
+    """Flash the files the page left out before sending because they were larger than the server takes (static/ob.js:
+    the field "vynechano", one "name|limit in bytes" per file), so the others could go."""
+    from flask import flash
+
+    from ..i18n import _
+    for item in request.form.getlist("vynechano")[:50]:
+        name, _sep, limit = item.rpartition("|")
+        mb = int(limit) // (1024 * 1024) if limit.isdecimal() else None
+        flash(_("%(filename)s je větší než %(mb)s MB, a tak se nenahrál. Ostatní soubory ano.",
+                filename=name[:200] or item[:200], mb=mb) if mb else
+              _("%(filename)s je větší, než server přijme, a tak se nenahrál. Ostatní soubory ano.",
+                filename=name[:200] or item[:200]), "error")
+
+
 # the modules attach their routes to bp
-from . import jobs, language, legs, lost, model, napoveda, photo, races, uploads  # noqa: E402,F401
+from . import coursefix, jobs, language, legs, lost, model, napoveda, photo, races, uploads  # noqa: E402,F401

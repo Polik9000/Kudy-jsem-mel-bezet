@@ -278,6 +278,7 @@ a.stav:hover { text-decoration: underline; }
   border-radius: 50%; border: 3px solid var(--ob-nejlepsi); background: rgba(255, 255, 255, .55); color: #111;
   font: 700 12px/1 sans-serif; box-sizing: border-box; }
 .ob-foto-bod.spatne span { border-color: var(--ob-chyba); }
+.ob-foto-navic { stroke: #8a8a8a; stroke-width: 3; stroke-dasharray: 5 4; fill: none; }
 .ob-foto-bod.vybrany span { outline: 3px solid var(--ob-plan); }
 /* cutting out the map on a Livelox screenshot (screen_crop.html, crop.js) */
 path.ob-orez { stroke: var(--ob-plan); fill: var(--ob-plan); }

@@ -560,6 +560,20 @@ Co hotové není nebo nesedí:
 50. Přestoupil někdy Tobias nebo táta do jiného oddílu (jiné registrační číslo)? Ověřoval jsem na cizích běžcích z
     výsledků (Jiří Vlach AOV7900 → SFM7900, Matěj Toman LBM0909 → ZBM0919): ORIS ID zůstává, staré závody nesou staré
     číslo. Kdyby to u vás vypadalo jinak, napiš.
+51. Tátovy KITL 2025 (H45B, issue 9: nepoznané kontroly 2, 3, 8, 9 a 4, 9): v tátově appce u obou závodů dej
+    **Uložit závod do souboru** se zaškrtnutým „přidat i můj běh z hodinek a můj výsledek“ a soubory `.obzavod` dej
+    do `data-extra/kitl-2025-09-06/` a `data-extra/kitl-2025-09-07/` (KITL byl 6. a 7. 9., viz 49). Na tomhle počítači
+    jsou jen tvoje H16B, a ty sedí: 13 z 13 a 12 z 12 kontrol. `tools/kolecka.py` soubory `.obzavod` čte sám:
+    `python tools/kolecka.py --rozbor data-extra/kitl-2025-09-06 data-extra/kitl-2025-09-07`.
+52. Mapa, kde appka našla 169 „koleček“ místo 18 (a tátův případ 6 z 19 na Macu): dej ji (KMZ s tratí, případně
+    `.fit`, nebo celý `.obzavod`) do `data-extra/kolecka-problem/`. Na všech 30 mapách tady je největší rozdíl 9 kontrol
+    (Bohemia 2025 E1, opraveno). Tipuju mapu s jemným rozlišením a tlustou čarou, jako Bohemia E1; nová verze ji
+    možná přečte sama.
+53. Na Macu: otevři u závodu **Doplnit kontroly** (Podklady, pod mapou s tratí), doplň chybějící kontrolu, ulož
+    a počkej na nový rozbor. Funguje klikání a přetahování v okně appky (WKWebView)? Stránka je stejná jako Usadit
+    mapu ručně; ověřil jsem ji testy serveru, v okně appky ne.
+54. Nahraj u závodu najednou běh a dva snímky, z nichž jeden je moc velký (nebo menší než 400 px). Uloží se ten
+    dobrý a hláška řekne jménem, který se nenahrál? Na Macu jsem to nezkoušel.
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

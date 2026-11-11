@@ -177,6 +177,11 @@
     form.addEventListener("submit", function (ev) {
       if (!window.FormData || !window.XMLHttpRequest) { return; }
       ev.preventDefault();
+      var data = upload(form);
+      if (!data) {
+        if (note) { note.textContent = t("Žádný soubor se nenahrál: všechny jsou větší, než server přijme."); }
+        return;
+      }
       var bar = form.querySelector("progress") || document.createElement("progress"), xhr = new XMLHttpRequest();
       bar.max = 100;
       bar.value = 0;
@@ -209,9 +214,43 @@
       xhr.addEventListener("error", function () { failed(t("Nahrání se nepovedlo (spojení se přerušilo). Zkus to znovu.")); });
       xhr.open("POST", form.getAttribute("action") || location.href);
       xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-      xhr.send(new FormData(form));
+      xhr.send(data);
     });
   });
+
+  // What the form sends: a file larger than its field takes (data-max) is left out, and so are the largest ones
+  // until all of them fit into what the server takes at once (OBAPP.maxUpload), so that one file too large does not
+  // stop the others (issue 6). The names left out go along ("vynechano": "name|limit"), the server says so on the
+  // next page. null when there were files and none of them can go.
+  function upload(form) {
+    var data = new FormData(form), whole = (window.OBAPP && window.OBAPP.maxUpload) || 0, keep = [], had = 0;
+    var room = whole ? whole - 256 * 1024 : 0;       // the other fields and the parts of the form take a little
+    Array.prototype.forEach.call(form.querySelectorAll("input[type=file][name]"), function (el) {
+      var max = parseInt(el.getAttribute("data-max") || "0", 10);
+      data.delete(el.name);
+      Array.prototype.forEach.call(el.files || [], function (f) {
+        had += 1;
+        if (max && f.size > max) {
+          data.append("vynechano", f.name + "|" + max);
+        } else {
+          keep.push([el.name, f]);
+        }
+      });
+    });
+    keep.sort(function (a, b) { return a[1].size - b[1].size; });
+    var used = 0;
+    keep = keep.filter(function (k) {
+      if (room && used + k[1].size > room) {
+        data.append("vynechano", k[1].name + "|" + whole);
+        return false;
+      }
+      used += k[1].size;
+      return true;
+    });
+    if (had && !keep.length) { return null; }
+    keep.forEach(function (k) { data.append(k[0], k[1]); });
+    return data;
+  }
 
   // Files can be dropped on a file field of such a form (<form data-pretahni>): on its whole label, not only
   // on the small button of the browser.

@@ -36,3 +36,6 @@ webapp/_version.py
 *.obzavod
 /ob-data/
 .ruff_cache/
+
+# local Python environment
+.venv/

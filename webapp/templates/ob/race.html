@@ -50,6 +50,8 @@
 {% if job and job.status == 'failed' %}
 <div class="stalewarn" data-hlaska="{{ _('Poslední analýza selhala.') }}">{{ _('Poslední analýza selhala.') }} {{ (job.error or '').splitlines()[0] if job.error else '' }}
   <details><summary>{{ _('Podrobnosti') }}</summary><pre>{{ job.error }}</pre></details>
+  {% if course_failed and e.course_file %}<p>{% trans fix=url_for('ob.course_fix_page', entry_id=e.id) %}Když je mapa
+    s tratí správná, označ kontroly, start a cíl ručně: <a href="{{ fix }}">Doplnit kontroly</a>.{% endtrans %}</p>{% endif %}
   <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn btn-maly">{{ _('Zkusit znovu') }}</button>
@@ -60,6 +62,16 @@
   <span>{{ _('Poslední analýzu jsi zastavil.') }}{% if analysis and analysis.has_routes %} {{ _('Platí rozbor, který byl hotový před ní.') }}{% endif %}</span>
   <button type="submit" class="btn btn-maly">{{ _('Spustit znovu') }}</button>
 </form>
+{% endif %}
+{% if course_check and course_check.wrong and e.course_file %}
+<div class="stalewarn" data-hlaska="{{ _('Počet kontrol nesedí s ORIS.') }}">
+  {% trans have=course_check.have, oris=course_check.expected %}Kontrol na mapě: {{ have }}, v ORIS: {{ oris }}. Rozbor
+  proto nemusí sedět (pořadí kontrol, mezičasy, úseky).{% endtrans %}
+  <a class="btn btn-maly" href="{{ url_for('ob.course_fix_page', entry_id=e.id) }}">{{ _('Doplnit kontroly') }}</a></div>
+{% elif course_check and course_check.added and e.course_file %}
+<p class="nota">{% trans n=course_check.added, oris=course_check.expected %}Na mapě jsou kolečka některých kontrol přerušená;
+  {{ n }} jsem dohledal podle místa, kde byly hodinky v čase ražení, a trať má {{ oris }} kontrol jako v ORIS.{% endtrans %}
+  <a href="{{ url_for('ob.course_fix_page', entry_id=e.id) }}">{{ _('Zkontrolovat kontroly') }}</a></p>
 {% endif %}
 {# what the race still needs, with the way to it: shown until the run and both maps are there #}
 {% if not (e.activity_id and e.course_file and e.maponly_file) %}
@@ -322,7 +334,7 @@
       <p class="muted">{% trans date=e.date | datum %}K závodu není spárovaný žádný běh ze dne {{ date }}.{% endtrans %}</p>
       {% endif %}
       <label class="ob-pole">{{ _('Běh z hodinek (.fit, nebo zip z Garmin Connect)') }}
-        <input type="file" name="fit" accept=".fit,.zip"></label>
+        <input type="file" name="fit" accept=".fit,.zip" data-max="{{ max_fit }}"></label>
       <p class="hint">{% trans upload=url_for('ob.upload') %}Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export
         z Garminu: <a href="{{ upload }}">Nahrát běhy</a>.{% endtrans %}</p>
     </div>
@@ -348,6 +360,9 @@
       {% if e.activity_id and course_src in ('kmz', 'screen') %}<p class="hint">{% trans fix=url_for('ob.map_fix_page', entry_id=e.id) %}Leží celá mapa vedle tvé stopy (všechny
         kontroly posunuté stejně)? <a href="{{ fix }}">Usadit mapu ručně podle
         kontrol</a>. Když zlobí GPS jen na pár úsecích, oprav si stopu u úseku.{% endtrans %}</p>{% endif %}
+      {% if e.course_file %}<p class="hint">{% if course_by_hand %}{% trans fix=url_for('ob.course_fix_page', entry_id=e.id) %}Kontroly
+        tratě jsou označené ručně (<a href="{{ fix }}">Doplnit kontroly</a>).{% endtrans %}{% else %}{% trans fix=url_for('ob.course_fix_page', entry_id=e.id) %}Chybí
+        na mapě některá kontrola, nebo je některá navíc? <a href="{{ fix }}">Doplnit kontroly</a>.{% endtrans %}{% endif %}</p>{% endif %}
       <h4>{% trans %}Mapa bez tratě · sdílená pro celý závod{% endtrans %}</h4>
       <p>{% if e.maponly_file %}<span class="stav ob-ok">{{ _('nahraná') }}</span>{% else %}<span class="stav">{{ _('chybí') }}</span>{% endif %}
         {% if maponly_acc %}<span class="badge">{% trans acc=maponly_acc, res=num(e.maponly_res_m, 1) %}ze snímku Livelox, přesnost asi ±{{ acc }} m,

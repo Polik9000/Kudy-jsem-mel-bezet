@@ -29,9 +29,12 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from oroute import errors, gpstrim  # noqa: E402
 from oroute.analysis import analyse_legs, estimate_offset, find_punches, flag_legs, track_xy, unrecorded  # noqa: E402
+from oroute.course import VERSION as COURSE_VERSION  # noqa: E402
 from oroute.course import (  # noqa: E402
     detect_course,
+    drop_extra,
     fill_order,
+    find_missing,
     load_course,
     order_by_lines,
     order_by_track,
@@ -43,7 +46,7 @@ from oroute.jsonout import save as save_json
 from oroute.kmzmap import GeoMap  # noqa: E402
 from oroute.mistakes import classify  # noqa: E402
 from oroute.official import apply as apply_official  # noqa: E402
-from oroute.official import no_data_legs, order_controls  # noqa: E402
+from oroute.official import no_data_legs, order_controls, punch_places  # noqa: E402
 from oroute.render import contact_sheet, crop_leg, draw_overlay  # noqa: E402
 
 
@@ -71,17 +74,33 @@ def main():
                     help="do not draw the overlay pictures (the web app draws the map itself from analysis.json)")
     ap.add_argument("--gps-trim", default="auto",
                     help="auto (default): cut off a GPS jump at the start or the end; off; FROM:TO in seconds")
+    ap.add_argument("--oris-controls", type=int,
+                    help="number of controls of the class in ORIS; the course read from the map is checked against it "
+                         "(with --official the number of split times is used)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
     gm = GeoMap.from_kmz(args.kmz)
     tr = gpstrim.apply(load_track(args.fit), args.gps_trim)
     u0, v0 = gm.latlon_to_px(tr["lat"][:1], tr["lon"][:1])
+    official_in = json.load(open(args.official, encoding="utf-8")) if args.official else None
+    # how many controls the course has: the official split times, else the class in ORIS, else not known
+    expected = args.oris_controls
+    if official_in and official_in.get("cumulative"):
+        expected = len(official_in["cumulative"]) - 1
 
     if args.course:
         c = load_course(args.course)
+        if c.get("start") is None or c.get("finish") is None:
+            raise errors.InputError("no_start" if c.get("start") is None else "no_finish",
+                                    f"the course given ({len(c['controls'])} controls) has no start or no finish")
         pts_px = [c["start"]["px"]] + [p["px"] for p in c["controls"]] + [c["finish"]["px"]]
         line_scores = None
+        # the latitude and longitude anew from the pixels: the map may have been placed again since (mapfix)
+        save_course(os.path.join(args.out, "course.json"), gm,
+                    {"start": c["start"]["px"], "controls": [p["px"] for p in c["controls"]],
+                     "finish": c["finish"]["px"]})
+        check = dict(found=len(c["controls"]), added=0, removed=0, expected=expected, source="manual")
     else:
         det = detect_course(gm, start_hint_px=(u0[0], v0[0]))
         if not det["controls"] and det["finish"] is None:
@@ -97,14 +116,39 @@ def main():
             lat, lon = gm.px_to_latlon(p[0], p[1])
             xx, yy = gm.to_xy(lat, lon)
             return float(xx), float(yy)
+        fx, fy = px_xy(det["finish"])
+        circles = [c for c in det["controls"] if np.hypot(px_xy(c)[0] - fx, px_xy(c)[1] - fy) >= 25.0]
+        check = dict(found=len(circles), added=0, removed=0, expected=expected, source="map")
+        if official_in and expected and circles and len(circles) != expected:
+            # the number of controls in the official results is the goal: a circle cut open for a detail of the
+            # map is looked for where the watch was at its punch, a control number read as a circle is left out
+            mpp = (gm.m_per_px_x + gm.m_per_px_y) / 2
+            hints = []
+            for p in punch_places(tr, official_in):
+                uu, vv = gm.latlon_to_px(np.array([p[0]]), np.array([p[1]])) if p else (None, None)
+                hints.append(None if p is None else (float(uu[0]), float(vv[0])))
+            if len(circles) < expected:
+                added, notes = find_missing(det["mask"], mpp, det["start"], circles, det["finish"], hints, expected)
+                for n in notes:
+                    if n.get("found"):
+                        print(f"control {n['k']}: circle found where the watch was at the punch ({n['off_m']} m), "
+                              f"{100 * n['cover']:.0f} % of its outline printed")
+                det["controls"] = det["controls"] + added
+                circles = circles + added
+                check["added"] = len(added)
+            else:
+                extra_circles = drop_extra(circles, hints, expected, mpp)
+                if extra_circles:
+                    print(f"left out {len(extra_circles)} circle(s) far from every punch (a control number?)")
+                det["controls"] = [c for c in det["controls"] if c not in extra_circles]
+                circles = [c for c in circles if c not in extra_circles]
+                check["removed"] = len(extra_circles)
         ordered = None
         if args.official and not args.no_gps_order:
             # Official times first: where the watch was at each official punch time says which circle is which
             # control. No search through the purple lines, so the number of controls does not matter; the
             # lines and the track then only check the order (order_by_track below).
-            fx, fy = px_xy(det["finish"])
-            circles = [c for c in det["controls"] if np.hypot(px_xy(c)[0] - fx, px_xy(c)[1] - fy) >= 25.0]
-            idx, how = order_controls(tr, gm, [px_xy(c) for c in circles], json.load(open(args.official, encoding="utf-8")))
+            idx, how = order_controls(tr, gm, [px_xy(c) for c in circles], official_in)
             if idx is None:
                 print(f"control order from the purple lines, not from the official times: {how['reason']}")
             else:
@@ -131,7 +175,7 @@ def main():
         pts.append((float(x), float(y)))
     punch, official = None, None
     if args.official:
-        tr, punch, official = apply_official(tr, gm, pts, json.load(open(args.official, encoding="utf-8")))
+        tr, punch, official = apply_official(tr, gm, pts, official_in)
     x, y = track_xy(gm, tr)
     if punch is None:
         punch = find_punches(tr["t"], x, y, pts)
@@ -229,7 +273,7 @@ def main():
     course_ll = [gm.px_to_latlon(p[0], p[1]) for p in pts_px]
     save_json(os.path.join(args.out, "analysis.json"), dict(
         start=tr["start"].isoformat(), total_time=total, est_loss=loss, vref=vref, rref=rref, offset_m=off,
-        weak_order=weak, official=official,
+        weak_order=weak, official=official, course_check=check, course_version=COURSE_VERSION,
         course=[dict(lat=round(float(la), 7), lon=round(float(lo), 7)) for la, lo in course_ll],
         track=dict(t=rounded(t, 2), lat=rounded(tr["lat"], 6), lon=rounded(tr["lon"], 6), speed=rounded(speed, 2),
                    trim=tr["trim"]),
