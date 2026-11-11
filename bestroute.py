@@ -53,7 +53,7 @@ from oroute.routing import (  # noqa: E402
 )
 from oroute.speedmodel import SpeedModel  # noqa: E402
 
-VERSION = 10     # goes up when the routes of the same race would come out different (stored analyses are
+VERSION = 11     # goes up when the routes of the same race would come out different (stored analyses are
                  # then offered to be redone): 2 = ponds with a bank line and fenced ground are impassable;
                  # 3 = fences and rows of dots are no paths, a fence is hard to cross, the start is the triangle;
                  # 4 = inside a settlement only the streets; 5 = the route of an average runner next to yours;

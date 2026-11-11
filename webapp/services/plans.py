@@ -27,7 +27,7 @@ def price(con, conf, entry_id, again=False):
                        " AND plan IS NULL ORDER BY leg_n", (entry_id,)).fetchall()
     info = runner.entry_info(con, entry_id)
     a = con.execute("SELECT out_dir FROM analyses WHERE entry_id = ? AND has_routes = 1", (entry_id,)).fetchone()
-    if not rows or a is None or info is None or not info["maponly_file"]:
+    if not rows or a is None or info is None or not runner.has_terrain_map(info):
         return 0
     out = conf.path(a["out_dir"])
     asked, got = os.path.join(out, "best", "plans.json"), os.path.join(out, "best", "plans_priced.json")

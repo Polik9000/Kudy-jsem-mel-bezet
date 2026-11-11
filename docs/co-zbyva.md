@@ -574,6 +574,10 @@ Co hotové není nebo nesedí:
     mapu ručně; ověřil jsem ji testy serveru, v okně appky ne.
 54. Nahraj u závodu najednou běh a dva snímky, z nichž jeden je moc velký (nebo menší než 400 px). Uloží se ten
     dobrý a hláška řekne jménem, který se nenahrál? Na Macu jsem to nezkoušel.
+55. Rozbor jen z mapy s tratí (`docs/jen-mapa-s-trati.md`): nahraj u závodu jen snímek s tratí z Livelox, **se zapnutou
+    čárou postupu** a pak bez ní. Odpovídají postupy zhruba tomu, co dává mapa bez tratě? Měřilo se na uměle nakreslené
+    červené čáře (asi 4 m); potřebuju od tebe nebo od táty snímky s opravdovou čárou i bez ní z jednoho závodu.
+56. Poznámka u úseku, kde postup vede přes hodně zakrytého místa, zatím není. Chceš ji? Stačí jedna věta u úseku.
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

@@ -858,8 +858,12 @@ EN = {
         "Upload both screenshots to the fields “Livelox screenshot with course” and “Livelox screenshot without course” in the source files of the race.",
     "Proč neposouvat: appka usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá stejné místo. Snese posun o pár pixelů, ne jiné přiblížení nebo jinou velikost okna.":
         "Why not to move: the app places only the screenshot with the course (by the controls and your track) and gives the screenshot without the course the same place. It tolerates a shift of a few pixels, not a different zoom or a different window size.",
-    "Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek s tratí jde nahrát i tak, nejlepší postupy z něj ale nebudou.":
-        "When the organiser uploaded a map with the controls burned in, the course cannot be switched off. Then a photo of the map remains. The screenshot with the course can be uploaded anyway, but there will be no best routes from it.",
+    "Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek s tratí jde nahrát i tak: nejlepší postupy se odhadnou z něj, jen s menší přesností. Trať a zakrytý terén pod ní se domýšlí z okolí.":
+        "When the organiser uploaded a map with the controls burned in, the course cannot be switched off. Then a photo of the map remains. The screenshot with the course can be uploaded anyway: the best routes are estimated from it, with less accuracy. The terrain hidden under the course is filled in from its surroundings.",
+    "Před snímkem s tratí v Livelox <b>vypni čáru postupu</b> (přehrávání běžců). Zakrývá mapu a snímek bez tratě je pořád lepší: postupy z něj jsou přesnější a počítají se i záchytné body.":
+        "Before the screenshot with the course, <b>switch off the runner's line</b> in Livelox (the playback of runners). It hides the map, and a screenshot without the course is still better: routes from it are more accurate and the catching features are found too.",
+    "<b>Postupy jsou odhadnuté z mapy s tratí.</b> Kde trať nebo čára postupu zakrývá mapu, terén se domýšlí z okolí. S mapou bez tratě budou přesnější. Záchytné body a „Ztratil jsem se“ z odhadnuté mapy nepočítáme.":
+        "<b>The routes are estimated from the map with the course.</b> Where the course or the runner's line hides the map, the terrain is filled in from its surroundings. With the map without the course they will be more accurate. Catching features and \"I got lost\" are not computed from an estimated map.",
     "Poznámky u úseku":
         "Notes on a leg",
     "Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak appka čte ztrátu a z kterých úseků se učí tvůj model rychlosti.":

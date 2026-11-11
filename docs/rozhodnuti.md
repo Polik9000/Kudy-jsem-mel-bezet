@@ -517,3 +517,15 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | Server vrátí 413 jako přesměrování zpět s hláškou (u skriptu JSON s adresou). | Formulář bez skriptu dřív skončil holou chybovou stránkou Werkzeugu. |
 | `/upload` pozná rozbitý soubor hned podle začátku (`.FIT` na bajtech 8 až 11, zip `PK`): nahlásí ho jménem a ostatní zpracuje. Soubor, který začíná dobře a je poškozený dál, selže ve své úloze jako dřív. | Dřív se rozbitý soubor ukázal až v seznamu úloh. |
 | `.venv/` v `.gitignore`. | Na Windows bez Dockeru se testy pouštějí z místního prostředí v repu. |
+
+## 11. 11. 2026: rozbor jen z mapy s tratí (issue 13, větev `jen-mapa-s-trati`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Závod jen s mapou s tratí z Livelox (KMZ nebo snímek) dostane nejlepší postupy: terén se čte z mapy s vyjmutou tratí a čárou postupu (`oroute/occlusion.py`, varianta `nearest`; `runner.terrain_map`). | Měření na 4 závodech (71 úseků): 85,9 % stejný postup a medián rozdílu času 1,1 % (1,7 % s červenou čárou), tedy nad předem daným prahem 85 % / 5 %. Čísla v `docs/jen-mapa-s-trati.md`. |
+| Záchytné body a „Ztratil jsem se“ se z odhadnuté mapy nepočítají. | Potřebují přesný terén těsně kolem kontroly, kde je právě kolečko. |
+| Bez nového sloupce v databázi: odhad se pozná podle toho, že závod nemá `maponly_file`. Opravdová mapa bez tratě odhad nahradí sama (rozbor se přepočítá jako dnes). | Menší zásah do schématu a do nahrávání. |
+| Doplněná mapa je v `terrain/class_<kategorie>_<otisk>.kmz` a má vlastní cache terénu. | Mapa s tratí je pro každou kategorii jiná. |
+| `bestroute.VERSION` a `results.ROUTES` 10 → 11. | Appka nabídne přepočet starších rozborů. |
+| Nápověda radí vypnout čáru postupu v Livelox před snímkem s tratí. | Zakrývá mapu; snímek bez tratě je pořád lepší. |
+

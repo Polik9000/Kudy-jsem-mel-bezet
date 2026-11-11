@@ -6,7 +6,7 @@ from ..db import dumps
 
 SLOW = ["light green (slow run)", "green (walk)", "dark green (fight)", "undergrowth (stripes)", "marsh"]
 RELOCATE = 8   # oroute.relocate.VERSION the pages expect; an analysis with another one is offered to be redone
-ROUTES = 10    # the same for the best routes (bestroute.VERSION)
+ROUTES = 11    # the same for the best routes (bestroute.VERSION)
 
 
 GPS_FAR_M = 30.0        # the track at the punch farther than this from the control ...

@@ -3,6 +3,7 @@ mistake signals) and, when the map without course is there, bestroute.py (best r
 scripts draw for a reader of their reports are left out (--no-images): the pages draw from the JSON."""
 import collections
 import datetime as dt
+import glob
 import hashlib
 import json
 import os
@@ -14,7 +15,7 @@ import threading
 from contextlib import contextmanager
 
 from oroute import course as course_mod
-from oroute import errors, osm
+from oroute import errors, occlusion, osm
 from oroute import personal as fitter
 from oroute.kmzmap import GeoMap
 
@@ -212,12 +213,43 @@ def _terrain_cache(conf, event_id):
     return conf.path("terrain", f"event_{event_id}.npz")
 
 
+DERIVED_SOURCES = (None, "kmz", "screen")   # a course picture with the exact Livelox purple (not a photo)
+
+
+def terrain_map(conf, info):
+    """(path of the map to read the terrain from, its terrain cache, True if it is derived from the map with
+    course). The map without course of the event when it has one. Else, for a course from Livelox, the map with
+    course with the course and the track line taken out (oroute/occlusion.py): an estimate, the hidden terrain is
+    filled in from its surroundings. (None, None, False) when the race has neither."""
+    if info["maponly_file"]:
+        return conf.path(info["maponly_file"]), _terrain_cache(conf, info["event_id"]), False
+    if not info["course_file"] or info["course_source"] not in DERIVED_SOURCES:
+        return None, None, False
+    src = conf.path(info["course_file"])
+    st = os.stat(src)
+    stamp = f"{occlusion.VERSION}/{os.path.basename(src)}/{st.st_size}/{st.st_mtime_ns}"
+    tag = hashlib.sha1(stamp.encode()).hexdigest()[:10]
+    out = conf.path("terrain", f"class_{info['cid']}_{tag}.kmz")
+    if not os.path.exists(out):
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        for old in glob.glob(conf.path("terrain", f"class_{info['cid']}_*")):
+            os.remove(old)
+        occlusion.derive_kmz(src, out)
+    return out, conf.path("terrain", f"class_{info['cid']}_{tag}.npz"), True
+
+
+def has_terrain_map(info):
+    """Whether the race has a map to read the terrain from, a real one or one derived from the map with course."""
+    return bool(info["maponly_file"] or (info["course_file"] and info["course_source"] in DERIVED_SOURCES))
+
+
 def run_planned(conf, info, out, plans, result):
     """Price planned routes (oroute/planned.py) with what the analysis in folder `out` used.
     info: entry_info of the entry; plans, result: the JSON files the script reads and writes."""
     crossings = os.path.join(out, "best", "barriers.json")     # what the routes of this analysis kept out of
-    _run("-m", "oroute.planned", conf.path(info["maponly_file"]), out, plans, result, "--dem", conf.dem,
-         "--terrain-cache", _terrain_cache(conf, info["event_id"]),
+    tmap, tcache, _ = terrain_map(conf, info)
+    _run("-m", "oroute.planned", tmap, out, plans, result, "--dem", conf.dem,
+         "--terrain-cache", tcache,
          *(["--barriers", crossings] if os.path.exists(crossings) else []))
 
 
@@ -287,7 +319,7 @@ def samples_key(conf, info, out):
     for name in SAMPLE_CODE:
         with open(os.path.join(ROOT, name), "rb") as f:
             h.update(f.read())
-    for path in (conf.path(info["maponly_file"]), conf.path(info["fit_file"])):
+    for path in (terrain_map(conf, info)[0], conf.path(info["fit_file"])):
         st = os.stat(path)
         h.update(f"{os.path.basename(path)}/{st.st_size}/{st.st_mtime_ns}".encode())
     h.update(f"trim {gps_trim(info)}".encode())
@@ -335,7 +367,7 @@ def _routing_inputs(con, conf, info, out, extra, notes):
         _share(path, os.path.join(best, name))
     # crossings that are not allowed: OpenStreetMap (once per event) and the lines drawn by hand
     if info["osm_mode"] != "off":
-        note = fetch_osm(conf, info["event_id"], conf.path(info["maponly_file"]))
+        note = fetch_osm(conf, info["event_id"], terrain_map(conf, info)[0])
         if note:
             notes.append(note)
     # areas that must not be entered: the purple hatching of the runner's own map with the course
@@ -361,10 +393,11 @@ def _routing_inputs(con, conf, info, out, extra, notes):
     elif os.path.exists(os.path.join(best, "barriers.json")):
         os.remove(os.path.join(best, "barriers.json"))   # of an earlier analysis: the folder says what was used
     slope = ["--slope", conf.path(info["slope_file"])] if info["slope_file"] else []
-    script = ["bestroute.py", conf.path(info["maponly_file"]), os.path.join(out, "course.json"),
+    tmap, tcache, _ = terrain_map(conf, info)
+    script = ["bestroute.py", tmap, os.path.join(out, "course.json"),
               conf.path(info["fit_file"]), best,
               "--title", f"{info['event_name']} ({info['class_name']})", *slope, *extra, "--dem", conf.dem,
-              "--no-images", "--terrain-cache", _terrain_cache(conf, info["event_id"]), "--gps-trim", gps_trim(info)]
+              "--no-images", "--terrain-cache", tcache, "--gps-trim", gps_trim(info)]
     with open(os.path.join(out, "course.json"), encoding="utf-8") as f:
         n_legs = len(json.load(f)["controls"]) + 1
     return script, n_legs, shared
@@ -427,7 +460,7 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
         _run("analyze.py", course, fit, out, "--no-images", "--gps-trim", gps_trim(info), *given, *extra, *oris_n)
         if after_course:
             after_course(rel)
-    if not info["maponly_file"]:
+    if not has_terrain_map(info):
         shutil.rmtree(best, ignore_errors=True)
         return False, None, []
 
@@ -450,6 +483,11 @@ def _analyse_in(con, conf, info, rel, routes_only, say, after_course, before_rou
         _share(os.path.join(best, name), path)
     # what is around every control to catch when contact with the map is lost, and where the track shows it
     # was (oroute/relocate.py). The routes are there already: without this the page only lacks that part.
+    if not info["maponly_file"]:
+        # the terrain is an estimate under the course: good for the best route, too coarse for features to catch
+        if os.path.exists(os.path.join(best, "relocate.json")):
+            os.remove(os.path.join(best, "relocate.json"))
+        return True, model["id"] if model else None, notes
     say(_("hledám záchytné body u kontrol"))
     try:
         run_relocate(conf, info, out)
