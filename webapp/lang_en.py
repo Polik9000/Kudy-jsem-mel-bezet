@@ -844,8 +844,22 @@ EN = {
         "<b>Otherwise two screenshots from Livelox</b> (below). For your own analysis only: do not share them, the organiser switched the download off on purpose.",
     "Dva snímky z Livelox (Chrome na počítači)":
         "Two screenshots from Livelox (Chrome on a computer)",
-    "Stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení). Nahoře u Dimensions zvol <b>Responsive</b> a nastav <b>5000 × 4000</b>.":
-        "Press <b>F12</b> and then <b>Ctrl+Shift+M</b> (device toolbar). At the top next to Dimensions choose <b>Responsive</b> and set <b>5000 × 4000</b>.",
+    "Nejlepší je Chrome, na Windows i na Macu: postup je stejný a vyzkoušený. Safari je druhá možnost, níže.":
+        "Chrome is best, on Windows and on a Mac: the steps are the same and tested. Safari is the second option, below.",
+    "Na Windows stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení).":
+        "On Windows press <b>F12</b> and then <b>Ctrl+Shift+M</b> (device toolbar).",
+    "Na Macu stiskni <b>⌥⌘I</b> (Option+Command+I) a pak <b>⇧⌘M</b> (Shift+Command+M). Nebo v menu Zobrazit → Vývojář → Nástroje pro vývojáře (View → Developer → Developer Tools) a vlevo nahoře v nástrojích ikona telefonu a tabletu (Toggle device toolbar).":
+        "On a Mac press <b>⌥⌘I</b> (Option+Command+I) and then <b>⇧⌘M</b> (Shift+Command+M). Or use the menu View → Developer → Developer Tools and the phone and tablet icon at the top left of the tools (Toggle device toolbar).",
+    "Nahoře u Dimensions zvol <b>Responsive</b> a nastav <b>5000 × 4000</b>.":
+        "At the top next to Dimensions choose <b>Responsive</b> and set <b>5000 × 4000</b>.",
+    "Safari na Macu (když nechceš Chrome)":
+        "Safari on a Mac (if you do not want Chrome)",
+    "Zapni nabídku Vývojář: Safari → Nastavení → Pokročilé → „Zobrazovat funkce pro webové vývojáře“ (ve starších verzích „Zobrazovat nabídku Vývojář“).":
+        "Turn on the Develop menu: Safari → Settings → Advanced → “Show features for web developers” (in older versions “Show Develop menu in menu bar”).",
+    "Vývojář → <b>Vstoupit do režimu responzivního designu</b> (⌃⌘R, Ctrl+Command+R). Velikost okna s mapou změníš tažením průhledných úchytů kolem okna, poslední rozměr si Safari pamatuje jako „Vlastní velikost“.":
+        "Develop → <b>Enter Responsive Design Mode</b> (⌃⌘R, Ctrl+Command+R). Change the size of the window with the map by dragging the translucent handles around it; Safari remembers the last size as “Custom size”.",
+    "Safari nemá tlačítko „Capture full size screenshot“ a okno nejde zvětšit nad velikost obrazovky. Snímek se tak udělá z toho, co je vidět (⇧⌘4 nebo ⇧⌘5), a bude menší a méně ostrý než z Chrome. Zbytek postupu (dva snímky bez posouvání mapy) je stejný.":
+        "Safari has no “Capture full size screenshot” button and the window cannot be made larger than the screen. The screenshot is taken of what is visible (⇧⌘4 or ⇧⌘5) and will be smaller and less sharp than from Chrome. The rest (two screenshots without moving the map) is the same.",
     "V Livelox zavři křížkem postranní panel se závodníky. Mapu přibliž co nejvíc tak, aby byla celá vidět.":
         "In Livelox close the side panel with the competitors with the cross. Zoom the map in as much as possible so that the whole map is still visible.",
     "Tři tečky úplně vpravo v liště s Dimensions → <b>Capture full size screenshot</b>. Snímek se uloží do Stažených. To je <b>snímek s tratí</b>.":

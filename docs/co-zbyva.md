@@ -578,6 +578,11 @@ Co hotové není nebo nesedí:
     čárou postupu** a pak bez ní. Odpovídají postupy zhruba tomu, co dává mapa bez tratě? Měřilo se na uměle nakreslené
     červené čáře (asi 4 m); potřebuju od tebe nebo od táty snímky s opravdovou čárou i bez ní z jednoho závodu.
 56. Poznámka u úseku, kde postup vede přes hodně zakrytého místa, zatím není. Chceš ji? Stačí jedna věta u úseku.
+57. Na Macu v Safari: Web Inspector → Elements → pravým na prvek mapy → Capture Screenshot, nebo uložení obrázku z
+    `<canvas>` (`docs/snimky-livelox.md`). Pošli obrázek mapy z canvasu a snímek s tratí ze stejného závodu do
+    `data-extra/`; bez nich pole „Obrázek mapy z Livelox“ nepřidávám (napasování nejde změřit).
+58. Na Macu v Chromu i v Safari projdi nápovědu Dva snímky z Livelox krok po kroku a napiš, kde to nesedí (zkratky,
+    české názvy menu, jestli Safari dá dost velký snímek).
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

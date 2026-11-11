@@ -529,3 +529,11 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | `bestroute.VERSION` a `results.ROUTES` 10 → 11. | Appka nabídne přepočet starších rozborů. |
 | Nápověda radí vypnout čáru postupu v Livelox před snímkem s tratí. | Zakrývá mapu; snímek bez tratě je pořád lepší. |
 
+
+## 11. 11. 2026: nápověda ke snímkům z Livelox na Macu (issue 4, větev `napoveda-snimky-mac`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Nápověda `#snimky` ukáže zkratky podle systému (Windows F12 / Ctrl+Shift+M, Mac ⌥⌘I / ⇧⌘M), jde přepnout ručně. | Test na Macu: nápověda znala jen Windows. |
+| Doporučený je Chrome i na Macu, Safari je druhá možnost a nápověda rovně říká, že snímek bude menší. | Safari nemá snímek celé stránky ani rozměr 5000 × 4000 (dokumentace Apple). |
+| Obrázek mapy z canvasu v Safari zatím jen zápis v `docs/snimky-livelox.md`, bez pole v Podkladech. | Chybí vzorová data a napasování na snímek s tratí nejde změřit. |

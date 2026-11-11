@@ -12,7 +12,8 @@ def test_help_page_is_open_and_linked_from_the_header_and_the_empty_list(app, cl
     html = client.get("/jak-na-to").get_data(as_text=True)               # without logging in
     for words in ("Exportovat soubor", "Export Your Data", "Request Data Export", "48 hodin až 30 dní",
                   "tři čárky", "Mapa s tratí", "Pouze mapa", "Když Livelox stažení nedovolí", "fotka papírové mapy",
-                  "Ctrl+Shift+M", "5000 × 4000", "Capture full size screenshot", "Mapu neposouvej ani nepřibližuj",
+                  "Ctrl+Shift+M", "⌥⌘I", "⇧⌘M", "F12", "Safari na Macu",
+                  "5000 × 4000", "Capture full size screenshot", "Mapu neposouvej ani nepřibližuj",
                   "Snímek z Livelox s tratí", "Snímek z Livelox bez tratě", "nesdílej je dál",
                   "Záměrná zastávka", "Ztráta kontaktu s mapou", "Únava", "Průměrný běžec",
                   "Ztratil jsem se u kontroly", "Nedalo se minout", "Neměl jsi hádat směr ke kontrole",
@@ -86,3 +87,17 @@ def test_race_page_takes_the_zip_of_one_activity(app, client, user):
     r = client.post(f"/races/{e}/files", data=dict(csrf_token=csrf(client), fit=(io.BytesIO(two.getvalue()), "y.zip")),
                     content_type="multipart/form-data", follow_redirects=True)
     assert "Celý export z Garminu nahraj v Nahrát běhy." in r.get_data(as_text=True)
+
+
+def test_help_default_system_follows_the_computer_only_in_the_local_app(app, client, monkeypatch):
+    import sys
+
+    from webapp import cfg
+    cases = ((True, "darwin", 'data-os="mac"'), (True, "win32", 'data-os="win"'), (False, "darwin", None))
+    for local, platform, expected in cases:
+        monkeypatch.setattr(sys, "platform", platform)
+        with app.app_context():
+            monkeypatch.setattr(cfg(), "local", local)
+            html = client.get("/jak-na-to").get_data(as_text=True)
+        box = html.split('id="snimky"')[1].split(">")[0]
+        assert (expected in box) if expected else ("data-os" not in box)
