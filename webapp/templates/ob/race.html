@@ -206,6 +206,9 @@
 {% if course_acc %}<p><span class="badge">{% trans src={'image': _('obrázku'), 'screen': _('snímku Livelox')}.get(course_src, _('fotky')), acc=course_acc %}Mapa z {{ src }},
   přesnost asi ±{{ acc }} m{% endtrans %}</span> {{ _('Kontroly a stopa leží na mapě s touhle přesností') }}
   {%- if analysis.has_routes and course_src != 'screen' %}; {{ _('záchytné a náběhové body u kontrol ber s rezervou (terén je z mapy bez tratě, poloha kontroly z fotky)') }}{% endif %}.</p>{% endif %}
+{% if analysis.has_routes and not e.maponly_file %}<p class="ob-upozorneni">{% trans %}<b>Postupy jsou odhadnuté z mapy s tratí.</b> Kde trať nebo
+  čára postupu zakrývá mapu, terén se domýšlí z okolí. S mapou bez tratě budou přesnější. Záchytné body a „Ztratil
+  jsem se“ z odhadnuté mapy nepočítáme.{% endtrans %}</p>{% endif %}
 {% if maponly_acc and analysis.has_routes %}<p>{% trans acc=maponly_acc %}<span class="badge">Mapa bez tratě ze snímku Livelox, přesnost asi
   ±{{ acc }} m</span> Z ní je přečtený terén pro nejlepší postupy. Až bude mapa bez tratě jako KMZ, nahraj ji
   a postupy se přepočítají.{% endtrans %}</p>{% endif %}
