@@ -537,3 +537,19 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | Nápověda `#snimky` ukáže zkratky podle systému (Windows F12 / Ctrl+Shift+M, Mac ⌥⌘I / ⇧⌘M), jde přepnout ručně. | Test na Macu: nápověda znala jen Windows. |
 | Doporučený je Chrome i na Macu, Safari je druhá možnost a nápověda rovně říká, že snímek bude menší. | Safari nemá snímek celé stránky ani rozměr 5000 × 4000 (dokumentace Apple). |
 | Obrázek mapy z canvasu v Safari zatím jen zápis v `docs/snimky-livelox.md`, bez pole v Podkladech. | Chybí vzorová data a napasování na snímek s tratí nejde změřit. |
+
+## 11. 11. 2026: překážky v mapě: vedení a oprava rozpoznaných (issues 37 a 38, větev `prekazky-oprava`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Elektrické vedení, lanovky, potrubí a hranice se z OpenStreetMap nestahují a test (`tests/test_osm_dem.py`) hlídá, že by se nečetly, ani kdyby je server poslal. | Pod vedením se běží; do dotazu se dostávají jen železnice, dálnice a ploty/zdi. |
+| Pravidlo pro vedení čtené z obrázku mapy jsem **nezměnil**. Testy hlídají, že příčky přes čáru, střídavé příčky a čtverce pylonů plot nedají. | Na třech mapách, které mám, žádné vedení není (jediný „plot“ na Žebříčku je skutečný plot u silnice). Jednostranná řada krátkých příček je geometricky totéž co plot; pravidlo bez skutečného vzorku by zhoršilo ploty. Otázka 59 v `co-zbyva.md`. |
+| Oprava rozpoznané překážky je **osobní**: tabulka `barrier_overrides (entry_id, kind, key, action)`, k záznamu, nikdo jiný ji nevidí a jeho postupy se kvůli ní nepřepočítají. Ruční čáry zůstávají sdílené. | Stejně jako vlastní nastavení OSM a šrafů: oprava je můj názor na mapu. |
+| Klíč prvku je typ a střed v lat/lon (zaokrouhlený na 1e-5 °). Při použití se prvek hledá nejblíž středu do 15 m. | Pořadí prvků se po novém čtení mapy mění, střed ne. |
+| Opravit jde plot (není překážka, jen těžký průchod, neprůchozí), oplocenka (není překážka, je plot), čára z OSM (není překážka, jen těžký průchod) a šrafy (není překážka). Zdi sprintových map ne. | Zdi jsou v mapě jinak (`terrain.sprint_walls`), otázka 61. |
+| „Není překážka“ u plotu nechá černou čáru jako mapu bez cesty: terén pod ní je to, co leží vedle. | Vrátit ji jako cestu by dalo rychlost cesty vedení, které cesta není. |
+| Opravy jdou do `best/barriers.json` (klíč `overrides`), takže je čtou `bestroute.py`, `oroute/planned.py` i `oroute/relocate.py` bez nových přepínačů a plány s nejlepšími postupy se shodnou. | Všechny tři volají `mapdata.obstacles` samostatně. |
+| Po uložení opravy se přepočítají jen postupy toho záznamu (`barriers.requeue_entry`), ne celý rozbor (`matching.queue_analysis`). | Trasa, mezičasy a model se nemění, jen postupy; stejně jako u změny nastavení OSM. |
+| `best.json` nese seznam rozpoznaných překážek (`obstacles`), `bestroute.VERSION` a `results.ROUTES` 11 → 12. | Starší rozbory ho nemají, appka je nabídne přepočítat; vrstva se jinak u nich nezobrazí. |
+| Opravy jedou v `.obzavod` (`mine.obstacles`), na mapě se vrstva pamatuje po dobu okna prohlížeče (`sessionStorage`) a po přepočtu zůstane zapnutá. | Přepočet stránku načte znovu. |
+

@@ -583,6 +583,17 @@ Co hotové není nebo nesedí:
     `data-extra/`; bez nich pole „Obrázek mapy z Livelox“ nepřidávám (napasování nejde změřit).
 58. Na Macu v Chromu i v Safari projdi nápovědu Dva snímky z Livelox krok po kroku a napiš, kde to nesedí (zkratky,
     české názvy menu, jestli Safari dá dost velký snímek).
+59. Elektrické vedení nebo vlek čtené jako plot (Oblastní žebříček Bílá, 17. 10., postup 11–12, issue 37): na mapách, co
+    mám (`data-extra/real-zebricek-2026-10-17`, `bela`, `real-bela-2026-10-18`), žádné vedení není, jen skutečné
+    ploty, oplocenky a okraj silnice. Pošli prosím soubor `maponly.kmz` z Bílé 17. 10. nebo napiš číslo kontroly a
+    ukaž výřez mapy s tím místem. Pravidlo zatím neměním naslepo: příčky přes čáru, střídavé příčky a čtverce
+    pylonů se plotem nečtou (testy), čte se jen jednostranná řada krátkých příček, což je geometricky skutečný
+    plot. Mezitím si takové místo opravíš ručně (vrstva Rozpoznané překážky, tlačítko Není překážka).
+60. Vrstva Rozpoznané překážky (klávesa 4, kliknutí na plot, oplocenku, čáru z OSM nebo šrafy): v prohlížeči jsem ji
+    nezkoušel (jen kontrola skriptu a testy serveru). Zkus na závodě s plotem: zapnout vrstvu, kliknout, Není
+    překážka, počkat na přepočet. Drží se vrstva zapnutá a prvek šedý přerušovaný?
+61. Zdi sprintové mapy (neprůchozí a přelezitelné) zatím opravit nejde, jen plot, oplocenka, čára z OSM a šrafy.
+    Chceš i zdi?
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

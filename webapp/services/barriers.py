@@ -17,6 +17,11 @@ from . import jobs
 
 MODES = ("forbid", "penalty", "off")
 HATCH_MODES = ("forbid", "off")
+# what a runner may turn an obstacle read from the map into (table barrier_overrides): remove = not an obstacle
+OVERRIDES = dict(fence=("remove", "hard", "tall"), enclosure=("remove", "fence"), osm=("remove", "hard"),
+                 hatch=("remove",))
+MATCH_M = 15.0      # a correction belongs to the obstacle whose centre lies this close to its key
+MAX_OVERRIDES = 300
 
 
 def _length_m(line):
@@ -99,20 +104,121 @@ def hatch_areas(conf, class_id, mode):
     return d["areas"] if d else []
 
 
-def for_routing(con, conf, event_id, mode, areas=None):
+def key_of(lat, lon):
+    return f"{lat:.5f},{lon:.5f}"
+
+
+def _latlon(key):
+    la, lo = key.split(",")
+    return float(la), float(lo)
+
+
+def center(points):
+    """The centre of a line (its middle point) or of a ring of an area (the mean of its points): [lat, lon]."""
+    if len(points) > 2 and points[0] == points[-1]:
+        points = points[:-1]
+        return [sum(p[0] for p in points) / len(points), sum(p[1] for p in points) / len(points)]
+    return list(points[len(points) // 2])
+
+
+def _apart_m(a, b):
+    return math.hypot((a[0] - b[0]) * 111195.0, (a[1] - b[1]) * 111195.0 * math.cos(math.radians(a[0])))
+
+
+def overrides(con, entry_id):
+    """The corrections of the runner for the obstacles read from the map: [dict(kind, key, lat, lon, action)]."""
+    out = []
+    for r in con.execute("SELECT kind, key, action FROM barrier_overrides WHERE entry_id = ? ORDER BY rowid",
+                         (entry_id,)):
+        la, lo = _latlon(r["key"])
+        out.append(dict(kind=r["kind"], key=r["key"], lat=la, lon=lo, action=r["action"]))
+    return out
+
+
+def _action(fixes, kind, c):
+    """What the runner made of the obstacle of this kind with its centre c = [lat, lon], or None."""
+    best, at = None, MATCH_M
+    for o in fixes or []:
+        d = _apart_m(c, (o["lat"], o["lon"]))
+        if o["kind"] == kind and d <= at:
+            best, at = o["action"], d
+    return best
+
+
+def set_override(con, entry_id, kind, key, action):
+    """Remember a correction (action None: take it back). Raises ValueError for what is not allowed."""
+    if kind not in OVERRIDES or (action is not None and action not in OVERRIDES[kind]):
+        raise ValueError("kind or action")
+    _latlon(key)
+    if action is None:
+        con.execute("DELETE FROM barrier_overrides WHERE entry_id = ? AND kind = ? AND key = ?", (entry_id, kind, key))
+        return
+    if con.execute("SELECT COUNT(*) FROM barrier_overrides WHERE entry_id = ?", (entry_id,)).fetchone()[0] >= MAX_OVERRIDES:
+        raise ValueError("too many")
+    con.execute("INSERT INTO barrier_overrides (entry_id, kind, key, action) VALUES (?,?,?,?)"
+                " ON CONFLICT (entry_id, kind, key) DO UPDATE SET action = excluded.action", (entry_id, kind, key, action))
+
+
+def recognised(summary_obstacles, osm, areas, fixes):
+    """Everything the routes of the runner keep out of or cross slowly that was not drawn by hand, as the map page
+    shows it and lets it be corrected: [dict(kind, key, line, what, tall, area, action)]. summary_obstacles: what
+    the map was read to have (bestroute.py, best.json); osm: the OSM lines in use; areas: the hatched areas.
+    action: what the runner made of it (None: left as it was read)."""
+    out = []
+    for o in summary_obstacles or []:
+        c = [o["lat"], o["lon"]]
+        out.append(dict(kind=o["kind"], key=key_of(*c), line=o["line"], what=o["kind"], tall=bool(o.get("tall")),
+                        area=o.get("area"), action=_action(fixes, o["kind"], c)))
+    for l in osm or []:
+        c = center(l["line"])
+        out.append(dict(kind="osm", key=key_of(*c), line=l["line"], what=l.get("what"), tall=l.get("kind") == "hard",
+                        area=None, action=_action(fixes, "osm", c)))
+    for a in areas or []:
+        c = center(a)
+        out.append(dict(kind="hatch", key=key_of(*c), line=a, what="hatch", tall=False, area=None,
+                        action=_action(fixes, "hatch", c)))
+    return out
+
+
+def obstacles_view(con, conf, e, summary):
+    """The obstacles the page shows on the layer "Rozpoznané překážky" for entry e (a row of views.races.ENTRY_SQL) and
+    the OSM lines and hatched areas it draws as forbidden (the ones the runner took off are not):
+    (obstacles, osm or None, areas). summary: the summary of the analysis."""
+    fixes = overrides(con, e["id"])
+    _, osm = for_map(con, conf, e["event_id"], e["osm_mode"], e["user_id"])
+    areas = hatch_areas(conf, e["class_id"], e["hatch_mode"])
+    found = recognised((summary or {}).get("obstacles"), osm["lines"] if osm else [], areas, fixes)
+    gone = {(o["kind"], o["key"]) for o in found if o["action"] == "remove"}
+    if osm:
+        osm = dict(osm, lines=[l for l in osm["lines"] if ("osm", key_of(*center(l["line"]))) not in gone])
+    return found, osm, [a for a in areas if ("hatch", key_of(*center(a))) not in gone]
+
+
+def for_routing(con, conf, event_id, mode, areas=None, fixes=None):
     """The dict bestroute.py takes with --barriers, or None when there is nothing to forbid.
     OSM lines are 'forbidden' in mode forbid and 'hard' (very slow) in mode penalty; fences and walls from OSM
     (only with OB_OSM_FENCES=1) are always 'hard' (ISOM: impassable is not the same as forbidden).
-    areas: the hatched out-of-bounds areas of the runner's map (hatch_areas)."""
+    areas: the hatched out-of-bounds areas of the runner's map (hatch_areas).
+    fixes: the runner's corrections (overrides): an OSM line or an area they took off is left out, an OSM line they
+    made "hard" is slow to cross instead of forbidden; the ones for what is read from the picture of the map go on
+    in the file for bestroute.py (mapdata.overrides)."""
     lines = [dict(kind=b["kind"], line=b["line"], source="manual") for b in manual(con, event_id)]
     crossings = []
     osm = osm_data(conf, event_id) if mode != "off" else None
     if osm:
         for l in _osm_lines(conf, osm):
-            kind = "hard" if mode == "penalty" or l.get("kind") == "hard" else "forbidden"
+            act = _action(fixes, "osm", center(l["line"]))
+            if act == "remove":
+                continue
+            kind = "hard" if mode == "penalty" or l.get("kind") == "hard" or act == "hard" else "forbidden"
             lines.append(dict(kind=kind, line=l["line"], source="osm", what=l.get("what")))
         crossings = osm.get("crossings", [])
-    return dict(lines=lines, crossings=crossings, areas=areas or []) if lines or areas else None
+    areas = [a for a in areas or [] if _action(fixes, "hatch", center(a)) != "remove"]
+    picture = [dict(kind=o["kind"], lat=o["lat"], lon=o["lon"], action=o["action"]) for o in fixes or []
+               if o["kind"] in ("fence", "enclosure")]
+    if not (lines or areas or picture):
+        return None
+    return dict(lines=lines, crossings=crossings, areas=areas, **(dict(overrides=picture) if picture else {}))
 
 
 def requeue_event(con, event_id, following=()):

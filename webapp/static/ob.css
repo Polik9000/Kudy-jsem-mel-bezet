@@ -142,6 +142,14 @@ path.ob-gps-orez { stroke: #4d5356; stroke-dasharray: 6 6; filter: drop-shadow(0
 path.ob-gps-orez-bod { stroke: #fff; fill: #4d5356; }
 .ob-gps-orez .ob-pole input[type=range] { width: min(28rem, 100%); }
 .ob-gps-orez-posuvniky { margin: .4rem 0; }
+.sw.prek { background: #e07a00; }
+path.ob-prek { cursor: pointer; fill: none; }
+path.ob-prek-fence { stroke: #e07a00; }
+path.ob-prek-enclosure { stroke: #c000b0; fill: #c000b0; }
+path.ob-prek-osm { stroke: #1d70b8; }
+path.ob-prek-hatch { stroke: #7b3fa0; fill: #7b3fa0; }
+path.ob-prek-pryc { stroke: #8a8f92; fill: #8a8f92; stroke-dasharray: 4 6; opacity: .55; }
+path.ob-prek-fence.ob-prek-pryc, path.ob-prek-osm.ob-prek-pryc { fill: none; }
 path.ob-zakaz-osm { stroke: var(--ob-chyba); }
 path.ob-zakaz-plocha { stroke: var(--ob-chyba); fill: var(--ob-chyba); }
 path.ob-prechod { stroke: var(--brand); fill: var(--flag-a); }

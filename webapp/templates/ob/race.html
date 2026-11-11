@@ -222,6 +222,7 @@
       <label class="check"><input type="checkbox" id="c-alts" checked><i class="sw alt"></i><span>{{ _('Další možnosti') }}</span><kbd>1</kbd></label>
       <label class="check"><input type="checkbox" id="c-prumer" checked><i class="sw prumer"></i><span>{{ _('Průměrný běžec') }}</span><kbd>2</kbd></label>
       <label class="check"><input type="checkbox" id="c-zachyt"><i class="sw zachyt"></i><span>{{ _('Záchytné body') }}</span><kbd>3</kbd></label>
+      <label class="check"><input type="checkbox" id="c-prekazky"><i class="sw prek"></i><span>{{ _('Rozpoznané překážky') }}</span><kbd>4</kbd></label>
     </div>
     <p id="map-stav" class="ob-mapa-stav" role="status">{{ _('Načítám stopu a postupy…') }}</p>
     {# what the next clicks into the map draw (planned route, forbidden line, refreshment point) #}
@@ -302,6 +303,7 @@
   <span><i class="sw prumer"></i> {{ _('průměrný běžec') }}</span>
   <span><i class="sw plan"></i> {{ _('plánovaný postup') }}</span>
   <span><i class="sw zakaz"></i> {{ _('zakázaný přechod nebo prostor') }}</span>
+  <span><i class="sw prek"></i> {{ _('rozpoznaná překážka (vrstva 4: kliknutím ji opravíš)') }}</span>
   <span><i class="sw dot"></i> {{ _('zastávka') }}</span>
   <span><i class="sw zachyt"></i> {{ _('záchytný bod') }}</span>
 </div>
@@ -464,6 +466,7 @@ window.OB = {
   legs: {{ url_for('ob.legs_json', entry_id=e.id) | tojson }},
   refreshments: {{ url_for('ob.refreshment_add', entry_id=e.id) | tojson }},
   barriers: {{ url_for('ob.barrier_add', entry_id=e.id) | tojson }},
+  obstacles: {{ url_for('ob.obstacle_override', entry_id=e.id) | tojson }},
   ztraceny: {{ (url_for('ob.lost_page', entry_id=e.id) if e.maponly_file and e.course_file and not lost_early else '') | tojson }},
   csrf: {{ csrf_token() | tojson }}
 };

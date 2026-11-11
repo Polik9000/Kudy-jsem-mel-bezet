@@ -115,7 +115,7 @@
     $("l-course").hidden = !(overlays.maponly && overlays.course);
     $("c-course").checked = !overlays.maponly;
     showMap();
-    ["barriers", "controls", "casing", "best", "track", "orez", "planned", "stops", "marks", "refresh", "catch", "sel", "draw"].forEach(function (k) {
+    ["barriers", "found", "controls", "casing", "best", "track", "orez", "planned", "stops", "marks", "refresh", "catch", "sel", "draw"].forEach(function (k) {
       groups[k] = L.layerGroup().addTo(map);
     });
     draw();
@@ -130,6 +130,12 @@
     $("c-alts").addEventListener("change", mark);
     $("c-prumer").addEventListener("change", mark);
     $("c-zachyt").addEventListener("change", mark);
+    // the layer of the obstacles read from the map: remembered, so that it is still on after the routes are drawn again
+    try { $("c-prekazky").checked = sessionStorage.getItem("ob-prekazky") === "1"; } catch (e) { /* no storage: off */ }
+    $("c-prekazky").addEventListener("change", function () {
+      try { sessionStorage.setItem("ob-prekazky", this.checked ? "1" : "0"); } catch (e) { /* no storage */ }
+      draw();
+    });
     // opening "if you got lost" shows its points on the map
     $("p-ztrata").addEventListener("toggle", function () {
       if (this.open && !$("c-zachyt").checked) { $("c-zachyt").checked = true; mark(); }
@@ -168,7 +174,7 @@
         // Esc goes back from a leg to the whole course
         if (ev.key === "Escape" && selected && !field) { select(null); }
         // layer keys shown in the panel over the map: M map, T map with the course, 1-3 the other layers
-        var layer = { m: "c-map", t: "c-course", 1: "c-alts", 2: "c-prumer", 3: "c-zachyt" }[ev.key.toLowerCase()];
+        var layer = { m: "c-map", t: "c-course", 1: "c-alts", 2: "c-prumer", 3: "c-zachyt", 4: "c-prekazky" }[ev.key.toLowerCase()];
         if (layer && !field && !ev.altKey && !ev.ctrlKey && !ev.metaKey && $(layer) && !$(layer).closest("[hidden]") &&
             $("mapa").classList.contains("aktivni")) {
           $(layer).checked = !$(layer).checked;
@@ -287,6 +293,7 @@
       if (b.mine) { box.appendChild(btn); }  // shared things are taken away only by whoever added them
       line.bindPopup(box);
     });
+    if ($("c-prekazky").checked) { found(); }
     D.course.forEach(function (c, i) {
       var p = [c.lat, c.lon], o = { className: "ob-trat", weight: 2, fill: false, interactive: false };
       if (i === 0) {
@@ -867,6 +874,56 @@
     }).catch(function () { $("p-saved").textContent = T("Uložení se nepovedlo, zkus to znovu."); }).then(function () {
       saving--;
       guard();
+    });
+  }
+
+  // What was read from the map (and from OpenStreetMap) as an obstacle, with the buttons to correct it. The routes
+  // are drawn again for the runner only.
+  function kindNames() {
+    return { fence: T("plot"), tall: T("neprůchozí plot"), enclosure: T("oplocenka"), hatch: T("šrafy (zakázaný prostor)"),
+      railway: T("OSM: železnice"), motorway: T("OSM: dálnice"), osm: T("OSM: plot nebo zeď") };
+  }
+  function actionNames() {
+    return { remove: T("Opraveno: není překážka"), hard: T("Opraveno: jen těžký průchod"), tall: T("Opraveno: neprůchozí"),
+      fence: T("Opraveno: plot") };
+  }
+  function found() {
+    var KIND_NAMES = kindNames(), ACTION_NAMES = actionNames();
+    (D.obstacles || []).forEach(function (o) {
+      var name = o.kind === "osm" ? (KIND_NAMES[o.what] || KIND_NAMES.osm) : (o.tall && o.kind === "fence" ? KIND_NAMES.tall : KIND_NAMES[o.kind]);
+      var shape = o.kind === "enclosure" || o.kind === "hatch" ? L.polygon : L.polyline;
+      var layer = shape(o.line, { className: "ob-prek ob-prek-" + o.kind + (o.action === "remove" ? " ob-prek-pryc" : ""),
+        weight: o.kind === "enclosure" || o.kind === "hatch" ? 2 : 5, opacity: 0.9, fillOpacity: 0.18 }).addTo(groups.found);
+      var box = document.createElement("div");
+      var head = document.createElement("b");
+      head.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      box.appendChild(head);
+      if (o.action) {
+        var state = document.createElement("p");
+        state.textContent = ACTION_NAMES[o.action];
+        box.appendChild(state);
+      }
+      function button(label, action) {
+        var b = document.createElement("button");
+        b.textContent = label;
+        b.className = "btn btn-maly";
+        b.addEventListener("click", function () {
+          layer.closePopup();
+          api(OB.obstacles, "POST", { kind: o.kind, key: o.key, action: action }).then(function (d) {
+            D.obstacles = d.obstacles; D.osm = d.osm; D.areas = d.areas;
+            update({ rerouting: d.rerouting });
+            draw();
+          });
+        });
+        box.appendChild(b);
+      }
+      if (o.action !== "remove") { button(T("Není překážka"), "remove"); }
+      if (o.kind === "fence" && o.action !== "hard" && o.tall) { button(T("Jen těžký průchod"), "hard"); }
+      if (o.kind === "fence" && o.action !== "tall" && !o.tall) { button(T("Neprůchozí plot"), "tall"); }
+      if (o.kind === "enclosure" && o.action !== "fence") { button(T("Je plot"), "fence"); }
+      if (o.kind === "osm" && o.action !== "hard" && !o.tall) { button(T("Jen těžký průchod"), "hard"); }
+      if (o.action) { button(T("Vrátit původní"), null); }
+      layer.bindPopup(box);
     });
   }
 

@@ -168,3 +168,17 @@ def test_auto_uses_cuzk_only_inside_czechia(tmp_path, monkeypatch):
     assert dem.load_dem(1, 0, 1, 0, out, "aws").source == "aws" and made[-1].endswith("dem_cache.npz")
     with pytest.raises(ValueError):
         dem.load_dem(1, 0, 1, 0, out, "lidar")
+
+
+def test_power_lines_ski_lifts_pipelines_and_borders_are_never_an_obstacle():
+    """One runs under a power line and a lift, over a pipeline and across a border: nothing of them is asked of
+    OpenStreetMap, and nothing of them is read even when the answer holds them (issue 37)."""
+    q = osm.query(49.82, 18.35, 49.85, 18.39)
+    for tag in ("power", "aerialway", "man_made", "pipeline", "boundary", "cable"):
+        assert tag not in q
+    geom = [dict(lat=49.83, lon=18.37), dict(lat=49.84, lon=18.38)]
+    data = dict(elements=[dict(type="way", id=i, tags=tags, geometry=geom) for i, tags in enumerate((
+        dict(power="line"), dict(power="minor_line"), dict(aerialway="chair_lift"), dict(aerialway="cable_car"),
+        dict(man_made="pipeline"), dict(boundary="administrative"), dict(power="line", barrier="yes")), 1)])
+    for fences in (True, False):
+        assert osm.parse(data, fences=fences) == dict(lines=[], crossings=[])
