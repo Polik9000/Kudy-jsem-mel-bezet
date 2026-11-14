@@ -91,3 +91,83 @@ def test_watch_disks_are_found_by_their_folder(monkeypatch, tmp_path):
     monkeypatch.setattr(watch.sys, "platform", "darwin")
     monkeypatch.setattr(watch.glob, "glob", lambda pattern: [str(tmp_path), str(tmp_path / "other")])
     assert watch.watch_folders() == [str(tmp_path / "GARMIN" / "Activity")]
+
+
+@pytest.fixture
+def plugged(card, monkeypatch):
+    """The watch disk of `card` is connected: the look at the watches finds its Activity folder."""
+    monkeypatch.setattr(watch, "watch_folders", lambda: [str(card / "GARMIN" / "Activity")])
+    watch.forget()
+    yield card
+    watch.forget()
+
+
+def test_the_note_counts_only_new_runs_and_loads_nothing(local, plugged):
+    c = local.test_client()
+    c.get("/")
+    con = dbm.connect(local.config["OB"].db_path)
+    for page in ("/", "/upload"):                       # the place for the note is on both pages, filled by ob.js
+        assert "data-hodinky=" in c.get(page).get_data(as_text=True)
+    d = c.get("/upload/hodinky/nove.json").get_json()
+    assert d["n"] == 3 and not d["pending"] and "slozka=" in d["url"]     # broken.fit and notes.txt are no runs
+    assert con.execute("SELECT COUNT(*) FROM activities").fetchone()[0] == 0   # asking loads nothing
+    # the link opens the watch page with the three new runs ticked
+    html = c.get(d["url"]).get_data(as_text=True)
+    assert html.count('name="soubor"') == 3 and html.count("checked") == 3
+    # the same file a second time under another name is no new run; two of the three are loaded
+    name = sorted(os.listdir(plugged / "GARMIN" / "Activity"))[0]
+    (plugged / "GARMIN" / "Activity" / "copy.fit").write_bytes((plugged / "GARMIN" / "Activity" / name).read_bytes())
+    watch.forget()
+    assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 3     # four files, three runs
+    uid = con.execute("SELECT id FROM users").fetchone()["id"]
+    rows = watch.offer(con, uid, str(plugged))[1]
+    c.post("/upload/hodinky", data=dict(csrf_token=csrf(c, "/"), slozka=str(plugged),
+                                        soubor=[r["name"] for r in rows if r["name"] not in (name, "copy.fit")]))
+    watch.forget()
+    assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 0  # the one left unticked was said no to
+    assert con.execute("SELECT COUNT(*) FROM activities").fetchone()[0] == 2
+
+
+def test_not_now_hides_the_runs_until_a_new_one_comes(local, plugged):
+    c = local.test_client()
+    c.get("/")
+    assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 3
+    assert c.post("/upload/hodinky/ted-ne", headers={"X-CSRF-Token": csrf(c, "/")}).status_code == 200
+    assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 0
+    con = dbm.connect(local.config["OB"].db_path)
+    assert con.execute("SELECT COUNT(*) FROM activities").fetchone()[0] == 0
+    (plugged / "GARMIN" / "Activity" / "2026-02-01-10-00-00.fit").write_bytes(run(0.2))
+    watch.forget()
+    assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 1
+    # the watch page still lists all four as new: "Teď ne" only quiets the note
+    html = c.get("/upload/hodinky", query_string=dict(slozka=str(plugged))).get_data(as_text=True)
+    assert html.count('name="soubor"') == 4
+
+
+def test_no_watch_no_note(local, monkeypatch):
+    monkeypatch.setattr(watch, "watch_folders", lambda: [])
+    watch.forget()
+    c = local.test_client()
+    c.get("/")
+    assert c.get("/upload/hodinky/nove.json").get_json() == dict(n=0, pending=False)
+    watch.forget()
+
+
+def test_a_slow_disk_does_not_hold_the_page(local, monkeypatch, plugged):
+    import threading
+    gate = threading.Event()
+    real = watch.watch_folders
+    monkeypatch.setattr(watch, "watch_folders", lambda: gate.wait(5) and real())
+    watch.forget()
+    c = local.test_client()
+    c.get("/")
+    monkeypatch.setattr(watch, "WAIT_S", 0.05)
+    assert c.get("/upload/hodinky/nove.json").get_json()["pending"] is True
+    gate.set()
+    assert watch.look_now(5) is not None
+    assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 3
+
+
+def test_the_note_is_not_on_the_server(app, client, user):
+    assert client.get("/upload/hodinky/nove.json").status_code == 404
+    assert "data-hodinky=" not in client.get("/upload").get_data(as_text=True)

@@ -598,6 +598,10 @@ Co hotové není nebo nesedí:
     Máš (nebo táta, někdo z klubu) jeden `.fit` ze závodu z hodinek bez barometru (třeba Forerunner)? Pusť na něj
     `python tools/fit_vyska.py SOUBOR.fit` a pošli mi výpis, nebo soubor dej do `private/`. Podle toho udělám, aby se
     bez barometru stoupání bralo z výškopisu.
+63. Hodinky přes USB (issue #39): na Windows připoj fēnix 5X Plus nejdřív v režimu Garmin (Nastavení → Systém → Režim
+    USB → Garmin), pak v režimu MTP. Otevři v appce Přehled závodů. Ukázal se řádek „Našly se nové aktivity z hodinek“?
+    Jak rychle? Co ukázal Průzkumník u MTP (písmeno disku, nebo jen zařízení)? Napiš mi to, podle toho rozhodnu o čtení
+    MTP (`docs/hodinky-mtp.md`). Stejně na Macu, jestli ho máš po ruce.
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

@@ -2,6 +2,7 @@
 {% block title %}{{ _('Nahrát běhy') }}{% endblock %}
 {% block content %}
 <h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Nahrát běhy') }}</h2>
+{% if local_app %}<p class="karta ob-hodinky" data-hodinky="{{ url_for('ob.watch_news') }}" data-ted-ne="{{ url_for('ob.watch_not_now') }}" role="status" hidden></p>{% endif %}
 {% if local_app %}
 {# the simplest ways first (Jak na to, #garmin): straight from the account or from the watch #}
 <p class="karta"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}</a>

@@ -1,5 +1,5 @@
 """Upload activities: single .fit files or a zip (a whole Garmin account export, or just some .fit files)."""
-from flask import abort, flash, g, redirect, render_template, request, url_for
+from flask import abort, flash, g, jsonify, redirect, render_template, request, url_for
 
 from .. import cfg, get_db
 from ..auth import login_required
@@ -150,3 +150,27 @@ def watch_page():
             flash(_("Složka neexistuje. Zkontroluj cestu."), "error")
     return render_template("ob/watch.html", found=found, folder=folder, base=base, rows=rows,
                            sample="D:\\GARMIN\\Activity")
+
+
+@bp.route("/upload/hodinky/nove.json")
+@login_required
+def watch_news():
+    """The note on Přehled závodů and Nahrát běhy: how many new runs a connected watch has (asked by ob.js after the
+    page is shown, so a slow disk never holds the page). Nothing is loaded here."""
+    if not cfg().local:
+        abort(404)
+    out = watch.news(get_db(), g.user["id"])
+    if out["n"]:
+        out["url"] = url_for("ob.watch_page", slozka=out["folder"])
+    out.pop("folder")
+    return jsonify(out)
+
+
+@bp.route("/upload/hodinky/ted-ne", methods=["POST"])
+@login_required
+def watch_not_now():
+    """"Teď ne" on the note: the runs on the watch now are not offered on the pages again."""
+    if not cfg().local:
+        abort(404)
+    watch.set_aside_all(get_db(), g.user["id"])
+    return jsonify(ok=True)

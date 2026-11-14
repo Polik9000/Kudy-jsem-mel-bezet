@@ -307,6 +307,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     started_at  TEXT,
     finished_at TEXT
 );
+-- runs on a connected watch the runner did not want (the note "new runs on the watch" leaves them out)
+CREATE TABLE IF NOT EXISTS watch_seen (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sha1    TEXT NOT NULL,
+    PRIMARY KEY (user_id, sha1)
+);
+
 CREATE INDEX IF NOT EXISTS jobs_status ON jobs (status, id);
 CREATE INDEX IF NOT EXISTS entries_user ON entries (user_id);
 CREATE INDEX IF NOT EXISTS activities_user ON activities (user_id, start_utc);

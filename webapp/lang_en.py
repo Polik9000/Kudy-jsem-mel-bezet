@@ -1934,8 +1934,8 @@ EN = {
         'Two Livelox screenshots',
     '<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code> jako soubory .fit.':
         '<b>Straight from the watch</b>: connect the watch to the computer with the cable, the runs are in the folder <code>GARMIN/Activity</code> as .fit files.',
-    'V aplikaci v <a href="%(url)s">Nahrát běhy</a> klikni na <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Novější hodinky (často na Macu) se připojují přes MTP a jako disk se neukážou. Tam běhy exportuj z Garmin Connect, jak je popsáno výše.':
-        'In the app, in <a href="%(url)s">Upload runs</a>, click <b>Load from the watch over USB or from a folder</b>: only runs that are not here yet are offered. Newer watches (often on a Mac) connect over MTP and do not show up as a disk. There, export the runs from Garmin Connect as described above.',
+    'V aplikaci v <a href="%(url)s">Nahrát běhy</a> klikni na <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne na Přehledu závodů a v Nahrát běhy.':
+        'In the app, in <a href="%(url)s">Upload runs</a>, click <b>Load from the watch over USB or from a folder</b>: only runs that are not here yet are offered. A watch connected over MTP does not show up as a disk: on a fēnix 5X Plus and similar, switch it on the watch in Settings → System → USB Mode → Garmin; otherwise load the runs from Garmin Connect as described above. When a watch with new runs is connected, the app offers them by itself on Races and in Upload runs.',
     'Celý zip nahraj v <a href="%(url)s">Nahrát běhy</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
         'Upload the whole zip in <a href="%(url)s">Upload runs</a>. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
     'Celý zip nahraj v Nahrát běhy. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
@@ -2593,4 +2593,43 @@ EN_JS = {
 EN.update({
     "Rozpoznané překážky": "Recognised obstacles",
     "rozpoznaná překážka (vrstva 4: kliknutím ji opravíš)": "recognised obstacle (layer 4: click it to correct it)",
+})
+
+EN.update({
+    "Načíst z hodinek": "Load from the watch",
+    "Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty, které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.":
+        "Connect your Garmin watch with the cable. When it shows up as a disk, I find the runs on it by myself. I offer only"
+        " the ones that are not in the app yet. Nothing on the watch is changed or deleted.",
+    "Nalezené hodinky:": "Watches found:",
+    "Žádné hodinky jako disk nevidím. Buď ještě nejsou připojené, nebo jsou v režimu MTP: ten appka neumí.":
+        "I see no watch as a disk. Either it is not connected yet, or it is in MTP mode, which the app cannot read.",
+    "<b>Přepni hodinky na režim Garmin</b> (disk), pokud ho mají. Fēnix 5X Plus a podobné: na hodinkách Nastavení → Systém → Režim USB → Garmin (anglicky Settings → System → USB Mode → Garmin). Pak kabel odpoj a znovu připoj.":
+        "<b>Switch the watch to Garmin mode</b> (disk) if it has one. Fēnix 5X Plus and similar: on the watch, Settings →"
+        " System → USB Mode → Garmin. Then unplug the cable and plug it in again.",
+    "<b>Windows a MTP</b>: hodinky jsou v Průzkumníku jako zařízení bez písmene disku. Zkopíruj složku GARMIN\\Activity z hodinek do počítače a tu složku zadej níže.":
+        "<b>Windows and MTP</b>: the watch is in File Explorer as a device without a drive letter. Copy the folder"
+        " GARMIN\\Activity from the watch to the computer and enter that folder below.",
+    "<b>Mac a MTP</b>: bez dalšího programu to nejde. Když hodinky režim Garmin nemají, načti běhy z Garmin Connect.":
+        "<b>Mac and MTP</b>: this does not work without another program. When the watch has no Garmin mode, load the runs"
+        " from Garmin Connect.",
+    "Programy Garmin Express a Android File Transfer si hodinky po připojení zaberou. Zavři je, ať se hodinky ukážou jako disk.":
+        "Garmin Express and Android File Transfer take hold of the watch when it is connected. Close them so that the"
+        " watch shows up as a disk.",
+    'Jinak: <a href="%(garmin)s">Načíst přímo z Garmin Connect</a>, nebo běhy exportuj a nahraj (<a href="%(help)s#garmin">Jak na to</a>).':
+        'Otherwise: <a href="%(garmin)s">Load straight from Garmin Connect</a>, or export the runs and upload them'
+        ' (<a href="%(help)s#garmin">How to</a>).',
+    "Nebo složka se soubory .fit": "Or a folder with .fit files",
+    "Zobrazit běhy": "Show runs",
+    "Ve složce <code>%(base)s</code> je běhů: %(n)s, nových %(new)s.":
+        "The folder <code>%(base)s</code> has %(n)s runs, %(new)s of them new.",
+    "už v aplikaci": "already in the app",
+    "Načtou se jen zaškrtnuté. Ty, které nezaškrtneš, už ti appka na Přehledu sama nenabídne.":
+        "Only the ticked ones are loaded. The ones you leave unticked are not offered on Races again.",
+    "Ve složce nejsou žádné běhy (.fit se záznamem aktivity).": "The folder has no runs (.fit with a recorded activity).",
+})
+
+EN_JS.update({
+    "Našly se nové aktivity z hodinek (%(n)s).": "New activities found on the watch (%(n)s).",
+    "Načíst…": "Load…",
+    "Teď ne": "Not now",
 })

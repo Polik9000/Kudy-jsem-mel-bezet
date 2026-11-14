@@ -37,8 +37,10 @@
   <p class="hint">{% trans %}Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.{% endtrans %}</p>
   <p>{% trans %}<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code>
     jako soubory .fit.{% endtrans %}{% if local_app %} {% trans url=url_for('ob.upload') %}V aplikaci v <a href="{{ url }}">Nahrát běhy</a> klikni na
-    <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Novější hodinky (často na
-    Macu) se připojují přes MTP a jako disk se neukážou. Tam běhy exportuj z Garmin Connect, jak je popsáno výše.{% endtrans %}{% endif %}</p>
+    <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP
+    se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak
+    běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne
+    na Přehledu závodů a v Nahrát běhy.{% endtrans %}{% endif %}</p>
   <p>{% trans %}<b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):{% endtrans %}</p>
   <ol>
     <li>{% trans %}Otevři <a href="https://www.garmin.com/en-US/account/datamanagement/" target="_blank" rel="noopener">správu
