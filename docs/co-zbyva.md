@@ -594,6 +594,10 @@ Co hotové není nebo nesedí:
     překážka, počkat na přepočet. Drží se vrstva zapnutá a prvek šedý přerušovaný?
 61. Zdi sprintové mapy (neprůchozí a přelezitelné) zatím opravit nejde, jen plot, oplocenka, čára z OSM a šrafy.
     Chceš i zdi?
+62. Hodinky bez barometru: všech 30 tvých závodů je z fēnix 5X Plus, která barometr má (`docs/validace.md`, oddíl 25).
+    Máš (nebo táta, někdo z klubu) jeden `.fit` ze závodu z hodinek bez barometru (třeba Forerunner)? Pusť na něj
+    `python tools/fit_vyska.py SOUBOR.fit` a pošli mi výpis, nebo soubor dej do `private/`. Podle toho udělám, aby se
+    bez barometru stoupání bralo z výškopisu.
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 
