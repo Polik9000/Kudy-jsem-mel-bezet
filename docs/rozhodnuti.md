@@ -553,3 +553,12 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | `best.json` nese seznam rozpoznaných překážek (`obstacles`), `bestroute.VERSION` a `results.ROUTES` 11 → 12. | Starší rozbory ho nemají, appka je nabídne přepočítat; vrstva se jinak u nich nezobrazí. |
 | Opravy jedou v `.obzavod` (`mine.obstacles`), na mapě se vrstva pamatuje po dobu okna prohlížeče (`sessionStorage`) a po přepočtu zůstane zapnutá. | Přepočet stránku načte znovu. |
 
+## 14. 11. 2026: barometr a poloha stopy podle výškopisu (issue 41, větev `barometr-poloha`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Oprava polohy stopy podle výškového profilu se do `oroute/georef.py` **nezapojuje**. V PR je jen měřicí nástroj `tools/fit_vyska.py` a zpráva (`docs/validace.md`, oddíl 25). | Po úsecích 800 m je minimum ploché (důvěryhodné 2 z 357 úseků). Posun celé stopy v kopcích s ČÚZK sice najde známý posun 20 m přesně, ale u správně usazené mapy zlepší kontroly jen o 1 až 2 m. A `georef` usazuje mapu podle stopy, takže výškopis jeho chybu nevidí. |
+| Barometr se pozná podle senzoru `barometer` ve zprávě `device_info` a šumu pod 0,7 m. | Tak to je ve všech 30 souborech z fēnix 5X Plus; výška z GPS šumí o metry. |
+| Z barometru se dál bere jen změna výšky, ne výška. | Absolutní výška bývá o desítky až stovky metrů jinde (Pohora −294 m) a driftuje až 61 m/h; sklon po 50 m sedí s ČÚZK v kopcích s korelací 0,94. |
+| Bez barometru brát stoupání úseku z výškopisu a běhy bez barometru nedávat do modelu sklonu: jen návrh na samostatný PR, až bude soubor z takových hodinek (otázka 62). | Nemám na čem to ověřit. |
+
