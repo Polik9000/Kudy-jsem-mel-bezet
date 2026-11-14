@@ -27,6 +27,10 @@ PAUSE_S = 0.4        # seconds before every request to ORIS
 SYNC_HOURS = 20.0    # an account loaded this recently is left out of sync_all
 
 
+def _json_or_null(value):
+    return None if value is None else dumps(value)
+
+
 def upsert_event(con, ev):
     row = con.execute("SELECT id FROM events WHERE oris_id = ?", (ev["oris_id"],)).fetchone()
     vals = (ev["name"], ev["date"], ev["place"], ev["discipline"], ev["livelox_id"], ev["lat"], ev["lon"],
@@ -142,7 +146,7 @@ def _take(con, client, user_id, e, mine, today, pause, done, ev=None):
         if s and again:
             con.execute("UPDATE entries SET official_time_s=?, start_local=?, result_place=?, splits=? WHERE id=?",
                         (s["time_s"], s["start_local"], s["place"],
-                         dumps(s["cumulative"]) if s["time_s"] is not None else None, entry_id))
+                         _json_or_null(oris.usable_splits(s)), entry_id))
             con.execute("UPDATE classes SET control_codes = ? WHERE id = ?", (dumps(s["control_codes"]), class_id))
             done["with_time"] += s["time_s"] is not None
             con.commit()

@@ -395,7 +395,7 @@ def test_picture_of_a_map_needs_the_track_and_official_times(app, client, user):
     buf = io.BytesIO()
     Image.new("RGB", (800, 600), (255, 255, 255)).save(buf, "PNG")
     assert "jen jako mapu s tratí" in send("maponly", "scan.png", buf.getvalue())
-    assert "Až doplníš běh z hodinek" in send("course", "scan.png", buf.getvalue())     # no activity yet: it waits
+    assert "Až nahraješ běh z hodinek" in send("course", "scan.png", buf.getvalue())     # no activity yet: it waits
     with open(inputs("pohora")[2], "rb") as f:
         client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
                     content_type="multipart/form-data")

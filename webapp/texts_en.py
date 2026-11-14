@@ -450,8 +450,10 @@ def screen_failed(code, data=None):
         m = re.match(r"the circles in the picture do not fit the track: (\d+) of (\d+) controls matched", reason)
         if m:
             return (f"The circles on the screenshot do not match your track: only {m.group(1)} of {m.group(2)} controls fit. "
-                    "Is it the course of your category and a run from this race? The whole course should be visible on the "
-                    "screenshot.")
+                    "Check three things: the course of your class (not another) is switched on in Livelox, your run "
+                    "from that day is paired with the race (Source files, Run from the watch), and the class of the race is "
+                    "the one you ran (choose another under “I ran another class”). The whole course should be "
+                    "visible on the screenshot.")
         m = re.match(r"too few points: (\d+) circles in the picture, (\d+) controls", reason)
         if m and int(m.group(2)) >= 4:
             n = int(m.group(1))

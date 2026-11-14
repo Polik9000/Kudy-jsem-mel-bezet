@@ -97,14 +97,14 @@ def runner_times(con, conf, cls, regnos, client=None):
     if me is None:
         return None
     return dict(control_codes=data["control_codes"], start_local=me["start_local"], time_s=me["time_s"],
-                place=me["place"], cumulative=me["cum"][:-1] + [me["time_s"]])
+                place=me["place"], status=me.get("status"), cumulative=me["cum"])
 
 
 def _put_times(con, entry_id, cls, t):
     if t:
         con.execute("UPDATE entries SET official_time_s=?, start_local=?, result_place=?, splits=? WHERE id=?",
                     (t["time_s"], t["start_local"], t["place"],
-                     dumps(t["cumulative"]) if t["time_s"] is not None else None, entry_id))
+                     None if oris.usable_splits(t) is None else dumps(oris.usable_splits(t)), entry_id))
         con.execute("UPDATE classes SET control_codes = ? WHERE id = ?", (dumps(t["control_codes"]),
                                                                           cls["id"]))
     else:
