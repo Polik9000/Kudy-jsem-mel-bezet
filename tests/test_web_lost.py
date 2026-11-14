@@ -5,7 +5,6 @@ import json
 import os
 
 import numpy as np
-import pytest
 from conftest import csrf, post, register
 from test_recompute import _fake_refit, _scripts
 from test_web_races import con_of, work
@@ -62,7 +61,6 @@ def _ready(app, client, user, monkeypatch, fail=None):
     return con, entry, log
 
 
-@pytest.mark.needs_data
 def test_the_page_prepares_the_scenes_once_then_advises(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     html = client.get(f"/races/{entry}/ztraceny").get_data(as_text=True)
@@ -94,7 +92,6 @@ def test_the_page_prepares_the_scenes_once_then_advises(app, client, user, monke
     assert con.execute("SELECT COUNT(*) FROM jobs WHERE kind != 'lost_scene' AND status = 'queued'").fetchone()[0] == 0
 
 
-@pytest.mark.needs_data
 def test_bad_requests_and_other_runners(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     client.get(f"/races/{entry}/ztraceny")
@@ -112,7 +109,6 @@ def test_bad_requests_and_other_runners(app, client, user, monkeypatch):
     assert send(client, url, dict(k=1, r=50)).status_code == 404
 
 
-@pytest.mark.needs_data
 def test_a_map_placed_again_makes_the_scenes_stale(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     client.get(f"/races/{entry}/ztraceny")
@@ -127,7 +123,6 @@ def test_a_map_placed_again_makes_the_scenes_stale(app, client, user, monkeypatc
     assert send(client, f"/races/{entry}/ztraceny/rada", dict(k=1, r=50)).status_code == 409
 
 
-@pytest.mark.needs_data
 def test_a_failed_scene_is_not_tried_again_by_itself(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch, fail="Mapa se nedala přečíst.")
     client.get(f"/races/{entry}/ztraceny")
@@ -140,7 +135,6 @@ def test_a_failed_scene_is_not_tried_again_by_itself(app, client, user, monkeypa
     assert con.execute("SELECT COUNT(*) FROM jobs WHERE kind = 'lost_scene' AND status = 'queued'").fetchone()[0] == 1
 
 
-@pytest.mark.needs_data
 def test_the_description_is_kept_and_changes_nothing_computed(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     client.get(f"/races/{entry}/ztraceny")
@@ -163,7 +157,6 @@ def test_the_description_is_kept_and_changes_nothing_computed(app, client, user,
     assert send(client, f"/races/{entry}/ztraceny/popis", dict(k="x")).status_code == 400
 
 
-@pytest.mark.needs_data
 def test_looking_back_needs_the_analysis_and_answers(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     client.get(f"/races/{entry}/ztraceny")
@@ -172,7 +165,6 @@ def test_looking_back_needs_the_analysis_and_answers(app, client, user, monkeypa
     assert d["moments"] == [] and len(d["track"]) == 2       # the made-up track has two points on the leg
 
 
-@pytest.mark.needs_data
 def test_the_race_page_links_to_it(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     html = client.get(f"/races/{entry}").get_data(as_text=True)
@@ -180,7 +172,6 @@ def test_the_race_page_links_to_it(app, client, user, monkeypatch):
     assert f'ztraceny: "/races/{entry}/ztraceny"' in html
 
 
-@pytest.mark.needs_data
 def test_it_is_a_look_back_after_the_race_only(app, client, user, monkeypatch):
     """No aid during a race (a phone with its position is not allowed there): the page has nothing for the forest,
     and tapping where one was still gives the advice."""
@@ -200,7 +191,6 @@ def test_it_is_a_look_back_after_the_race_only(app, client, user, monkeypatch):
     assert send(client, f"/races/{entry}/ztraceny/rada", dict(k=2)).get_json()["r"] == 50
 
 
-@pytest.mark.needs_data
 def test_no_look_back_before_the_race(app, client, user, monkeypatch):
     con, entry, log = _ready(app, client, user, monkeypatch)
     ev = con.execute("SELECT c.event_id FROM entries e JOIN classes c ON c.id = e.class_id WHERE e.id = ?",

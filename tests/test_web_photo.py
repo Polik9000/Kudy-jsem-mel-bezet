@@ -45,12 +45,11 @@ def test_heic_extension_is_not_accepted_as_a_map_image(app, client, user):
     assert not con.execute("SELECT 1 FROM photos WHERE entry_id = ?", (mine,)).fetchone()
 
 
-@pytest.mark.needs_data
 def test_heic_renamed_to_jpg_and_a_big_photo(app, client, user):
     con, mine = entry(app, client, user)
     assert "formátu HEIC" in send(client, mine, "mapa.jpg", b"\0\0\0\x18ftypheic\0\0\0\0mif1heic" + b"\0" * 2000)
     # a 60 MB photo (a phone JPEG with a lot of data after the picture) goes through the upload limit
-    assert "Usazuje se na pozadí" in send(client, mine, "mapa.jpg", jpeg_bytes(pad=60 * 1024 * 1024))
+    assert "usazuje se na pozadí" in send(client, mine, "mapa.jpg", jpeg_bytes(pad=60 * 1024 * 1024))
     assert con.execute("SELECT 1 FROM jobs WHERE kind = 'georef_map'").fetchone()
     work(app)
     assert not os.listdir(app.config["OB"].path("incoming"))
@@ -96,7 +95,7 @@ def course_of(con, entry_id):
 def test_photo_lands_then_a_kmz_replaces_it(app, client, user, pohora):
     con, mine = entry(app, client, user)
     data, _ = made_photo(pohora, tilt=15, light=0.6, kelvin=5000, bg=0.25)
-    assert "Usazuje se na pozadí" in send(client, mine, "IMG_2041.jpg", data)
+    assert "usazuje se na pozadí" in send(client, mine, "IMG_2041.jpg", data)
     work(app)
     j = job(con)
     assert j["status"] == "done" and "Mapa usazena podle" in j["message"], j["error"]
@@ -232,7 +231,7 @@ def others(pohora):
 def test_wrong_photo_says_what_to_do(app, client, user, pohora, others, kind, says):
     con, mine = entry(app, client, user)
     data = fotka.bad_photo(kind, pohora, others.get(kind))
-    assert "Usazuje se na pozadí" in send(client, mine, f"{kind}.jpg", data)
+    assert "usazuje se na pozadí" in send(client, mine, f"{kind}.jpg", data)
     work(app)
     j = job(con)
     if says is None:

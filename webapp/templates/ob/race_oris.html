@@ -2,7 +2,22 @@
 {% block title %}{{ _('Přidat závod z ORIS') }}{% endblock %}
 {% block content %}
 <h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Přidat závod z ORIS') }}</h2>
-{% if not ev %}
+{% if umbrella %}
+<p class="evhead">{{ umbrella.name }} · {{ umbrella.date | datum }}
+  {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">{{ _('závod v ORIS') }} ↗</a>{% endif %}</p>
+<p class="nota">{% trans %}Etapový závod: mapy, tratě a mezičasy patří k jednotlivým etapám. Vyber etapu, kterou jsi běžel, pak
+  kategorii.{% endtrans %}</p>
+{% if stage_races %}
+<ul class="karta ob-etapy">
+  {% for s in stage_races %}
+  <li><a href="{{ url_for('ob.race_oris_class', oris_id=s.oris_id) }}">{% if s.stage_n %}E{{ s.stage_n }} / {{ s.stage_count }} · {% endif %}{{ s.name }}</a>
+    · {{ s.date | datum }}{% if s.discipline %} · {{ s.discipline }}{% endif %}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="nota">{% trans %}Etapy se z ORIS načíst nepodařilo, zkus to později.{% endtrans %}</p>
+{% endif %}
+{% elif not ev %}
 <p class="evhead">{% trans %}Pro závod z ORIS, kde nejsi v přihláškách pod svou registračkou (běžel jsi za někoho, na místě, jinou
   kategorii). Závody, na které jsi přihlášený, se načtou samy.{% endtrans %}</p>
 <form method="post" class="karta ob-form">

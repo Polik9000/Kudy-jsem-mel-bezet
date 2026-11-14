@@ -5,11 +5,18 @@ import json
 import numpy as np
 from scipy import ndimage as ndi
 
+# What the course read from a map is for the same map: raised when that changes, so the web app reads the course of
+# older analyses again (runner._analyse_in). 1: the finish told apart from a thick ring, circles cut open for a detail
+# of the map looked for where the watch was at the punch, a control number left out (November 2026).
+VERSION = 1
+
 RING_M = 35.0            # inner radius of a control circle on the maps the radii below were set on (1:10 000)
 RING_SAME = (0.86, 1.15)  # a map whose closed circles are within this of RING_M is read with those radii as they are
 START_NEAR_M = 200.0     # the start triangle is looked for this far from where the recording begins
 HOLLOW = 0.25            # a control circle is empty inside: with more purple than this in it, it is a circle found
                          # in the hatching of an out-of-bounds area (measured: circles up to 0.15, hatching 0.33+)
+FINISH_SPREAD_PX = 5     # the radii of one centre that make the finish differ at least this much (pixels) ...
+FINISH_SPREAD = 0.12     # ... and this share of the larger one (above 41 px of radius; no map read before had them)
 
 
 def purple_mask(img_rgb):
@@ -108,7 +115,10 @@ def _circles(m, mpp, radius_m):
     finish, controls = None, []
     for g in groups:
         rs = sorted({round(c[2]) for c in g})
-        if len(rs) >= 2 and rs[-1] - rs[0] >= 5:
+        # two rings of clearly different size: the inner ring of the finish is about 0.76 of the outer one. A thick
+        # ring of a map exported at high resolution (7 px at 0.43 m/px) matches several radii by itself, up to
+        # its width apart; with a fixed 5 px all of its circles were taken for finishes (Bohemia 2025 E1: 2 of 11)
+        if len(rs) >= 2 and rs[-1] - rs[0] >= max(FINISH_SPREAD_PX, FINISH_SPREAD * rs[-1]):
             if finish is None:
                 finish = (g[0][0], g[0][1])
             continue
@@ -164,6 +174,123 @@ def detect_course(geomap, radius_m=(30, 45), start_hint_px=None):
     return {"start": start, "controls": controls, "finish": finish, "mask": m}
 
 
+def ring_cover(mask, cx, cy, r, sectors=72, width=1.5):
+    """How much of a circle outline is printed: (share of the sectors with purple on the ring, the largest
+    run of empty sectors in degrees, the number of such gaps). A control circle the cartographer cut open for
+    a detail of the map (ISOM: the circle must not hide what it points at) keeps arcs; a line crossing the
+    spot only touches two sectors."""
+    H, W = mask.shape
+    hit = np.zeros(sectors, bool)
+    for s in range(sectors):
+        for a in np.linspace(s, s + 1, 4, endpoint=False) * 2 * np.pi / sectors:
+            for q in (r - width, r, r + width):
+                x, y = int(round(cx + q * np.cos(a))), int(round(cy + q * np.sin(a)))
+                if 0 <= x < W and 0 <= y < H and mask[y, x]:
+                    hit[s] = True
+    if hit.all():
+        return 1.0, 0.0, 0
+    # runs of empty sectors around the circle, starting just after a printed one
+    k0 = int(np.argmax(hit))
+    runs, run = [], 0
+    for s in range(sectors):
+        if hit[(k0 + s) % sectors]:
+            if run:
+                runs.append(run)
+            run = 0
+        else:
+            run += 1
+    if run:
+        runs.append(run)
+    return float(hit.mean()), (max(runs) * 360.0 / sectors if runs else 360.0), len(runs)
+
+
+MISSING_WINDOW_M = 80.0   # a missed circle is looked for this far from where the watch was at its official punch
+MISSING_VOTES = 0.12      # Hough share for such a circle: a cut circle keeps only arcs (detect_course needs 0.35)
+MISSING_COVER = 0.4       # ... and it is taken with at least this share of its outline printed
+MISSING_GAP = 150.0       # ... no gap wider than this (degrees; real cut circles: 25 to 55)
+MISSING_LINE = 0.4        # ... and a leg line ending at it, or
+MISSING_ALONE = 0.6       # ... this share of its outline without a line (a control the lines of the map hide)
+
+
+def find_missing(mask, mpp, start, controls, finish, hints, want):
+    """The control circles detect_course did not find, looked for only where the organiser's times say a control
+    is: hints are [(u, v) or None] in pixels, where the watch was at each official punch, in the order of the
+    course. A hint with no circle near it gets the cut-open circle nearest to it that has the radius of the
+    others, enough of its outline printed (ring_cover), no purple inside (not the hatching of an out-of-bounds
+    area) and a leg line from the neighbouring control ending at it. Nothing is looked for once there are
+    `want` circles (the number of controls in the official results).
+    Returns ([(x, y, r)] added, [dict per hint looked at: k, found, cover, gap, line]) for the record."""
+    added, notes = [], []
+    if not controls or len(controls) >= want:
+        return added, notes
+    r = int(round(float(np.median([c[2] for c in controls]))))
+    near = (r + 40.0 / mpp)
+    have = lambda h, cs: any(np.hypot(h[0] - c[0], h[1] - c[1]) <= near for c in cs)
+    H, W = mask.shape
+    win = int(MISSING_WINDOW_M / mpp) + r + 3
+
+    def neighbour(k, step):
+        """The course point next to control k: the circle at the next hint (where the watch was, when that control
+        has no circle either), else the start or the finish."""
+        j = k + step
+        while 0 <= j < len(hints):
+            h = hints[j]
+            if h is not None:
+                cs = [c for c in controls + added if np.hypot(h[0] - c[0], h[1] - c[1]) <= near]
+                if cs:
+                    return min(cs, key=lambda c: np.hypot(h[0] - c[0], h[1] - c[1]))
+                return (h[0], h[1], r)
+            j += step
+        end = start if step < 0 else finish
+        return None if end is None else (end[0], end[1], r)
+
+    for k, h in enumerate(hints):
+        if len(controls) + len(added) >= want:
+            break
+        if h is None or have(h, controls + added):
+            continue
+        x0, y0 = max(int(h[0]) - win, 0), max(int(h[1]) - win, 0)
+        sub = mask[y0:min(int(h[1]) + win, H), x0:min(int(h[0]) + win, W)]
+        best, note = None, dict(k=k + 1, found=False)
+        for cx, cy, cr, _ in hough_circles(sub, range(max(r - 2, 3), r + 3), min_votes=MISSING_VOTES, min_sep=r):
+            cx, cy = cx + x0, cy + y0
+            d = np.hypot(cx - h[0], cy - h[1])
+            if d * mpp > MISSING_WINDOW_M:
+                continue
+            if any(np.hypot(cx - c[0], cy - c[1]) <= max(c[2], cr) for c in controls + added):
+                continue
+            if any(p is not None and np.hypot(cx - p[0], cy - p[1]) <= 1.5 * cr for p in (start, finish)):
+                continue
+            if _inside(mask, cx, cy, cr) > HOLLOW:
+                continue
+            cover, gap, _ = ring_cover(mask, cx, cy, cr)
+            line = max((line_score(mask, (cx, cy), q, cr, q[2]) for q in (neighbour(k, -1), neighbour(k, 1))
+                        if q is not None), default=0.0)
+            ok = cover >= MISSING_COVER and gap <= MISSING_GAP and (line >= MISSING_LINE or cover >= MISSING_ALONE)
+            seen = dict(k=k + 1, found=ok, cover=round(cover, 2), gap=round(gap), line=round(line, 2),
+                        off_m=round(float(d * mpp), 1), px=[round(float(cx), 1), round(float(cy), 1)])
+            if ok and (best is None or d < best[0]):
+                best, note = (d, (float(cx), float(cy), cr)), seen
+            elif best is None and cover > note.get("cover", -1):
+                note = seen          # the best one that was not taken, for the record
+        notes.append(note)
+        if best is not None:
+            added.append(best[1])
+    return added, notes
+
+
+def drop_extra(controls, hints, want, mpp):
+    """Circles that are no control: a control number read as a circle (the 0 of a "10" printed over a "4",
+    Přebor BFM+SFM 2026). Only when the organiser's times show every punch (hints [(u, v)], none None), and only
+    the circles farther than MISSING_WINDOW_M from every place the watch was at a punch, and only when leaving
+    those out gives exactly `want` circles: a map with far more circles than controls (its purple read wrong) is
+    left as it is for the person to correct. Returns the circles to leave out."""
+    if len(controls) <= want or not hints or any(h is None for h in hints):
+        return []
+    far = [c for c in controls if all(np.hypot(c[0] - h[0], c[1] - h[1]) * mpp > MISSING_WINDOW_M for h in hints)]
+    return far if len(controls) - len(far) == want else []
+
+
 def _find_triangle(mask, controls, finish, hint, search_px, box=35):
     """Densest purple blob near the hint that is not a control ring: the start triangle."""
     m = mask.copy()
@@ -195,13 +322,13 @@ def save_course(path, geomap, course_px):
         "controls": [dict(pt(c), code=i + 1) for i, c in enumerate(course_px["controls"])],
         "finish": pt(course_px["finish"]) if course_px.get("finish") else None,
     }
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2)
     return out
 
 
 def load_course(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

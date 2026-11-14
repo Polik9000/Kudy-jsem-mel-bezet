@@ -102,3 +102,27 @@ def test_model_race_green_around_drops_green_samples():
     assert set(race["cls"][race["leg"] == 3]) == {T.FOREST}
     assert list(race["line_leg"]) == [1, 1, 3, 3]          # the line (used for scaling) is unchanged
     assert ann.model_race(samples(), reads({1: dict(fatigue=5), 3: dict(lost_contact=1)})) is None
+
+
+def test_wandering_is_a_mistake_not_a_route_choice():
+    # the track strays 205 m off the line and is much longer than the best route: that line was not chosen
+    lg = leg(stops=(), est_loss=40.0) | dict(max_dev=205.0, line=dict(dist=1300.0), best=dict(dist=600.0))
+    lg.update(best_time=180.0, line_time=260.0)
+    r = ann.read_leg(lg)
+    assert r["parts"]["route"] == 0 and r["parts"]["mistake"] == 120 and r["why"] == "wander"
+    # a drift off the bearing counts the same, however long the line
+    r = ann.read_leg(leg(stops=()) | dict(mistake=dict(type="drift")))
+    assert r["parts"]["route"] == 0 and r["why"] == "wander"
+
+
+def test_loops_at_the_control_move_from_route_to_mistake():
+    # an overshoot: 80 s of the "route" loss are the loop within 100 m of the control
+    lg = leg(stops=(), best=180.0, line=300.0) | dict(mistake=dict(type="overshoot"), zone_excess=80.0)
+    r = ann.read_leg(lg)
+    assert r["parts"]["route"] == 40 and r["parts"]["mistake"] == 80 and r["why"] == "control"
+    # never more than the route loss there was
+    r = ann.read_leg(lg | dict(zone_excess=500.0))
+    assert r["parts"]["route"] == 0 and r["parts"]["mistake"] == 120
+    # a slow leg without a mistake in the map keeps its route choice
+    r = ann.read_leg(leg(stops=()) | dict(mistake=dict(type="slow"), zone_excess=80.0))
+    assert r["parts"]["route"] == 20 and r["why"] is None

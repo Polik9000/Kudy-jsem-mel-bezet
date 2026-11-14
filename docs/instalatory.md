@@ -18,6 +18,13 @@ Aplikace ke stažení je stejná Flask aplikace jako v Dockeru, jen spuštěná 
 - **certifikáty**: na macOS zabalený Python nečte systémové certifikáty, proto se nastaví `SSL_CERT_FILE` na
   certifi (jinak by ORIS, ČÚZK i OpenStreetMap hlásily chybu certifikátu).
 
+- **závod do souboru** (místo sdílení přes server): na stránce závodu „Uložit závod do souboru“ dá `.obzavod`
+  (zip: `obzavod.json` s popisem závodu, kategorie, oficiálních časů kategorie, občerstvení a zakázaných čar,
+  `maponly.kmz`, `course.kmz`, případně `course.json` z usazené fotky; běh `run.fit`, vlastní výsledek, nastavení
+  a poznámky k úsekům jen po zaškrtnutí). „Načíst závod ze souboru“ v Moje závody ho přidá; co už v aplikaci je,
+  se nepřepisuje. Formát má číslo verze (`webapp/services/race_file.py`), novější soubor starší aplikace odmítne
+  česky. Jen v lokálním režimu.
+
 Balíček obsahuje jen kód (`desktop/kudy.spec`): `webapp/`, `oroute/` (včetně výchozího modelu rychlosti
 `personal_model.json` a `slope_prior.json`), `analyze.py`, `bestroute.py`, `LICENSE`. **Žádné mapy, běhy, závody
 ani `data/` a `tests/`.**
@@ -64,11 +71,26 @@ python -m desktop.app                              # nebo bez balení, rovnou ze
 
 ## Podpis
 
-Instalátory nejsou podepsané (podpis stojí peníze: Windows certifikát, Apple Developer 99 USD/rok).
+Instalátory zatím nejsou podepsané (podpis stojí peníze: Windows certifikát, Apple Developer 99 USD/rok). Systémy
+proto při prvním spuštění varují před neznámým autorem. Je to varování, ne nález viru. Stejný postup je i na stránce
+ke stažení (`docs/index.html`, česky i anglicky), aby ho uživatel našel dřív, než se lekne.
 
-- Windows EXE (pouze pokud ho někdo instaluje mimo Store): SmartScreen může ukázat „Systém Windows ochránil váš počítač“ → Další informace → Přesto spustit. Pro běžné uživatele je doporučený Microsoft Store.
-- macOS: aplikace je podepsaná jen ad hoc. Při prvním spuštění macOS řekne, že ji nelze ověřit → Nastavení
-  systému → Soukromí a zabezpečení → dole „Přesto otevřít“. Potom už se spouští normálně.
+Pro běžné uživatele Windows je doporučený Microsoft Store (bez varování). Varování se týkají jen EXE mimo Store a DMG:
+
+**Windows (SmartScreen)**
+
+1. Modré okno „Systém Windows ochránil váš počítač“.
+2. Klik na **Další informace** (malý odkaz v textu).
+3. Objeví se tlačítko **Přesto spustit**.
+
+**macOS (Gatekeeper)**
+
+1. Otevřít .dmg, přetáhnout aplikaci do složky Aplikace.
+2. V Aplikacích na ni kliknout **pravým tlačítkem** (nebo Ctrl + klik) → **Otevřít**.
+3. V okně s varováním znovu **Otevřít**. Příště se spouští normálně.
+4. Když okno tlačítko Otevřít nenabídne: Nastavení systému → Soukromí a zabezpečení → dole **Přesto otevřít**.
+
+Až bude podpis, tahle část i blok na stránce odpadnou.
 
 ## Co je ověřené a co ne (1. 11. 2026)
 

@@ -62,7 +62,7 @@ class SpeedModel:
 
     @classmethod
     def with_slope_prior(cls, path, **kw):
-        d = json.load(open(path))
+        d = json.load(open(path, encoding="utf-8"))
         m = cls(up_k=d["up_k"], down_gain=d["down_gain"], steep_down=d["steep_down"], **kw)
         m.slope_from = m.notes["slope_from"] = dict(
             file=path, activities=d.get("activities"), uphill_windows=d.get("uphill_windows"),
@@ -187,11 +187,11 @@ class SpeedModel:
                     dur_exp=self.dur_exp)
 
     def save(self, path):
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
     def load(cls, path):
-        d = json.load(open(path))
+        d = json.load(open(path, encoding="utf-8"))
         fac = {T.NAMES.index(k): v for k, v in d["factors"].items()}
         return cls(d["v_flat"], d["up_k"], d["down_gain"], d["steep_down"], fac, d.get("notes"), d.get("dur_exp", 0.0))

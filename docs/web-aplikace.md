@@ -47,7 +47,7 @@ docker compose -p obdev -f docker-compose.yml -f docker-compose.dev.yml up
 
 1. **Účet** se zakládá registračním číslem ORIS (tři písmena oddílu a čtyři číslice, formuláře ukazují příklad `BFM0000`), kódem od správce a heslem na adrese `/ob/register`. Kód patří k registračnímu číslu a vypíše ho správce příkazem `invite` (výše); díky němu si účet na cizí číslo nikdo nezaloží. Jméno a ORIS ID se vezmou z ORIS, závody se načtou samy. Na jedno registrační číslo může být jen jeden účet a číslo účtu se už nedá změnit (v profilu se jen ukazuje); přihlásit se dá registračkou (u starších účtů i původním jménem). Přihlášení vydrží 90 dní od poslední návštěvy.
 2. **Moje závody**: u každého je stav „chybí aktivita“, „chybí mapa“ nebo „hotovo“; stav, kterému něco chybí, vede rovnou do Podkladů závodu. Filtr podle sezóny (pamatuje se) a stavu, filtr „S během“, hledání.
-3. **Nahrát běhy**: jednotlivé `.fit` (i víc najednou) nebo celý export účtu Garmin (zip). Běhy se spárují se závody podle data, času startu a vzdálenosti od centra závodu z ORIS. U závodu jde aktivitu vybrat ručně. Úloha exportu si nejdřív sama načte tvoje závody z ORIS, pak páruje. Z celého exportu se spočítá model kopců a potom zůstanou jen běhy spárované se závody a běhy ze dne závodu do 15 km od něj, které se nespárovaly; ty mají v seznamu nahraných aktivit označení „nespárované u závodu“ a tlačítka Přiřadit a Smazat. Zpráva úlohy říká, kolik běhů zůstalo a kolik bylo smazáno; smazané se vrátí jen opětovným nahráním exportu.
+3. **Nahrát běhy** (v lokální appce je nahoře odkaz **Načíst z Garmin Connect**, i na Přehledu závodů; tlačítko Načíst vybrané je na té stránce v liště nad tabulkou, která zůstává vidět): jednotlivé `.fit` (i víc najednou) nebo celý export účtu Garmin (zip). Běhy se spárují se závody podle data, času startu a vzdálenosti od centra závodu z ORIS. U závodu jde aktivitu vybrat ručně. Úloha exportu si nejdřív sama načte tvoje závody z ORIS, pak páruje. Z celého exportu se spočítá model kopců a potom zůstanou jen běhy spárované se závody a běhy ze dne závodu do 15 km od něj, které se nespárovaly; ty mají v seznamu nahraných aktivit označení „nespárované u závodu“ a tlačítka Přiřadit a Smazat. Zpráva úlohy říká, kolik běhů zůstalo a kolik bylo smazáno; smazané se vrátí jen opětovným nahráním exportu.
 4. **Mapy** u závodu, záložka Podklady: KMZ s tratí (platí pro kategorii) a KMZ bez tratě (platí pro celý závod, stačí jednou za oddíl). Místo KMZ s tratí jde nahrát obrázek (jpg, png, sken, fotka): usadí se sám podle koleček kontrol a tvé stopy v oficiálních časech ražení.
 5. **Analýza** se zařadí do fronty sama. Bez mapy bez tratě vyjdou mezičasy a typy chyb, s ní i nejlepší postupy. Stopa na mapě, mezičasy a typy chyb se u nového závodu ukážou hned, jak je první skript hotový; postupy přibydou, až doběhnou. Stránka závodu mezitím píše, co se právě počítá (například „hledám nejlepší postupy: 7 z 18 úseků“) a kolik úloh je ve frontě před ní.
 6. **Závod mimo ORIS** (zahraničí) se přidá ručně.
@@ -63,14 +63,15 @@ docker compose -p obdev -f docker-compose.yml -f docker-compose.dev.yml up
 - **Poznámky** se ukládají samy vteřinu po dopsání.
 - **Kreslení do mapy** (plánovaný postup, zakázaná čára, občerstvovačka): nad mapou je lišta, která říká, co se kreslí, s tlačítky Zpět o bod, Hotovo a Zrušit. Dvojklik nebo Enter uloží, Esc zruší.
 - **Vybraný úsek je v adrese** (`…/races/12#usek-7`), takže přežije načtení stránky a jde poslat odkazem.
-- **Stránka se načte znovu sama**, jen když ukazuje stav úloh (seznam závodů, úlohy, závod s čekající analýzou), a nikdy přes vybraný soubor, rozepsaný formulář, kreslenou čáru nebo psanou poznámku.
+- **Stránka se načte znovu sama**, jen když ukazuje stav úloh (seznam závodů, úlohy, závod s čekající analýzou), a nikdy přes vybraný soubor, rozepsaný formulář, kreslenou čáru nebo psanou poznámku. Po načtení se vrátí na stejné místo: otevřená záložka a prvek, který byl nahoře v okně, se drží v `sessionStorage` jen pro tuhle záložku prohlížeče.
+- **Co se počítá** ukazuje lišta dole v okně (na telefonu nad spodní nabídkou), ne odstavec nad mapou: nic pod ní se během výpočtu neposune. Když úloha selže, lišta na chvíli řekne, že je hláška nahoře na stránce.
 - **Nastavení závodu**: železnice a dálnice z OpenStreetMap „zakázáno / jen znevýhodněno / nepoužívat“ a zakázané prostory přečtené ze šrafování mapy s tratí „zakázáno / nepoužívat“ si každý nastavuje jen pro sebe (výchozí je „jako závod“) a změna přepočítá jen jeho postupy. Výchozí hodnotu závodu mění jen ten, kdo nahrál mapu bez tratě. Ruční zakázané a těžko překonatelné čáry a občerstvovačky jsou sdílené pro všechny, kdo závod běželi; u každé je vidět, kdo ji přidal, a smazat ji smí jen on.
 
 ### Poznámky k úseku a co změní
 
 | Volba | Ztráta úseku | Osobní model |
 |---|---|---|
-| Schválná zastávka (zaškrtnutá, nebo do 30 m od značky občerstvovačky) | sekundy stání se nepočítají jako chyba | čas úseku se bere bez zastávky, úsek může být čistý |
+| Záměrná zastávka (zaškrtnutá, nebo do 30 m od značky občerstvovačky) | sekundy stání se nepočítají jako chyba | čas úseku se bere bez zastávky, úsek může být čistý |
 | Ztráta kontaktu s mapou | celá ztráta je chyba, ne volba postupu | úsek se nepočítá |
 | Zelená: obíhal | beze změny | body stopy, které GPS dala do zelené, se vynechají |
 | Zelená: proběhl | beze změny | beze změny |
@@ -78,6 +79,10 @@ docker compose -p obdev -f docker-compose.yml -f docker-compose.dev.yml up
 | Text, plánovaný postup | beze změny (plán se jen ocení a ukáže vedle skutečnosti) | beze změny |
 
 Pravidla jsou v `oroute/annotations.py`. Tabulka se přepočítá hned, model na pozadí.
+
+## Nastavení rozhraní
+
+Světlý / tmavý režim a jazyk se ukládají k účtu (`users.theme`, `users.lang`), ne jen v prohlížeči. Lokální appka startuje pokaždé na jiném portu a prohlížeč drží `localStorage` zvlášť pro každou adresu i s portem, takže režim uložený jen tam se po restartu ztratil. Server píše režim rovnou do `<html data-theme>` (žádné bliknutí); `localStorage` je jen kopie pro stránky bez účtu (přihlášení).
 
 ## ORIS má přednost
 

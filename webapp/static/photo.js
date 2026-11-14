@@ -20,6 +20,10 @@
   L.imageOverlay(OB.photo, bounds).addTo(map);
   map.fitBounds(bounds);
   OB.map = map;                 // for a scripted walk through the page (tools/shots-foto.json)
+  // circles read from the map that no control took (Doplnit kontroly): shown grey, not part of the course
+  OB.extra.forEach(function (p) {
+    L.circleMarker(ll(p[0], p[1]), { radius: 12, className: "ob-foto-navic", interactive: false }).addTo(map);
+  });
   map.setMaxBounds(bounds.pad(0.25));
 
   function esc(t) {
@@ -74,7 +78,8 @@
                   "\">×</button>" : "") + "</li>";
     }).join("");
     $("foto-seznam").innerHTML = html;
-    $("foto-vyber").textContent = selected ? t("Klikni na fotce: %(name)s.", { name: label(selected) }) :
+    $("foto-vyber").textContent = selected ? (OB.mapa ? t("Klikni na mapě: %(name)s.", { name: label(selected) })
+                                                      : t("Klikni na fotce: %(name)s.", { name: label(selected) })) :
       t("Vyber v seznamu kontrolu, kterou chceš označit.");
   }
   function select(name) {

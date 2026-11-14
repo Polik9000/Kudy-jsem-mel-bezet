@@ -5,7 +5,6 @@ import math
 import os
 
 import numpy as np
-import pytest
 from conftest import csrf, post, register
 from test_recompute import _fake_refit, _scripts
 from test_web_races import con_of, work
@@ -56,7 +55,6 @@ def test_a_drawn_leg_does_not_teach_the_model():
     assert read_leg(leg)["in_model"] and not read_leg(leg, dict(corrected="[[49.6, 18.3], [49.7, 18.4]]"))["in_model"]
 
 
-@pytest.mark.needs_data
 def test_correction_is_used_for_the_routes_and_can_be_taken_back(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     entry = seed_demo(con, conf, user)["pohora"]
@@ -102,7 +100,6 @@ def test_correction_is_used_for_the_routes_and_can_be_taken_back(app, client, us
     assert send(client, f"/races/{entry}/legs/2/oprava", dict(line=drawn)).status_code == 404
 
 
-@pytest.mark.needs_data
 def test_race_page_offers_the_correction(app, client, user, monkeypatch):
     con, conf = con_of(app), app.config["OB"]
     entry = seed_demo(con, conf, user)["pohora"]

@@ -127,6 +127,16 @@ def course_json(rel):
     return rel + ".course.json"
 
 
+def course_by_hand(conf, course_file):
+    """True when the class has a course given by hand on the page Doplnit kontroly (views/coursefix.py), not the one
+    of a placed photo."""
+    try:
+        with open(conf.path(course_json(course_file)), encoding="utf-8") as f:
+            return bool(json.load(f).get("by_hand"))
+    except (OSError, ValueError, AttributeError):
+        return False
+
+
 def course_source(conf, row):
     """Where the map with the course of a class came from: kmz | image | photo | manual, None without one.
     row: has course_file and course_source. A map stored before the column existed is a KMZ, unless it is a

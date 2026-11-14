@@ -2,6 +2,9 @@
 
 Všechno je vypnuté, dokud to správce nezapne. Nic z toho nemění přihlášení ani výpočty.
 
+Klubový server s účty pro víc běžců se spouští s `OB_LOCAL=0` (třeba `OB_LOCAL=0 docker compose up -d`).
+Bez toho `docker-compose.yml` spustí aplikaci pro jednoho člověka bez účtů a bez přihlášení.
+
 ## Denní načítání z ORIS (`flask sync-oris-all`)
 
 Načte nové závody všech účtů s registračním číslem. ORIS se ptá co nejméně:

@@ -5,6 +5,9 @@ x-app: &app
   image: ob-tracker
   environment:
     OB_INSTANCE: /data
+    # 1 = the app for one runner on their own computer: no accounts, no login, no club site (the default).
+    # A club server for many runners starts it with OB_LOCAL=0 (docs/provoz.md).
+    OB_LOCAL: ${OB_LOCAL:-1}
   volumes:
     # a Docker volume, not a folder of the repo: uploads are never committed, and SQLite is reliable on it
     # (on Windows a folder shared from the host does not lock files properly between two containers)

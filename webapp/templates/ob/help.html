@@ -35,6 +35,12 @@
     <li>{% if user %}{% trans url=url_for('ob.upload') %}Zip nahraj v <a href="{{ url }}">Nahrát běhy</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.{% endtrans %}{% else %}{% trans %}Zip nahraj v Nahrát běhy, nebo v Podkladech závodu. Rozbalovat ho nemusíš.{% endtrans %}{% endif %}</li>
   </ol>
   <p class="hint">{% trans %}Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.{% endtrans %}</p>
+  <p>{% trans %}<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code>
+    jako soubory .fit.{% endtrans %}{% if local_app %} {% trans url=url_for('ob.upload') %}V aplikaci v <a href="{{ url }}">Nahrát běhy</a> klikni na
+    <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP
+    se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak
+    běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne
+    na Přehledu závodů a v Nahrát běhy.{% endtrans %}{% endif %}</p>
   <p>{% trans %}<b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):{% endtrans %}</p>
   <ol>
     <li>{% trans %}Otevři <a href="https://www.garmin.com/en-US/account/datamanagement/" target="_blank" rel="noopener">správu
@@ -55,9 +61,21 @@
     <li>{% trans %}Stáhni dvakrát: <b>Mapa s tratí</b>, formát <b>KMZ</b>, a <b>Pouze mapa</b>, formát <b>KMZ</b>.{% endtrans %}</li>
     <li>{% trans %}V Podkladech závodu nahraj první jako mapu s tratí a druhou jako mapu bez tratě.{% endtrans %}</li>
   </ol>
-  <p class="hint">{% trans %}Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy. Mapu bez tratě
-    stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.{% endtrans %}</p>
+  <p class="hint">{% trans %}Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy.{% endtrans %}
+    {% if local_app %}{% trans %}Mapy zůstávají jen v tomhle počítači. Jsou dílem pořadatele: používej je jen pro vlastní rozbor.{% endtrans %}
+    {% else %}{% trans %}Mapu bez tratě stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.{% endtrans %}{% endif %}</p>
 </div>
+
+{% if local_app %}
+<div class="karta" id="soubor">
+  <h3>Poslat závod kamarádovi</h3>
+  <p>Na stránce závodu v Podkladech je <b>Uložit závod do souboru</b>. Vznikne soubor <b>.obzavod</b> s mapami, tratí,
+    oficiálními časy, občerstvením a zakázanými čárami. Kamarád ho v Moje závody otevře přes <b>Načíst závod ze
+    souboru</b> a nahraje k němu svůj běh z hodinek; rozbor se mu spočítá podle něj. Tvůj běh a tvoje poznámky
+    v souboru jsou, jen když je zaškrtneš (třeba při přenosu na jiný počítač).</p>
+  <p class="hint">Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu.</p>
+</div>
+{% endif %}
 
 <div class="karta" id="bez-livelox">
   <h3>{% trans %}Když Livelox stažení nedovolí{% endtrans %}</h3>
@@ -71,11 +89,18 @@
   </ul>
 </div>
 
-<div class="karta" id="snimky">
+<div class="karta" id="snimky"{% if default_os %} data-os="{{ default_os }}"{% endif %}>
   <h3>{% trans %}Dva snímky z Livelox (Chrome na počítači){% endtrans %}</h3>
+  <p class="hint">{% trans %}Nejlepší je Chrome, na Windows i na Macu: postup je stejný a vyzkoušený. Safari je druhá možnost, níže.{% endtrans %}</p>
+  <p class="os-prepinac" role="group">
+    <button type="button" class="btn btn-maly" data-os-set="win">Windows</button>
+    <button type="button" class="btn btn-maly" data-os-set="mac">Mac</button>
+  </p>
   <ol>
-    <li>{% trans %}Stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení). Nahoře u Dimensions zvol
-      <b>Responsive</b> a nastav <b>5000 × 4000</b>.{% endtrans %}</li>
+    <li>
+      <span class="os-win">{% trans %}Na Windows stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení).{% endtrans %}</span>
+      <span class="os-mac">{% trans %}Na Macu stiskni <b>⌥⌘I</b> (Option+Command+I) a pak <b>⇧⌘M</b> (Shift+Command+M). Nebo v menu Zobrazit → Vývojář → Nástroje pro vývojáře (View → Developer → Developer Tools) a vlevo nahoře v nástrojích ikona telefonu a tabletu (Toggle device toolbar).{% endtrans %}</span>
+      {% trans %}Nahoře u Dimensions zvol <b>Responsive</b> a nastav <b>5000 × 4000</b>.{% endtrans %}</li>
     <li>{% trans %}V Livelox zavři křížkem postranní panel se závodníky. Mapu přibliž co nejvíc tak, aby byla celá vidět.{% endtrans %}</li>
     <li>{% trans %}Tři tečky úplně vpravo v liště s Dimensions → <b>Capture full size screenshot</b>. Snímek se uloží do
       Stažených. To je <b>snímek s tratí</b>.{% endtrans %}</li>
@@ -85,18 +110,48 @@
     <li>{% trans %}Znovu tři tečky → <b>Capture full size screenshot</b>. To je <b>snímek bez tratě</b>.{% endtrans %}</li>
     <li>{% trans %}Oba snímky nahraj do polí „Snímek z Livelox s tratí“ a „Snímek z Livelox bez tratě“ v Podkladech závodu.{% endtrans %}</li>
   </ol>
+  <details class="os-mac">
+    <summary>{% trans %}Safari na Macu (když nechceš Chrome){% endtrans %}</summary>
+    <ol>
+      <li>{% trans %}Zapni nabídku Vývojář: Safari → Nastavení → Pokročilé → „Zobrazovat funkce pro webové vývojáře“ (ve starších verzích „Zobrazovat nabídku Vývojář“).{% endtrans %}</li>
+      <li>{% trans %}Vývojář → <b>Vstoupit do režimu responzivního designu</b> (⌃⌘R, Ctrl+Command+R). Velikost okna s mapou změníš tažením průhledných úchytů kolem okna, poslední rozměr si Safari pamatuje jako „Vlastní velikost“.{% endtrans %}</li>
+      <li>{% trans %}Safari nemá tlačítko „Capture full size screenshot“ a okno nejde zvětšit nad velikost obrazovky. Snímek se tak udělá z toho, co je vidět (⇧⌘4 nebo ⇧⌘5), a bude menší a méně ostrý než z Chrome. Zbytek postupu (dva snímky bez posouvání mapy) je stejný.{% endtrans %}</li>
+    </ol>
+  </details>
   <p class="hint">{% trans %}Proč neposouvat: appka usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá
     stejné místo. Snese posun o pár pixelů, ne jiné přiblížení nebo jinou velikost okna.{% endtrans %}</p>
   <p class="hint">{% trans %}Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek
-    s tratí jde nahrát i tak, nejlepší postupy z něj ale nebudou.{% endtrans %}</p>
+    s tratí jde nahrát i tak: nejlepší postupy se odhadnou z něj, jen s menší přesností. Trať a zakrytý terén
+    pod ní se domýšlí z okolí.{% endtrans %}</p>
+  <p class="hint">{% trans %}Před snímkem s tratí v Livelox <b>vypni čáru postupu</b> (přehrávání běžců). Zakrývá mapu a
+    snímek bez tratě je pořád lepší: postupy z něj jsou přesnější a počítají se i záchytné body.{% endtrans %}</p>
 </div>
+
+<style>
+  #snimky[data-os="win"] .os-mac, #snimky[data-os="mac"] .os-win { display: none; }
+  #snimky .os-prepinac { display: flex; gap: .5rem; }
+  #snimky .os-prepinac button[aria-pressed="true"] { font-weight: 700; text-decoration: underline; }
+</style>
+<script>
+(function () {
+  var box = document.getElementById("snimky");
+  if (!box) { return; }
+  function set(os) {
+    if (os) { box.setAttribute("data-os", os); } else { box.removeAttribute("data-os"); }
+    box.querySelectorAll("[data-os-set]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.osSet === os)); });
+  }
+  box.querySelectorAll("[data-os-set]").forEach(function (b) { b.addEventListener("click", function () { set(b.dataset.osSet); }); });
+  var ua = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || "";
+  set(box.getAttribute("data-os") || (/mac/i.test(ua) ? "mac" : (/win/i.test(ua) ? "win" : null)));
+})();
+</script>
 
 <div class="karta" id="poznamky">
   <h3>{% trans %}Poznámky u úseku{% endtrans %}</h3>
   <p>{% trans %}Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak appka čte ztrátu
     a z kterých úseků se učí tvůj model rychlosti.{% endtrans %}</p>
   <dl class="detaily">
-    <dt>{% trans %}Schválná zastávka{% endtrans %}</dt>
+    <dt>{% trans %}Záměrná zastávka{% endtrans %}</dt>
     <dd>{% trans %}Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to appka pozná sama.{% endtrans %}</dd>
     <dt>{% trans %}Ztráta kontaktu s mapou{% endtrans %}</dt>
     <dd>{% trans %}Celá ztráta úseku je chyba, ne volba postupu. Z úseku se model neučí.{% endtrans %}</dd>

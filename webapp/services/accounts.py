@@ -95,10 +95,13 @@ def use_reset_code(con, regno, code, password_hash):
 
 
 def find(con, who):
-    """Accounts meant by a login name or a registration number (one registration number has one account;
-    databases older than that rule may hold more)."""
-    return con.execute("SELECT * FROM users WHERE username = ? COLLATE NOCASE OR oris_regno = ? ORDER BY id",
-                       (who, who.replace(" ", "").upper())).fetchall()
+    """Accounts meant by a login name or a registration number, also another number of the account (a move
+    to another club, services/regnos.py). One registration number has one account; databases older than that
+    rule may hold more."""
+    regno = who.replace(" ", "").upper()
+    return con.execute("SELECT * FROM users WHERE username = ? COLLATE NOCASE OR oris_regno = ?"
+                       " OR id IN (SELECT user_id FROM user_regnos WHERE regno = ?) ORDER BY id",
+                       (who, regno, regno)).fetchall()
 
 
 def summary(con, user_id):

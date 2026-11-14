@@ -1,11 +1,19 @@
 """Upload activities: single .fit files or a zip (a whole Garmin account export, or just some .fit files)."""
-from flask import abort, flash, g, redirect, render_template, request, url_for
+from flask import abort, flash, g, jsonify, redirect, render_template, request, url_for
 
 from .. import cfg, get_db
 from ..auth import login_required
 from ..i18n import _
-from ..services import garmin_api, jobs, matching, storage
-from . import bp, go
+from ..services import garmin_api, jobs, matching, storage, watch
+from . import bp, go, skipped
+
+
+def _looks_like(f, kind):
+    """True when the start of the file is what a .fit (".FIT" at bytes 8 to 11) or a zip ("PK") starts with. A
+    broken file is told at once, by its name, and the others of the same upload still go through."""
+    head = f.stream.read(12)
+    f.stream.seek(0)
+    return head[8:12] == b".FIT" if kind == "fit" else head[:2] == b"PK"
 
 
 @bp.route("/upload", methods=["GET", "POST"])
@@ -14,12 +22,19 @@ def upload():
     db = get_db()
     if request.method == "POST":
         n = 0
+        skipped()
         for f in request.files.getlist("files"):
             name = (f.filename or "").lower()
             kind = "fit" if name.endswith(".fit") else "zip" if name.endswith(".zip") else None
             if kind is None:
                 if name:
                     flash(_("%(filename)s: nahrát jde jen .fit nebo .zip.", filename=f.filename), "error")
+                continue
+            if not _looks_like(f, kind):
+                flash(_("%(filename)s: není soubor z hodinek (.fit), nebo je poškozený. Nenahrál se, ostatní ano.",
+                        filename=f.filename) if kind == "fit" else
+                      _("%(filename)s: není zip, nebo je poškozený. Nenahrál se, ostatní ano.", filename=f.filename),
+                      "error")
                 continue
             rel, path = storage.incoming(cfg(), "." + kind)
             f.save(path)  # streamed to disk; a Garmin export can have gigabytes
@@ -104,3 +119,58 @@ def garmin_page():
     types = [(t, sum(1 for r in rows if r["type"] == t)) for t in types]
     return render_template("ob/garmin.html", connected=connected, rows=rows, types=types, days=days, periods=DAYS,
                            key_page=garmin_api.KEY_PAGE)
+
+
+@bp.route("/upload/hodinky", methods=["GET", "POST"])
+@login_required
+def watch_page():
+    """Runs from a watch connected by USB, or from a folder (only the app on one's own computer: the server
+    would read its own disk)."""
+    if not cfg().local:
+        abort(404)
+    db = get_db()
+    folder = (request.values.get("slozka") or "").strip()
+    found = watch.watch_folders()
+    if request.method == "POST":
+        try:
+            loaded, there, refused = watch.load(db, cfg(), g.user, folder, request.form.getlist("soubor"))
+        except FileNotFoundError:
+            flash(_("Složka neexistuje."), "error")
+            return redirect(url_for("ob.watch_page"))
+        flash(_("Načteno běhů: %(n)s.", n=loaded) + (" " + _("Už v aplikaci bylo %(n)s.", n=there) if there else "")
+              + (" " + _("Běhy se se závody spárovaly samy.") if loaded else ""), "ok" if loaded else "error")
+        return redirect(url_for("ob.upload"))
+    rows = base = None
+    if not folder and len(found) == 1:
+        folder = found[0]
+    if folder:
+        try:
+            base, rows = watch.offer(db, g.user["id"], folder)
+        except FileNotFoundError:
+            flash(_("Složka neexistuje. Zkontroluj cestu."), "error")
+    return render_template("ob/watch.html", found=found, folder=folder, base=base, rows=rows,
+                           sample="D:\\GARMIN\\Activity")
+
+
+@bp.route("/upload/hodinky/nove.json")
+@login_required
+def watch_news():
+    """The note on Přehled závodů and Nahrát běhy: how many new runs a connected watch has (asked by ob.js after the
+    page is shown, so a slow disk never holds the page). Nothing is loaded here."""
+    if not cfg().local:
+        abort(404)
+    out = watch.news(get_db(), g.user["id"])
+    if out["n"]:
+        out["url"] = url_for("ob.watch_page", slozka=out["folder"])
+    out.pop("folder")
+    return jsonify(out)
+
+
+@bp.route("/upload/hodinky/ted-ne", methods=["POST"])
+@login_required
+def watch_not_now():
+    """"Teď ne" on the note: the runs on the watch now are not offered on the pages again."""
+    if not cfg().local:
+        abort(404)
+    watch.set_aside_all(get_db(), g.user["id"])
+    return jsonify(ok=True)

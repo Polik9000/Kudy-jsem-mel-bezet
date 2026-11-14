@@ -14,6 +14,15 @@ Rules (read_leg, model_race):
   green "around"    the leg's GPS samples that fall into green are left out of the model (GPS drift put
                     them there); "through" keeps them
   fatigue 4-5       the execution loss is put down to fatigue, not to a mistake; not used for the model
+
+What the GPS track shows (without any note), so that "route choice" means what a runner means by it:
+  wandering         the track strays far off the straight line and is much longer than the best route
+                    (WANDER_DEV_M, WANDER_RATIO), or the kind of mistake is a drift off the bearing: the line that
+                    was run was not chosen, so its whole loss is a mistake, none of it route choice
+  near the control  overshoot, circling, undershoot, relocation (oroute.mistakes): the loops near the control
+                    make the line longer, and the model prices them as route; up to the time lost within 100 m
+                    of the control (zone_excess) moves from route choice to mistake
+parts["why"] says which of these applied (None, "wander", "control", "lost_contact").
 """
 import math
 
@@ -25,6 +34,9 @@ REFRESH_RADIUS = 30.0  # m
 CLEAN_LOSS = 60.0      # s; a leg with less estimated loss is "clean" (same threshold as bestroute.py)
 FATIGUE_FROM = 4
 GREEN = (T.SLOW, T.WALK, T.FIGHT)
+WANDER_DEV_M = 150.0   # the same test as the explanation of bestroute.py ("looks like being lost")
+WANDER_RATIO = 1.5
+CONTROL_MISTAKES = ("overshoot", "circling", "undershoot", "relocation")
 
 
 def _metres(lat1, lon1, lat2, lon2):
@@ -49,7 +61,8 @@ def read_leg(leg, note=None, refreshments=()):
     route) and line_time (model time of the line that was run).
     Returns dict: deliberate_s, refreshment_s, time_net, est_loss (after the stop), in_model,
       loss_total / loss_route / loss_exec (None without routes),
-      parts = seconds by cause: route (route choice), mistake, fatigue, deliberate.
+      parts = seconds by cause: route (route choice), mistake, fatigue, deliberate;
+      why = what moved route choice to mistake (see above), or None.
     """
     note = note or {}
     d, at_refresh = deliberate_seconds(leg.get("stops") or [], note, refreshments)
@@ -73,11 +86,25 @@ def read_leg(leg, note=None, refreshments=()):
         execution = total - route
     else:
         route, execution = 0.0, est
+    why = None
+    if lost:
+        why = "lost_contact"
+    elif route > 0:
+        kind = (leg.get("mistake") or {}).get("type")
+        line, best = leg.get("line") or {}, leg.get("best") or {}
+        wander = (kind == "drift" or (leg.get("max_dev") or 0) > WANDER_DEV_M
+                  and (line.get("dist") or 0) > WANDER_RATIO * (best.get("dist") or float("inf")))
+        if wander:
+            execution, route, why = execution + route, 0.0, "wander"
+        elif kind in CONTROL_MISTAKES and (leg.get("zone_excess") or 0) > 0:
+            moved = min(route, float(leg["zone_excess"]))
+            execution, route, why = execution + moved, route - moved, "control"
     parts = dict(route=route, mistake=execution, fatigue=0.0, deliberate=d)
     if lost:
         parts.update(route=0.0, mistake=route + execution)
     elif tired:
         parts.update(mistake=0.0, fatigue=execution)
+    out["why"] = why
     out["parts"] = parts
     return out
 

@@ -1,0 +1,56 @@
+{% extends "ob/base.html" %}
+{% block title %}{{ _('Načíst z hodinek') }}{% endblock %}
+{% block content %}
+<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Načíst z hodinek') }}</h2>
+<p class="evhead">{% trans %}Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty,
+  které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.{% endtrans %}</p>
+<form method="get" class="karta ob-form">
+  {% if found %}
+  <p>{{ _('Nalezené hodinky:') }}
+    {% for f in found %}<a class="btn btn-maly" href="{{ url_for('ob.watch_page', slozka=f) }}">{{ f }}</a> {% endfor %}</p>
+  {% else %}
+  <p class="hint">{% trans %}Žádné hodinky jako disk nevidím. Buď ještě nejsou připojené, nebo jsou v režimu MTP: ten appka
+    neumí.{% endtrans %}</p>
+  <ul class="hint" id="mtp">
+    <li>{% trans %}<b>Přepni hodinky na režim Garmin</b> (disk), pokud ho mají. Fēnix 5X Plus a podobné: na hodinkách
+      Nastavení → Systém → Režim USB → Garmin (anglicky Settings → System → USB Mode → Garmin). Pak kabel odpoj a znovu
+      připoj.{% endtrans %}</li>
+    <li>{% trans %}<b>Windows a MTP</b>: hodinky jsou v Průzkumníku jako zařízení bez písmene disku. Zkopíruj složku
+      GARMIN\Activity z hodinek do počítače a tu složku zadej níže.{% endtrans %}</li>
+    <li>{% trans %}<b>Mac a MTP</b>: bez dalšího programu to nejde. Když hodinky režim Garmin nemají, načti běhy z Garmin
+      Connect.{% endtrans %}</li>
+    <li>{% trans %}Programy Garmin Express a Android File Transfer si hodinky po připojení zaberou. Zavři je, ať se hodinky
+      ukážou jako disk.{% endtrans %}</li>
+  </ul>
+  <p class="hint">{% trans garmin=url_for('ob.garmin_page'), help=url_for('ob.help_page') %}Jinak: <a href="{{ garmin }}">Načíst
+    přímo z Garmin Connect</a>, nebo běhy exportuj a nahraj (<a href="{{ help }}#garmin">Jak na to</a>).{% endtrans %}</p>
+  {% endif %}
+  <label>{{ _('Nebo složka se soubory .fit') }}
+    <input name="slozka" value="{{ folder }}" placeholder="{{ sample }}" autocomplete="off"></label>
+  <button type="submit" class="btn">{{ _('Zobrazit běhy') }}</button>
+</form>
+{% if rows is not none %}
+{% if rows %}
+<form method="post" class="karta">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="slozka" value="{{ folder }}">
+  <p>{% trans base=base, n=rows | length, new=rows | selectattr('new') | list | length %}Ve složce <code>{{ base }}</code> je běhů: {{ n }}, nových {{ new }}.{% endtrans %}</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>{{ _('Start') }}</th><th>{{ _('Sport') }}</th><th class="num">{{ _('Čas') }}</th><th class="num">km</th><th>GPS</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr><td>{% if r.new %}<input type="checkbox" name="soubor" value="{{ r.name }}" checked aria-label="{{ _('Načíst %(name)s', name=r.name) }}">{% endif %}</td>
+      <td>{{ r.start.strftime('%-d. %-m. %Y %H:%M') }}</td><td>{{ r.sport }}</td>
+      <td class="num">{{ r.timer_s | mmss }}</td><td class="num">{{ '%.2f' | format((r.dist_m or 0) / 1000) }}</td>
+      <td>{{ _('ano') if r.has_gps else _('ne') }}</td><td>{% if not r.new %}<span class="hint">{{ _('už v aplikaci') }}</span>{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="hint">{% trans %}Načtou se jen zaškrtnuté. Ty, které nezaškrtneš, už ti appka na Přehledu sama nenabídne.{% endtrans %}</p>
+  <button type="submit" class="btn btn-hlavni">{{ _('Načíst vybrané') }}</button>
+</form>
+{% elif folder %}
+<p class="prazdno empty">{{ _('Ve složce nejsou žádné běhy (.fit se záznamem aktivity).') }}</p>
+{% endif %}
+{% endif %}
+{% endblock %}
