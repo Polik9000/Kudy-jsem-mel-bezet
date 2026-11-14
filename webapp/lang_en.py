@@ -1869,6 +1869,16 @@ EN = {
         'Save and recompute',
     'Vrátit to jde kdykoli: vyber „automaticky“ a ulož.':
         'You can undo it at any time: choose “automatically” and save.',
+    'S tímhle oříznutím chybí stopa u některých označených kontrol (jsou v uříznuté části), podle nich usadit nejde. Oříznutí jde uložit samo.':
+        'With this cut the track is missing at some of the marked controls (they are in the part cut off), so the map cannot be placed by them. The cut can be saved on its own.',
+    'Oříznutí stopy uloženo.':
+        'The cut of the track is saved.',
+    'Přes mapu se ukáže celý záznam z hodinek a co se uřízne, je šedě čárkovaně (až budou označené aspoň %(n)s kontroly).':
+        'The whole recording of the watch is shown over the map and the part cut off is grey and dashed (once at least %(n)s controls are marked).',
+    'Přes fotku se ukáže celý záznam z hodinek a co se uřízne, je šedě čárkovaně (až budou označené aspoň %(n)s kontroly).':
+        'The whole recording of the watch is shown over the photo and the part cut off is grey and dashed (once at least %(n)s controls are marked).',
+    'Uložit jen oříznutí stopy':
+        'Save only the cut of the track',
     # merged from the branch chain of 2026-11-01 (watch over USB, race file, data folder, revize)
     'Uložená fotka mapy už tu není; nahraj ji znovu.':
         'The saved map photo is no longer here; upload it again.',

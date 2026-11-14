@@ -48,6 +48,20 @@
     <label class="check"{% if kontroly and not has_ground %} hidden{% endif %}><input type="checkbox" id="foto-stopa" checked> <span>{% if mapa or kontroly %}{% trans %}Ukázat moji stopu přes mapu{% endtrans %}{% else %}{% trans %}Ukázat moji stopu přes fotku{% endtrans %}{% endif %}</span></label>
     <form method="post" action="{{ save_url or url_for('ob.photo_save', entry_id=e.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% if trim %}
+      {# the start and end of the GPS track are best judged over the placed map: the sliders show the part cut off
+         grey and dashed (photo.js), the controls are placed by the track as cut, and Uložit keeps the cut too #}
+      <details class="ob-info ob-gps-orez" id="orez-gps" data-orez{% if trim.head or trim.tail or trim.setting != 'auto' %} open{% endif %}>
+        <summary>{{ _('Začátek a konec GPS stopy') }}{% if trim.head or trim.tail %}{{ _(': oříznuto') }}{% endif %}</summary>
+        <p class="hint">{{ trim.text }} {% if mapa %}{% trans n=min_points %}Přes mapu se ukáže celý záznam z hodinek a co se
+          uřízne, je šedě čárkovaně (až budou označené aspoň {{ n }} kontroly).{% endtrans %}{% else %}{% trans n=min_points %}Přes fotku se ukáže celý záznam z hodinek a co se
+          uřízne, je šedě čárkovaně (až budou označené aspoň {{ n }} kontroly).{% endtrans %}{% endif %}</p>
+        {% include "ob/_gps_trim.html" %}
+        <input type="hidden" name="back" value="{{ back }}">
+        <button type="submit" class="btn btn-maly" formaction="{{ url_for('ob.race_gps_trim', entry_id=e.id) }}"
+                formnovalidate>{{ _('Uložit jen oříznutí stopy') }}</button>
+      </details>
+      {% endif %}
       <button type="submit" id="foto-ulozit" class="btn btn-hlavni" disabled{% if kmz %} hidden{% endif %}>{{ _('Uložit') }}</button>
       <a class="btn" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ _('Zpět') }}</a>
     </form>

@@ -130,25 +130,7 @@
   <form method="post" action="{{ url_for('ob.race_gps_trim', entry_id=e.id) }}" class="ob-gps-orez" data-orez
         data-delka="{{ trim.length_s }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {% for value, label, hint in [
-      ('auto', _('automaticky'), _('uřízne jen skok GPS na začátku nebo na konci, dobrá stopa zůstane celá')),
-      ('off', _('neořezávat'), _('použije se celá stopa, jak ji hodinky zapsaly')),
-      ('manual', _('ručně'), _('začátek a konec nastavíš posuvníky'))] %}
-    <label class="check"><input type="radio" name="mode" value="{{ value }}"{% if trim.setting == value %} checked{% endif %}>
-      <span><b>{{ label }}</b>: {{ hint }}</span></label>
-    {% endfor %}
-    <div class="ob-gps-orez-posuvniky" data-orez-rucne{% if trim.setting != 'manual' %} hidden{% endif %}>
-      <label class="ob-pole">{{ _('Stopa začíná v') }}
-        <input type="range" name="start_s" min="0" max="{{ trim.length_s | round(0, 'ceil') | int }}" step="1"
-               value="{{ trim.start_s | round | int }}">
-        <output data-orez-cas>{{ trim.start_s | mmss }}</output></label>
-      <label class="ob-pole">{{ _('Stopa končí v') }}
-        <input type="range" name="end_s" min="0" max="{{ trim.length_s | round(0, 'ceil') | int }}" step="1"
-               value="{{ trim.end_s | round(0, 'ceil') | int }}">
-        <output data-orez-cas>{{ trim.end_s | mmss }}</output></label>
-      <p class="hint">{% trans total=trim.length_s | mmss %}Čas je od prvního bodu GPS, celkem {{ total }}. Šedá čárkovaná část v mapě se
-        uřízne; začátek stopy je bod, odkud se počítá start (když závod nemá mezičasy z ORIS).{% endtrans %}</p>
-    </div>
+    {% include "ob/_gps_trim.html" %}
     <button type="submit" class="btn btn-maly">{{ _('Uložit a přepočítat') }}</button>
     <span class="hint">{{ _('Vrátit to jde kdykoli: vyber „automaticky“ a ulož.') }}</span>
   </form>

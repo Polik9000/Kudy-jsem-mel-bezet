@@ -516,39 +516,70 @@ def gps_trim_view(e, analysis):
     return dict(trim, setting=mode, text=texts.gps_trim(trim))
 
 
+def trim_from_form(e, form):
+    """The cut of the GPS track sent by a form (mode auto | off | manual, start_s, end_s): the value of
+    entries.gps_trim (None = automatic), or abort(400); ValueError with the reason in Czech when it leaves too
+    little of the track. None of the fields: KeyError."""
+    mode = form["mode"]
+    if mode not in ("auto", "off", "manual") or not e["activity_id"]:
+        abort(400)
+    if mode == "auto":
+        return None
+    new = dict(activity=e["activity_id"], mode=mode)
+    if mode == "manual":
+        try:
+            lo, hi = float(form["start_s"]), float(form["end_s"])
+        except (KeyError, ValueError):
+            abort(400)
+        if hi - lo < 60:
+            raise ValueError(_("Po oříznutí by zbyla méně než minuta stopy. Nic se neuložilo."))
+        new.update(start_s=round(max(lo, 0.0), 1), end_s=round(hi, 1))
+    return dumps(new)
+
+
+def store_trim(db, e, value):
+    """Keep the cut (trim_from_form) for the entry. True when what holds for its run changed."""
+    try:
+        old = loads(e["gps_trim"])
+    except (ValueError, TypeError):
+        old = None
+    if not old or old.get("activity") != e["activity_id"] or old.get("mode") == "auto":
+        old = None
+    if (loads(value) if value else None) == old:
+        return False
+    db.execute("UPDATE entries SET gps_trim = ? WHERE id = ?", (value, e["id"]))
+    db.commit()
+    return True
+
+
+TRIM_BACK = {"fotka": "ob.photo_page", "mapa": "ob.map_fix_page"}
+
+
 @bp.route("/races/<int:entry_id>/gps-trim", methods=["POST"])
 @login_required
 def race_gps_trim(entry_id):
     """How the start and the end of the GPS track are cut: mode auto (oroute/gpstrim.py finds a jump of the GPS),
     off (all of it) or manual (start_s, end_s: seconds from the first position of the recording). The whole
-    analysis is done again (the track, the splits and the samples of the model change)."""
+    analysis is done again (the track, the splits and the samples of the model change). back: fotka | mapa, the
+    page of placing the map by hand the form was sent from (it shows the track over the map)."""
     e = get_entry(entry_id)
-    mode = request.form.get("mode")
-    if mode not in ("auto", "off", "manual") or not e["activity_id"]:
+    back = request.form.get("back")
+    here = (url_for(TRIM_BACK[back], entry_id=entry_id) if back in TRIM_BACK
+            else url_for("ob.race", entry_id=entry_id) + "#orez-gps")
+    if "mode" not in request.form:
         abort(400)
-    new = dict(activity=e["activity_id"], mode=mode)
-    if mode == "manual":
-        try:
-            lo, hi = float(request.form["start_s"]), float(request.form["end_s"])
-        except (KeyError, ValueError):
-            abort(400)
-        if hi - lo < 60:
-            flash(_("Po oříznutí by zbyla méně než minuta stopy. Nic se neuložilo."), "error")
-            return redirect(url_for("ob.race", entry_id=entry_id) + "#orez-gps")
-        new.update(start_s=round(max(lo, 0.0), 1), end_s=round(hi, 1))
-    db = get_db()
     try:
-        old = loads(e["gps_trim"])
-    except (ValueError, TypeError):
-        old = None
-    if old == new or (mode == "auto" and not old):
+        value = trim_from_form(e, request.form)
+    except ValueError as err:
+        flash(str(err), "error")
+        return redirect(here)
+    db = get_db()
+    if not store_trim(db, e, value):
         flash(_("Oříznutí stopy se nezměnilo."), "ok")
-        return redirect(url_for("ob.race", entry_id=entry_id) + "#orez-gps")
-    db.execute("UPDATE entries SET gps_trim = ? WHERE id = ?", (None if mode == "auto" else dumps(new), entry_id))
-    db.commit()
+        return redirect(here)
     queued = matching.queue_analysis(db, entry_id)
-    flash(_("Uloženo.") + (_(" Analýza se přepočítá na pozadí.") if queued else ""), "ok")
-    return redirect(url_for("ob.race", entry_id=entry_id))
+    flash(_("Oříznutí stopy uloženo.") + (_(" Analýza se přepočítá na pozadí.") if queued else ""), "ok")
+    return redirect(here if back in TRIM_BACK else url_for("ob.race", entry_id=entry_id))
 
 
 def _take_map(db, e, kind, f):
