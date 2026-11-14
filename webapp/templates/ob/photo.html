@@ -1,13 +1,28 @@
 {% extends "ob/base.html" %}
-{% block title %}{{ _('Usadit mapu ručně') if mapa else _('Usadit fotku ručně') }} · {{ e.event_name }}{% endblock %}
+{% macro nadpis() %}{{ _('Doplnit kontroly') if kontroly else _('Usadit mapu ručně') if mapa else _('Usadit fotku ručně') }}{% endmacro %}
+{% block title %}{{ nadpis() }} · {{ e.event_name }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
 {% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Usadit mapu ručně') if mapa else _('Usadit fotku ručně') }}</h2>
+<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ nadpis() }}</h2>
 <p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ e.event_name }}</a> · {{ e.date | datum }}
   · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</p>
-{% if mapa %}
+{% if kontroly %}
+<p>{% if oris %}{% trans n=n %}Trať má podle ORIS <b>{{ n }} kontrol</b>.{% endtrans %}{% endif %}
+  {%- if found is not none %} {% trans found=found %}Na mapě jsem jich našel {{ found }}.{% endtrans %}{% endif %}
+  {% if has_ground %}{% trans %}Čísla mají kolečka podle místa, kde byly tvoje hodinky při ražení.{% endtrans %}{% endif %}</p>
+<p>{% trans %}Vyber v seznamu kontrolu, která chybí, a klikni na mapě na střed jejího kolečka (start: střed
+  trojúhelníku, cíl: střed dvojkolečka). Špatně umístěný bod přetáhni, nebo ho smaž (×). Šedá kolečka jsem na mapě našel
+  navíc: do tratě nepatří, pokud je sám neoznačíš.{% endtrans %}</p>
+{% if not oris %}
+<form method="get" class="controls">
+  <label>{{ _('Počet kontrol') }} <input type="number" name="n" min="1" max="80" value="{{ n }}" class="kratke"></label>
+  <button type="submit" class="btn btn-maly">{{ _('Změnit') }}</button>
+  <span class="hint">{% trans %}Závod není v ORIS, počet kontrol zadej sám.{% endtrans %}</span>
+</form>
+{% endif %}
+{% elif mapa %}
 <p>{% trans %}Jen když je <b>celá mapa</b> posunutá (všechny kontroly vedle tvé stopy stejným směrem). Když zlobí GPS jen na
   pár úsecích (město, vysoké domy), oprav si raději stopu u úseku („Opravit moji stopu“).{% endtrans %}</p>
 <p>{% trans moved=_('mapa s tratí i mapa bez tratě z tvých snímků') if screen else _('mapa celého závodu (s tratí všech kategorií i bez tratě)') %}Vyber kontrolu v seznamu a klikni na mapě na střed jejího kolečka. <b>Klikni aspoň na {{ min_points }} kontroly,
@@ -30,13 +45,19 @@
     <p id="foto-vyber" class="ob-foto-vyber" aria-live="polite"></p>
     <ol id="foto-seznam" class="ob-foto-seznam" aria-label="{{ _('Kontroly') }}"></ol>
     <div id="foto-stav" class="ob-foto-stav" role="status" aria-live="polite"></div>
-    <label class="check"><input type="checkbox" id="foto-stopa" checked> <span>{% if mapa %}{% trans %}Ukázat moji stopu přes mapu{% endtrans %}{% else %}{% trans %}Ukázat moji stopu přes fotku{% endtrans %}{% endif %}</span></label>
+    <label class="check"{% if kontroly and not has_ground %} hidden{% endif %}><input type="checkbox" id="foto-stopa" checked> <span>{% if mapa or kontroly %}{% trans %}Ukázat moji stopu přes mapu{% endtrans %}{% else %}{% trans %}Ukázat moji stopu přes fotku{% endtrans %}{% endif %}</span></label>
     <form method="post" action="{{ save_url or url_for('ob.photo_save', entry_id=e.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" id="foto-ulozit" class="btn btn-hlavni" disabled{% if kmz %} hidden{% endif %}>{{ _('Uložit') }}</button>
       <a class="btn" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ _('Zpět') }}</a>
     </form>
-    {% if not mapa %}<p class="hint">{% trans %}Uložením se fotka narovná a stane se mapou s tratí kategorie; analýza všech jejích běžců se pustí
+    {% if kontroly %}<p class="hint">{% trans %}Uložená trať platí pro celou kategorii a přežije i přepočet novou verzí
+      aplikace, dokud nenahraješ novou mapu s tratí. Analýza všech běžců kategorie se pustí znovu.{% endtrans %}</p>
+    {% if own %}<form method="post" action="{{ url_for('ob.course_fix_drop', entry_id=e.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-maly">{{ _('Smazat ruční trať a číst ji zase z mapy') }}</button>
+    </form>{% endif %}
+    {% elif not mapa %}<p class="hint">{% trans %}Uložením se fotka narovná a stane se mapou s tratí kategorie; analýza všech jejích běžců se pustí
       znovu. Body si stránka pamatuje, můžeš se k nim vrátit.{% endtrans %}</p>{% endif %}
   </div>
 </div>
@@ -51,6 +72,8 @@ window.OB = {
   names: {{ names | tojson }},
   points: {{ points | tojson }},
   minPoints: {{ min_points | tojson }},
+  extra: {{ (extra or []) | tojson }},
+  mapa: {{ (mapa or kontroly or false) | tojson }},
   csrf: {{ csrf_token() | tojson }}
 };
 </script>

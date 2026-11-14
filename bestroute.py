@@ -53,7 +53,7 @@ from oroute.routing import (  # noqa: E402
 )
 from oroute.speedmodel import SpeedModel  # noqa: E402
 
-VERSION = 9      # goes up when the routes of the same race would come out different (stored analyses are
+VERSION = 12     # goes up when the routes of the same race would come out different (stored analyses are
                  # then offered to be redone): 2 = ponds with a bank line and fenced ground are impassable;
                  # 3 = fences and rows of dots are no paths, a fence is hard to cross, the start is the triangle;
                  # 4 = inside a settlement only the streets; 5 = the route of an average runner next to yours;
@@ -61,7 +61,9 @@ VERSION = 9      # goes up when the routes of the same race would come out diffe
                  # 7 = your track along a path within 15 m of it is on the path (the model learns it so too);
                  # 8 = sprint maps: an impassable wall is a building, a passable one (with dots) slow to climb;
                  # 9 = pens on coarse pictures, their fence and point, gates, impassable fences; north lines at
-                 #     any angle are no streams (night 25. 10., Bělá)
+                 #     any angle are no streams (night 25. 10., Bělá); 10 = the course read from the map:
+                 #     a thick ring is no finish, cut-open circles found at the punches (oroute.course.VERSION 1)
+                 # 12 = the obstacles read from the map are in best.json (a runner can correct them)
 HEADER_PX = 145  # Livelox header bar at the top of the exported image (main() takes it from the map)
 NOISE_S = 15.0   # routes closer than this in model time are equally good
 RUN_IN_M = 60.0  # the time starts at least this far from the start triangle: a marked route leads to it
@@ -215,6 +217,15 @@ def shifted(model, f):
     return SpeedModel(model.v_flat, model.up_k, model.down_gain, model.steep_down, fac)
 
 
+def recognised(gm, obs):
+    """What was read from the map as an obstacle, for the page to show and a person to correct
+    (mapdata.obstacles "elements"), in lat/lon: [dict(kind, lat, lon, tall, action, area?, line)]."""
+    ll = lambda u, v: [round(float(a), 6) for a in gm.px_to_latlon(u, v)]
+    return [dict(kind=e["kind"], lat=ll(e["u"], e["v"])[0], lon=ll(e["u"], e["v"])[1], tall=bool(e["tall"]),
+                 action=e["action"], area=round(e["area"]) if "area" in e else None,
+                 line=[ll(u, v) for u, v in e["line"]]) for e in obs.get("elements", [])]
+
+
 def draw_leg_image(gm, base_img, tracks_px, best_px, ctrl_px, a, b, scale=2, pad_m=90, title=None):
     im = base_img.copy()
     d = ImageDraw.Draw(im, "RGBA")
@@ -292,11 +303,11 @@ def main():
         args.step = max(2, int(round(1.0 / gm.m_per_px_x)))
     print("reading terrain ...")
     cls = mapdata.terrain(gm, args.kmz, args.terrain_cache)
-    course = json.load(open(args.course))
+    course = json.load(open(args.course, encoding="utf-8"))
     pts_ll = [course["start"]] + course["controls"] + [course["finish"]]
     ctrl_px = [tuple(float(a) for a in gm.latlon_to_px(p["lat"], p["lon"])) for p in pts_ll]
     # what the map shows as impassable or hard to cross (fenced ground with a control in it can be entered)
-    obs = mapdata.obstacles(gm, cls, open_at=ctrl_px)
+    obs = mapdata.obstacles(gm, cls, open_at=ctrl_px, overrides=mapdata.overrides(args.barriers, gm))
     cls = obs["cls"]
     if not args.no_images:
         timg = Image.fromarray(T.render_classes(cls))
@@ -319,7 +330,7 @@ def main():
     tr = gpstrim.apply(load_track(args.fit), args.gps_trim)
     punch, official = None, None
     if args.official:
-        tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official)))
+        tr, punch, official = apply_official(tr, gm, pts_xy, json.load(open(args.official, encoding="utf-8")))
     x, y = track_xy(gm, tr)
     if punch is None:
         punch = find_punches(tr["t"], x, y, pts_xy)
@@ -619,7 +630,8 @@ def main():
         title=args.title, version=VERSION, model=model.to_dict(), legs=out_legs, dem=dem.source,
         barriers=dict(forbidden=len(barriers["forbidden"]), hard=len(barriers["hard"]),
                       crossings=len(barriers["crossings"]), areas=len(barriers["areas"]),
-                      enclosures=len(pens)) if barriers else None))
+                      enclosures=len(pens)) if barriers else None,
+        obstacles=recognised(gm, obs)))
 
     obs = model.notes.get("terrain", {})
     pm = model.notes.get("personal")

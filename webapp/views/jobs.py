@@ -117,8 +117,9 @@ def jobs_json():
     db = get_db()
     rows = db.execute("SELECT id, status, message FROM jobs WHERE user_id = ? AND status IN ('queued', 'running')",
                       (g.user["id"],)).fetchall()
-    out = dict(active=len(rows), running=[dict(id=r["id"], message=r["message"] or "")
-                                         for r in rows if r["status"] == "running"])
+    # ids: every waiting and running job; a page that shows one of them loads itself again once it is gone
+    out = dict(active=len(rows), ids=[r["id"] for r in rows],
+               running=[dict(id=r["id"], message=r["message"] or "") for r in rows if r["status"] == "running"])
     entry_id = request.args.get("entry", type=int)
     if entry_id and db.execute("SELECT 1 FROM entries WHERE id = ? AND user_id = ?",
                                (entry_id, g.user["id"])).fetchone():

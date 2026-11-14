@@ -12,7 +12,7 @@ from .. import cfg, get_db, i18n
 from ..auth import login_required
 from ..db import loads
 from ..i18n import N_, _
-from ..services import charts, jobs, personal
+from ..services import charts, jobs, personal, regnos
 from ..services import splits as class_splits
 from . import bp
 
@@ -89,13 +89,47 @@ def tables(model):
     return terrain, hills
 
 
+TEXTBOOK_UP_K = SpeedModel().up_k   # 1 m of climb = this many metres on the flat in the textbook (about Naismith)
+
+
+def gist(model, terrain, slope_own, races):
+    """Two to four plain sentences over the tables: where the runner is faster or slower than the map key says,
+    the hills, and how much to trust it all."""
+    _ = i18n._
+    out = []
+    known = [r for r in terrain if r["prior"] and r["seconds"] >= 120]
+    if known:
+        best = max(known, key=lambda r: r["factor"] / r["prior"])
+        worst = min(known, key=lambda r: r["factor"] / r["prior"])
+        up = best["factor"] / best["prior"] - 1
+        down = 1 - worst["factor"] / worst["prior"]
+        if up >= 0.08:
+            out.append(_("Terén „%(name)s“ běháš rychleji, než čeká mapový klíč (asi o %(pct)s %%).",
+                         name=best["name"], pct=f"{up * 100:.0f}"))
+        if down >= 0.08 and worst is not best:
+            out.append(_("Terén „%(name)s“ běháš pomaleji, než čeká mapový klíč (asi o %(pct)s %%).",
+                         name=worst["name"], pct=f"{down * 100:.0f}"))
+        if not out:
+            out.append(_("V terénech, kde máš dost dat, běháš zhruba tak, jak čeká mapový klíč."))
+    if slope_own:
+        k = model.up_k / TEXTBOOK_UP_K
+        out.append(_("Do kopce: 1 m stoupání tě stojí jako %(k)s m po rovině (učebnice počítá asi %(book)s m),",
+                     k=i18n.num(model.up_k, 1), book=f"{TEXTBOOK_UP_K:.0f}") + " "
+                   + (_("takže jsi do kopce silnější než průměr.") if k < 0.85 else
+                      _("takže jsi do kopce slabší než průměr.") if k > 1.15 else _("zhruba jako průměr.")))
+    n = len(races)
+    out.append((_("Model stojí na %(n)s závodě", n=n) if n == 1 else _("Model stojí na %(n)s závodech", n=n))
+               + (_(", je zatím jen orientační.") if n < 4 else "." if n < 10 else _(", už je docela spolehlivý.")))
+    return out
+
+
 FIT_RACES = 10   # "Jak dobře model sedí": the latest races with best routes and the split times of the class
 
 
 def class_fit(db, user):
     """How well the speed model orders the legs as the class does (services/splits.agreement), for the latest
     analysed races with the split times of the whole class: [{entry_id, name, date, agreement}]."""
-    out = []
+    out, mine = [], regnos.of(db, user["id"])
     rows = db.execute(
         "SELECT e.id, e.class_id, ev.name, ev.date, a.id AS analysis_id FROM entries e JOIN classes c ON c.id = e.class_id"
         " JOIN events ev ON ev.id = c.event_id JOIN analyses a ON a.entry_id = e.id"
@@ -104,7 +138,7 @@ def class_fit(db, user):
     for r in rows:
         times = [(loads(x["data"]).get("best") or {}).get("time")
                  for x in db.execute("SELECT data FROM legs WHERE analysis_id = ? ORDER BY n", (r["analysis_id"],))]
-        a = class_splits.agreement(class_splits.table(db, r["class_id"], user["oris_regno"]), times)
+        a = class_splits.agreement(class_splits.table(db, r["class_id"], mine), times)
         if a is not None:
             out.append(dict(entry_id=r["id"], name=r["name"], date=r["date"], agreement=a))
     return out
@@ -132,7 +166,9 @@ def model():
                            personal=m.notes.get("personal") or {}, slope=m.slope_from or {},
                            slope_own=bool(m.notes.get("slope_own")), fitted_at=rows[0]["fitted_at"],
                            slope_chart=charts.slope_chart(m, curve), check=m.notes.get("check"),
-                           average=average_summary(db, g.user["id"]), fit=class_fit(db, g.user))
+                           average=average_summary(db, g.user["id"]), fit=class_fit(db, g.user),
+                           gist=gist(m, terrain, bool(m.notes.get("slope_own")),
+                                     (m.notes.get("personal") or {}).get("races", [])))
 
 
 @bp.route("/model/prepocitat-vse", methods=["POST"])

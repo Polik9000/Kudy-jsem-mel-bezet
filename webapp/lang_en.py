@@ -562,7 +562,7 @@ EN = {
         "“Impassable” means a ban (infinite cost, ISOM 708 and 709). “Hardly passable” is not a ban, just a big loss of time (an impassable cliff, a thick fence): a route crosses it only when it pays off a lot.",
     "Občerstvovačka":
         "Refreshment control",
-    "Zastávky do 30 m od značky se berou jako schválné automaticky, všem běžcům závodu. Smazat ji může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).":
+    "Zastávky do 30 m od značky se berou jako záměrné automaticky, všem běžcům závodu. Smazat ji může jen ten, kdo ji přidal (kliknutím na značku „O“ v mapě).":
         "Stops within 30 m of the mark count as deliberate automatically, for all runners of the race. Only the one who added it can delete it (by clicking the “O” mark on the map).",
     "Přidat občerstvovačku":
         "Add a refreshment control",
@@ -844,8 +844,22 @@ EN = {
         "<b>Otherwise two screenshots from Livelox</b> (below). For your own analysis only: do not share them, the organiser switched the download off on purpose.",
     "Dva snímky z Livelox (Chrome na počítači)":
         "Two screenshots from Livelox (Chrome on a computer)",
-    "Stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení). Nahoře u Dimensions zvol <b>Responsive</b> a nastav <b>5000 × 4000</b>.":
-        "Press <b>F12</b> and then <b>Ctrl+Shift+M</b> (device toolbar). At the top next to Dimensions choose <b>Responsive</b> and set <b>5000 × 4000</b>.",
+    "Nejlepší je Chrome, na Windows i na Macu: postup je stejný a vyzkoušený. Safari je druhá možnost, níže.":
+        "Chrome is best, on Windows and on a Mac: the steps are the same and tested. Safari is the second option, below.",
+    "Na Windows stiskni <b>F12</b> a pak <b>Ctrl+Shift+M</b> (zobrazení zařízení).":
+        "On Windows press <b>F12</b> and then <b>Ctrl+Shift+M</b> (device toolbar).",
+    "Na Macu stiskni <b>⌥⌘I</b> (Option+Command+I) a pak <b>⇧⌘M</b> (Shift+Command+M). Nebo v menu Zobrazit → Vývojář → Nástroje pro vývojáře (View → Developer → Developer Tools) a vlevo nahoře v nástrojích ikona telefonu a tabletu (Toggle device toolbar).":
+        "On a Mac press <b>⌥⌘I</b> (Option+Command+I) and then <b>⇧⌘M</b> (Shift+Command+M). Or use the menu View → Developer → Developer Tools and the phone and tablet icon at the top left of the tools (Toggle device toolbar).",
+    "Nahoře u Dimensions zvol <b>Responsive</b> a nastav <b>5000 × 4000</b>.":
+        "At the top next to Dimensions choose <b>Responsive</b> and set <b>5000 × 4000</b>.",
+    "Safari na Macu (když nechceš Chrome)":
+        "Safari on a Mac (if you do not want Chrome)",
+    "Zapni nabídku Vývojář: Safari → Nastavení → Pokročilé → „Zobrazovat funkce pro webové vývojáře“ (ve starších verzích „Zobrazovat nabídku Vývojář“).":
+        "Turn on the Develop menu: Safari → Settings → Advanced → “Show features for web developers” (in older versions “Show Develop menu in menu bar”).",
+    "Vývojář → <b>Vstoupit do režimu responzivního designu</b> (⌃⌘R, Ctrl+Command+R). Velikost okna s mapou změníš tažením průhledných úchytů kolem okna, poslední rozměr si Safari pamatuje jako „Vlastní velikost“.":
+        "Develop → <b>Enter Responsive Design Mode</b> (⌃⌘R, Ctrl+Command+R). Change the size of the window with the map by dragging the translucent handles around it; Safari remembers the last size as “Custom size”.",
+    "Safari nemá tlačítko „Capture full size screenshot“ a okno nejde zvětšit nad velikost obrazovky. Snímek se tak udělá z toho, co je vidět (⇧⌘4 nebo ⇧⌘5), a bude menší a méně ostrý než z Chrome. Zbytek postupu (dva snímky bez posouvání mapy) je stejný.":
+        "Safari has no “Capture full size screenshot” button and the window cannot be made larger than the screen. The screenshot is taken of what is visible (⇧⌘4 or ⇧⌘5) and will be smaller and less sharp than from Chrome. The rest (two screenshots without moving the map) is the same.",
     "V Livelox zavři křížkem postranní panel se závodníky. Mapu přibliž co nejvíc tak, aby byla celá vidět.":
         "In Livelox close the side panel with the competitors with the cross. Zoom the map in as much as possible so that the whole map is still visible.",
     "Tři tečky úplně vpravo v liště s Dimensions → <b>Capture full size screenshot</b>. Snímek se uloží do Stažených. To je <b>snímek s tratí</b>.":
@@ -858,13 +872,17 @@ EN = {
         "Upload both screenshots to the fields “Livelox screenshot with course” and “Livelox screenshot without course” in the source files of the race.",
     "Proč neposouvat: appka usadí jen snímek s tratí (podle kontrol a tvé stopy) a snímku bez tratě dá stejné místo. Snese posun o pár pixelů, ne jiné přiblížení nebo jinou velikost okna.":
         "Why not to move: the app places only the screenshot with the course (by the controls and your track) and gives the screenshot without the course the same place. It tolerates a shift of a few pixels, not a different zoom or a different window size.",
-    "Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek s tratí jde nahrát i tak, nejlepší postupy z něj ale nebudou.":
-        "When the organiser uploaded a map with the controls burned in, the course cannot be switched off. Then a photo of the map remains. The screenshot with the course can be uploaded anyway, but there will be no best routes from it.",
+    "Když pořadatel nahrál mapu s kontrolami natvrdo, trať vypnout nejde. Pak zbývá fotka mapy. Snímek s tratí jde nahrát i tak: nejlepší postupy se odhadnou z něj, jen s menší přesností. Trať a zakrytý terén pod ní se domýšlí z okolí.":
+        "When the organiser uploaded a map with the controls burned in, the course cannot be switched off. Then a photo of the map remains. The screenshot with the course can be uploaded anyway: the best routes are estimated from it, with less accuracy. The terrain hidden under the course is filled in from its surroundings.",
+    "Před snímkem s tratí v Livelox <b>vypni čáru postupu</b> (přehrávání běžců). Zakrývá mapu a snímek bez tratě je pořád lepší: postupy z něj jsou přesnější a počítají se i záchytné body.":
+        "Before the screenshot with the course, <b>switch off the runner's line</b> in Livelox (the playback of runners). It hides the map, and a screenshot without the course is still better: routes from it are more accurate and the catching features are found too.",
+    "<b>Postupy jsou odhadnuté z mapy s tratí.</b> Kde trať nebo čára postupu zakrývá mapu, terén se domýšlí z okolí. S mapou bez tratě budou přesnější. Záchytné body a „Ztratil jsem se“ z odhadnuté mapy nepočítáme.":
+        "<b>The routes are estimated from the map with the course.</b> Where the course or the runner's line hides the map, the terrain is filled in from its surroundings. With the map without the course they will be more accurate. Catching features and \"I got lost\" are not computed from an estimated map.",
     "Poznámky u úseku":
         "Notes on a leg",
     "Na stránce závodu klikni na úsek. Pod mapou je, co se na úseku stalo. Poznámky mění, jak appka čte ztrátu a z kterých úseků se učí tvůj model rychlosti.":
         "On the page of the race click a leg. Below the map is what happened on the leg. The notes change how the app reads the loss and which legs your speed model learns from.",
-    "Schválná zastávka":
+    "Záměrná zastávka":
         "Deliberate stop",
     "Zastavení se nepočítá jako chyba (pití, tkanička, pomoc jinému). U občerstvení to appka pozná sama.":
         "A stop does not count as a mistake (a drink, a shoelace, helping someone). At a refreshment control the app recognises it itself.",
@@ -1366,7 +1384,7 @@ EN = {
         "Whole course",
     "Co se na úseku stalo":
         "What happened on the leg",
-    "schválná zastávka (nepočítá se jako chyba)":
+    "záměrná zastávka (nepočítá se jako chyba)":
         "deliberate stop (does not count as a mistake)",
     "ztráta kontaktu s mapou":
         "lost contact with the map",
@@ -1708,12 +1726,18 @@ EN = {
         'Select all shown',
     'Zrušit zaškrtnutí':
         'Clear selection',
-    '<b>Spočítat i model kopců</b> ze všech běhů za období':
-        '<b>Also fit the hill model</b> from all runs of the period',
+    '<b>Spočítat i model kopců</b> <span class="ob-siroky">ze všech běhů</span> za období':
+        '<b>Also fit the hill model</b> <span class="ob-siroky">from all runs</span> of the period',
     'Období modelu kopců':
         'Period for the hill model',
-    'Vybrané běhy výše se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.':
-        'The runs you selected above are saved and stay. On top of that the app downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Of those only the race runs stay; the others (they show where you live) are deleted. Both happen in one go.',
+    'Zaškrtnuté běhy se uloží a zůstanou. K tomu appka stáhne všechny běhy za zvolené období a spočítá z nich, jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů; ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.':
+        'The runs you tick are saved and stay. On top of that the app downloads all runs of the chosen period and works out how fast you run uphill and downhill, as from a Garmin account export. Of those only the race runs stay; the others (they show where you live) are deleted. Both happen in one go.',
+    'Načíst z Garmin Connect':
+        'Load from Garmin Connect',
+    'Běhy přímo z tvého účtu Garmin, bez ručního exportu':
+        'Runs straight from your Garmin account, without a manual export',
+    'Co tlačítko udělá':
+        'What the button does',
     'Načíst vybrané a model kopců':
         'Load selected and hill model',
     'Zaškrtnuto':
@@ -1845,6 +1869,163 @@ EN = {
         'Save and recompute',
     'Vrátit to jde kdykoli: vyber „automaticky“ a ulož.':
         'You can undo it at any time: choose “automatically” and save.',
+    # merged from the branch chain of 2026-11-01 (watch over USB, race file, data folder, revize)
+    'Uložená fotka mapy už tu není; nahraj ji znovu.':
+        'The saved map photo is no longer here; upload it again.',
+    'Čekající snímky Livelox už tu nejsou; nahraj je znovu.':
+        'The waiting Livelox screenshots are no longer here; upload them again.',
+    'Terén „%(name)s“ běháš rychleji, než čeká mapový klíč (asi o %(pct)s %%).':
+        'You run “%(name)s” faster than the map key expects (by about %(pct)s %%).',
+    'Terén „%(name)s“ běháš pomaleji, než čeká mapový klíč (asi o %(pct)s %%).':
+        'You run “%(name)s” slower than the map key expects (by about %(pct)s %%).',
+    'V terénech, kde máš dost dat, běháš zhruba tak, jak čeká mapový klíč.':
+        'In the terrain where you have enough data you run about as the map key expects.',
+    'Model stojí na %(n)s závodě':
+        'The model rests on %(n)s race',
+    'Model stojí na %(n)s závodech':
+        'The model rests on %(n)s races',
+    ', je zatím jen orientační.':
+        ', so it is only a rough guide so far.',
+    'Do kopce: 1 m stoupání tě stojí jako %(k)s m po rovině (učebnice počítá asi %(book)s m),':
+        'Uphill: 1 m of climb costs you as much as %(k)s m on the flat (the textbook says about %(book)s m),',
+    'takže jsi do kopce silnější než průměr.':
+        'so you are stronger uphill than average.',
+    ', už je docela spolehlivý.':
+        ', it is fairly reliable by now.',
+    'takže jsi do kopce slabší než průměr.':
+        'so you are weaker uphill than average.',
+    'zhruba jako průměr.':
+        'about average.',
+    'Fotka je uložená a usazuje se na pozadí; výsledek uvidíš v úlohách.':
+        'The photo is saved and is being placed in the background; you will see the result in the jobs.',
+    'Snímek bez tratě je uložený. Až nahraješ snímek s tratí ze stejného pohledu, zpracují se společně.':
+        'The screenshot without the course is saved. Once you upload the screenshot with the course from the same view, they are processed together.',
+    'Snímky z Livelox jsou uložené a usazují se na pozadí podle běhu a mezičasů. Výsledek uvidíš v úlohách.':
+        'The Livelox screenshots are saved and are being placed in the background using the run and the split times. You will see the result in the jobs.',
+    'Snímky z Livelox jsou uložené. Jakmile bude k dispozici běh z hodinek a mezičasy z ORIS, usadí se automaticky.':
+        'The Livelox screenshots are saved. They are placed automatically once the watch run and the ORIS split times are here.',
+    'Obrázek jde nahrát jen jako mapu s tratí. Mapu bez tratě nahraj jako KMZ z Livelox.':
+        'An image can only be uploaded as the map with the course. Upload the map without the course as a KMZ from Livelox.',
+    'Fotka je uložená. Až doplníš běh z hodinek a mezičasy z ORIS, usadí se automaticky.':
+        'The photo is saved. It is placed automatically once you add the watch run and the ORIS split times.',
+    'Mapa bez tratě je uložená.':
+        'The map without the course is saved.',
+    'Složka neexistuje.':
+        'The folder does not exist.',
+    'Načteno běhů: %(n)s.':
+        'Runs loaded: %(n)s.',
+    'Složka neexistuje. Zkontroluj cestu.':
+        'The folder does not exist. Check the path.',
+    'Běhy se se závody spárovaly samy.':
+        'The runs were matched to the races automatically.',
+    'Už v aplikaci bylo %(n)s.':
+        '%(n)s were already in the app.',
+    '<b>Jak se pozná chyba.</b> U ostatních běžců jen z mezičasů: chyba je úsek, kde byl běžec o víc než 30 s a zároveň o víc než 25 %% pomalejší než jeho vlastní normál (metoda WinSplits). Pomalý běh celý závod tedy chybou není, jeden pomalý úsek být může. U tebe má aplikace i stopu z hodinek, a tak na záložce Mapa a úseky pozná i druh chyby (přeběhnutí, nedoběhnutí, úhyb ze směru, hledání v kruhu, zastavení a nové určení polohy). Pozdější startovní čas pomáhá (vyšlapané stopy), takže malé rozdíly neznamenají chybu.':
+        '<b>How a mistake is found.</b> For the other runners only from the split times: a mistake is a leg where the runner was more than 30 s and at the same time more than 25 %% slower than their own normal (the WinSplits method). So running slowly the whole race is not a mistake, one slow leg can be. For you the app also has the watch track, so on the Map and legs tab it also tells the kind of mistake (overshoot, undershoot, drifting off the bearing, searching in circles, stopping and relocating). A later start time helps (trodden paths), so small differences do not mean a mistake.',
+    'Webový režim':
+        'Web mode',
+    'Ke každému závodu appka potřebuje tři věci: běh z hodinek, mapu s tratí a mapu bez tratě. Časy a mezičasy si načte z ORIS sama. KMZ a fotku mapy můžeš nahrát kdykoliv; fotka počká, než bude k dispozici běh a mezičasy. Snímky obrazovky z Livelox můžeš také nahrát kdykoliv a každý zvlášť; aplikace počká na oba snímky, běh a mezičasy z ORIS.':
+        'For every race the app needs three things: the run from the watch, the map with the course and the map without the course. It loads the times and split times from ORIS itself. You can upload a KMZ or a photo of the map at any time; the photo waits until the run and the split times are here. You can also upload Livelox screenshots at any time and each one separately; the app waits for both screenshots, the run and the ORIS split times.',
+    'Obsah nápovědy':
+        'Help contents',
+    'Rychlý obsah':
+        'Quick contents',
+    'Dva snímky z Livelox':
+        'Two Livelox screenshots',
+    '<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code> jako soubory .fit.':
+        '<b>Straight from the watch</b>: connect the watch to the computer with the cable, the runs are in the folder <code>GARMIN/Activity</code> as .fit files.',
+    'V aplikaci v <a href="%(url)s">Nahrát běhy</a> klikni na <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne na Přehledu závodů a v Nahrát běhy.':
+        'In the app, in <a href="%(url)s">Upload runs</a>, click <b>Load from the watch over USB or from a folder</b>: only runs that are not here yet are offered. A watch connected over MTP does not show up as a disk: on a fēnix 5X Plus and similar, switch it on the watch in Settings → System → USB Mode → Garmin; otherwise load the runs from Garmin Connect as described above. When a watch with new runs is connected, the app offers them by itself on Races and in Upload runs.',
+    'Celý zip nahraj v <a href="%(url)s">Nahrát běhy</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
+        'Upload the whole zip in <a href="%(url)s">Upload runs</a>. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
+    'Celý zip nahraj v Nahrát běhy. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
+        'Upload the whole zip in Upload runs. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
+    'Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy.':
+        'From the map with the course the app reads the controls, from the map without the course the terrain for the best routes.',
+    'Mapy zůstávají jen v tomhle počítači. Jsou dílem pořadatele: používej je jen pro vlastní rozbor.':
+        "The maps stay only on this computer. They are the organiser's work: use them only for your own analysis.",
+    'Mapu bez tratě stačí, když nahraje jeden člověk z oddílu. Mapy vidí jen přihlášení členové a z appky nejdou stáhnout.':
+        'It is enough when one person from the club uploads the map without the course. Only signed-in members see the maps and they cannot be downloaded from the app.',
+    'V kostce':
+        'In short',
+    'Závody v modelu, kontrola modelu a historie':
+        'Races in the model, model check and history',
+    'tři písmena oddílu a čtyři číslice, např. BFM0000':
+        'three club letters and four digits, e.g. BFM0000',
+    'Podle něj se z ORIS načtou tvoje závody a kategorie. Ověří se v ORIS a po uložení se ukáže jméno, ke kterému patří. Zadat ho jde jen jednou, tak ho zkontroluj.':
+        'Your races and classes are loaded from ORIS by it. It is checked in ORIS and after saving the name it belongs to is shown. It can be entered only once, so check it.',
+    'Podle registračního čísla se z ORIS načítají tvoje závody, kategorie, Livelox ID a oficiální mezičasy.':
+        'Your races, classes, Livelox IDs and official split times are loaded from ORIS by the registration number.',
+    'Účet k němu patří napořád, změnit ho nejde.':
+        'The account belongs to it for good, it cannot be changed.',
+    'Data a verze':
+        'Data and version',
+    'Verze aplikace':
+        'App version',
+    'Složka s daty':
+        'Data folder',
+    'Otevřít složku s daty':
+        'Open the data folder',
+    'Zkontrolovat nové vydání':
+        'Check for a new release',
+    'Aplikace sama nikam nevolá a nové verze nehledá: odkaz jen otevře stránku vydání v prohlížeči. Novou verzi nainstaluj přes starou, data ve složce zůstanou a závody budou vidět dál.':
+        'The app does not call anywhere by itself and does not look for new versions: the link only opens the releases page in the browser. Install a new version over the old one, the data in the folder stays and the races remain visible.',
+    'Smaže všechno, co je v aplikaci: závody (%(races)s), běhy z hodinek (%(activities)s), rozbory (%(analyses)s), poznámky (%(notes)s), osobní modely (%(models)s), mapy i registrační číslo ORIS. Nejde to vrátit.':
+        'Deletes everything in the app: races (%(races)s), runs from the watch (%(activities)s), analyses (%(analyses)s), notes (%(notes)s), personal models (%(models)s), maps and the ORIS registration number. It cannot be undone.',
+    'Pro potvrzení napiš SMAZAT':
+        'To confirm, type SMAZAT',
+    'Smazat všechna moje data':
+        'Delete all my data',
+    'Jak se ztráta počítá':
+        'How the loss is computed',
+    '<b>Ztráta</b> u úseku je rozdíl proti tvému nejlepšímu možnému běhu podle tvého modelu rychlosti: nejlepší postup a tvoje tempo bez zaváhání. Dělí se na <b>volbu postupu</b> (zvolil jsi pomalejší variantu) a <b>chybu</b> (bloudění, přeběhnutí, kroužení a dohledávání u kontroly, zastavení). Když stopa vypadá na bloudění, nebo se čas ztratil smyčkami u kontroly, počítá se to jako chyba, ne jako volba postupu.':
+        'The <b>loss</b> on a leg is the difference from your best possible run by your speed model: the best route at your pace without hesitation. It is split into <b>route choice</b> (you chose a slower option) and <b>mistake</b> (getting lost, overshooting, circling and searching near the control, stopping). When the track looks like getting lost, or the time was lost in loops near the control, it counts as a mistake, not as route choice.',
+    '<b>Mezičasy kategorie</b> měří něco jiného: o kolik jsi byl na úseku pomalejší než tvoje obvyklé tempo proti ostatním běžcům. Proto jsou čísla v mezičasech menší. Kde se model a mezičasy rozcházejí o víc než minutu, úsek to napíše; tam ber ztrátu z modelu s rezervou.':
+        '<b>The class split times</b> measure something else: how much slower than your usual pace you were on the leg compared with the other runners. That is why the numbers in the split times are smaller. Where the model and the split times differ by more than a minute, the leg says so; take the loss from the model with a pinch of salt there.',
+    'Mapa závodu je dílo pořadatele a mapaře a je chráněná autorským právem.':
+        'The race map is the work of the organiser and the mapper and is protected by copyright.',
+    'Zůstává jen v tomhle počítači; používej ji jen pro rozbor vlastního běhu a posílej ji nanejvýš ostatním účastníkům závodu.':
+        'It stays only on this computer; use it only to analyse your own run and share it at most with other participants of the race.',
+    'V aplikaci slouží jen přihlášeným členům oddílu k rozboru vlastního běhu; nejde stáhnout a nesmí se šířit dál.':
+        'In the app it serves only the signed-in club members to analyse their own run; it cannot be downloaded and must not be shared further.',
+    '1. KMZ z Livelox <span class="badge badge-tichy">nejpřesnější podklady</span>':
+        '1. KMZ from Livelox <span class="badge badge-tichy">the most accurate source</span>',
+    'Mapa s tratí · kategorie %(name)s':
+        'Map with the course · class %(name)s',
+    'Mapa bez tratě · sdílená pro celý závod':
+        'Map without the course · shared for the whole race',
+    'Z ní se čte terén pro nejlepší postupy.':
+        'The terrain for the best routes is read from it.',
+    'Snímek s tratí čeká na běh a mezičasy, nebo na zpracování.':
+        'The screenshot with the course is waiting for the run and the split times, or for processing.',
+    'Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.':
+        'The screenshot without the course is waiting for the screenshot with the course from the same view.',
+    'Oba snímky můžeš nahrát najednou, nebo každý zvlášť a klidně před během. Aplikace je uloží a počká na FIT i mezičasy z ORIS. Musí jít o stejný pohled. <a href="%(help)s#snimky">Jak je udělat v Chromu</a>. Jen pro vlastní rozbor, nesdílej je dál.':
+        'You can upload both screenshots at once, or each separately, even before the run. The app saves them and waits for the FIT and the ORIS split times. It has to be the same view. <a href="%(help)s#snimky">How to make them in Chrome</a>. Only for your own analysis, do not share them.',
+    'Celou mapu shora, za světla a bez blesku, mapu polož rovně a nic ať nezakrývá kontroly. Fotka se na místo usadí podle kontrol a tvé stopy v oficiálních časech ražení. Můžeš ji nahrát kdykoliv; pokud ještě chybí běh nebo mezičasy z ORIS, počká uložená na jejich doplnění.':
+        'The whole map from above, in daylight and without flash, laid flat with nothing covering the controls. The photo is placed by the controls and your track at the official punch times. You can upload it any time; if the run or the ORIS split times are still missing, it waits saved until they are added.',
+    'Jak začít':
+        'How to start',
+    '<b>Registrační číslo ORIS</b> (nepovinné) zadej v <a href="%(profile)s">Profilu</a>: tvoje závody, kategorie a oficiální mezičasy se pak načtou samy. Bez něj přidáš závod <a href="%(oris)s">podle čísla v ORIS</a> nebo <a href="%(new)s">ručně</a>.':
+        '<b>ORIS registration number</b> (optional): enter it in <a href="%(profile)s">Profile</a> and your races, classes and official split times load by themselves. Without it you add a race <a href="%(oris)s">by its ORIS number</a> or <a href="%(new)s">by hand</a>.',
+    '<b>Běh z hodinek</b> (.fit nebo zip z Garmin Connect) nahraj v <a href="%(url)s">Nahrát běhy</a>. Se závodem se spáruje sám.':
+        '<b>Run from the watch</b> (.fit or zip from Garmin Connect): upload it in <a href="%(url)s">Upload runs</a>. It is matched to the race by itself.',
+    '<b>Mapy</b>: u závodu v Podkladech nahraj KMZ z Livelox, s tratí a bez ní. <a href="%(url)s">Jak na to</a>':
+        '<b>Maps</b>: in the race\'s Inputs upload the KMZ from Livelox, with and without the course. <a href="%(url)s">How to</a>',
+    'Načte z ORIS závody, na které jsi přihlášený pod svým registračním číslem':
+        'Loads from ORIS the races you entered under your registration number',
+    'Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem':
+        'One race by its ORIS number, e.g. when you ran under another number',
+    'Závod uložený jiným běžcem (.obzavod)':
+        'A race saved by another runner (.obzavod)',
+    'Načíst závod ze souboru':
+        'Load a race from a file',
+    'Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect, Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu. Z celého exportu se navíc spočítá tvůj model kopců. Po zpracování aplikace smaže pouze nahranou dočasnou kopii ZIPu ze svého úložiště; původní soubor ve tvém počítači zůstává beze změny. V aplikaci zůstanou běhy spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže). Ostatní běhy se z aplikace smažou kvůli ochraně soukromí a vrátí se jen opětovným nahráním exportu. Před párováním se z ORIS načtou tvoje závody. Velký export se nahrává i několik minut.':
+        'Single <b>.fit</b> files from the watch, or a whole <b>Garmin account export</b> (zip from Garmin Connect, Data Management, Export Your Data). The runs are matched to the races by date, start time and distance from the race centre. From a whole export your hill model is computed as well. After processing the app deletes only the temporary uploaded copy of the ZIP from its storage; the original file on your computer stays unchanged. The app keeps the runs matched to races and the runs from the day and place of a race that did not match (assign or delete them below). Other runs are deleted from the app for privacy and come back only by uploading the export again. Before matching, your races are loaded from ORIS. A big export takes several minutes to upload.',
+    'Načíst z hodinek přes USB nebo ze složky':
+        'Load from the watch over USB or from a folder',
+    'Hodinky Garmin připojené kabelem jako disk, nebo složka se soubory .fit.':
+        'A Garmin watch connected by cable as a disk, or a folder with .fit files.',
 }
 
 EN.update({
@@ -1855,7 +2036,135 @@ EN.update({
         "The app did not start: %(error)s\nData: %(data)s",
 })
 
+# loading from ORIS, more registration numbers after a move to another club, multi-stage events (docs/oris.md)
+EN.update({
+    "Nejdřív zadej svoje registrační číslo ORIS.": "First enter your ORIS registration number.",
+    "Číslo %(regno)s už máš.": "You already have the number %(regno)s.",
+    "Číslo %(regno)s patří jinému účtu.": "The number %(regno)s belongs to another account.",
+    "Číslo %(regno)s patří v ORIS jménu %(name)s, ne tobě. Přidat jde jen tvoje vlastní číslo.":
+        "In ORIS the number %(regno)s belongs to %(name)s, not to you. Only your own number can be added.",
+    "Číslo %(regno)s smazat nejde: jsou pod ním závody, nebo je to číslo účtu.":
+        "The number %(regno)s cannot be removed: there are races under it, or it is the number of the account.",
+    "ORIS teď neodpovídá, zkus číslo přidat později.": "ORIS is not answering right now, try adding the number later.",
+    "Registrační číslo %(regno)s v ORIS není ani mezi tvými závody.":
+        "The registration number %(regno)s is neither in ORIS nor among your races.",
+    "zatím %(done)s z %(total)s závodů": "%(done)s of %(total)s races so far",
+    "Závody z ORIS se už načítají, průběh je vidět nahoře.": "Your races are already being loaded from ORIS, see the progress at the top.",
+    "Závody z ORIS se načítají znovu, průběh vidíš nahoře.": "Your races are being loaded from ORIS again, see the progress at the top.",
+    "Číslo %(regno)s je smazané.": "The number %(regno)s is removed.",
+    "Uloženo: %(regno)s patří v ORIS jménu %(name)s. Teď se z ORIS načítají všechny tvoje závody. Trvá to chvíli"
+    " (podle počtu závodů i několik minut), průběh vidíš nahoře v Přehledu závodů. Když to nejsi ty, napiš autorovi"
+    " aplikace.":
+        "Saved: %(regno)s belongs to %(name)s in ORIS. All your races are being loaded from ORIS now. It takes a while"
+        " (several minutes with many races); see the progress at the top of the race overview. If that is not you,"
+        " write to the author of the app.",
+    "Přidáno: %(regno)s (v ORIS %(name)s).": "Added: %(regno)s (%(name)s in ORIS).",
+    "Přidáno: %(regno)s.": "Added: %(regno)s.",
+    "Po uložení se z ORIS načtou všechny tvoje závody. Trvá to chvíli (podle počtu závodů i několik minut), průběh"
+    " uvidíš v Přehledu závodů.":
+        "Once saved, all your races are loaded from ORIS. It takes a while (several minutes with many races); you will"
+        " see the progress in the race overview.",
+    "Registrační čísla ORIS": "ORIS registration numbers",
+    "číslo účtu": "number of the account",
+    "podle tvých přihlášek v ORIS": "from your entries in ORIS",
+    "přidané po přestupu": "added after a move to another club",
+    "Smazat (přidané omylem)": "Remove (added by mistake)",
+    "Přestoupil jsem do jiného oddílu: přidat další registrační číslo":
+        "I moved to another club: add another registration number",
+    "Další registrační číslo ORIS": "Another ORIS registration number",
+    "Nové číslo po přestupu, nebo staré číslo z dřívějšího oddílu. Ověří se v ORIS: musí patřit tobě (stejný člověk"
+    " v ORIS, stejné jméno). Závody pod oběma čísly pak uvidíš tady a mezičasy se najdou i u starých závodů.":
+        "The new number after the move, or the old number of your former club. It is checked in ORIS: it must be"
+        " yours (the same person in ORIS, the same name). Then you see the races under both numbers here, and the"
+        " split times are found for the old races too.",
+    "Přidat číslo": "Add the number",
+    "etapa %(n)s / %(of)s": "stage %(n)s / %(of)s",
+    "Etapový závod: mapy, tratě a mezičasy patří k jednotlivým etapám. Vyber etapu, kterou jsi běžel, pak kategorii.":
+        "A multi-stage event: maps, courses and split times belong to the single stages. Pick the stage you ran, then"
+        " the class.",
+    "Etapy se z ORIS načíst nepodařilo, zkus to později.": "The stages could not be loaded from ORIS, try again later.",
+    "Registrační čísla: %(numbers)s.": "Registration numbers: %(numbers)s.",
+    "Načítám závody z ORIS…": "Loading races from ORIS…",
+    "Trvá to chvíli (podle počtu závodů i několik minut). Stránka se sama obnoví, až to doběhne.":
+        "It takes a while (several minutes with many races). The page reloads itself when it is done.",
+    "Načteno z ORIS. %(message)s": "Loaded from ORIS. %(message)s",
+    "<b>Registrační číslo ORIS</b> %(regno)s máš zadané: tvoje závody, kategorie a oficiální mezičasy se z ORIS"
+    " načítají samy (průběh je vidět nahoře).":
+        "Your <b>ORIS registration number</b> %(regno)s is entered: your races, classes and official split times are"
+        " loaded from ORIS by themselves (see the progress at the top).",
+    "etapa etapového závodu": "a stage of a multi-stage event",
+})
+
+
+# the course against ORIS and the page Doplnit kontroly (views/coursefix.py)
+EN.update({
+    "Doplnit kontroly": "Fix the controls",
+    "Zkontrolovat kontroly": "Check the controls",
+    "Počet kontrol nesedí s ORIS.": "The number of controls does not agree with ORIS.",
+    "Kontrol na mapě: %(have)s, v ORIS: %(oris)s. Rozbor proto nemusí sedět (pořadí kontrol, mezičasy, úseky).":
+        "Controls on the map: %(have)s, in ORIS: %(oris)s. So the analysis may be off (order of the controls, splits, "
+        "legs).",
+    "Na mapě jsou kolečka některých kontrol přerušená; %(n)s jsem dohledal podle místa, kde byly hodinky v čase "
+    "ražení, a trať má %(oris)s kontrol jako v ORIS.":
+        "The circles of some controls are cut open on the map; %(n)s I found where the watch was at the punch time, "
+        "and the course has %(oris)s controls as in ORIS.",
+    "Když je mapa s tratí správná, označ kontroly, start a cíl ručně: <a href=\"%(fix)s\">Doplnit kontroly</a>.":
+        "If the map with the course is the right one, mark the controls, the start and the finish by hand: "
+        "<a href=\"%(fix)s\">Fix the controls</a>.",
+    "Kontroly tratě jsou označené ručně (<a href=\"%(fix)s\">Doplnit kontroly</a>).":
+        "The controls of the course are marked by hand (<a href=\"%(fix)s\">Fix the controls</a>).",
+    "Chybí na mapě některá kontrola, nebo je některá navíc? <a href=\"%(fix)s\">Doplnit kontroly</a>.":
+        "Is a control missing on the map, or is there one too many? <a href=\"%(fix)s\">Fix the controls</a>.",
+    "Trať má podle ORIS <b>%(n)s kontrol</b>.": "By ORIS the course has <b>%(n)s controls</b>.",
+    "Na mapě jsem jich našel %(found)s.": "I found %(found)s on the map.",
+    "Čísla mají kolečka podle místa, kde byly tvoje hodinky při ražení.":
+        "The circles are numbered by where your watch was at the punches.",
+    "Vyber v seznamu kontrolu, která chybí, a klikni na mapě na střed jejího kolečka (start: střed trojúhelníku, cíl: "
+    "střed dvojkolečka). Špatně umístěný bod přetáhni, nebo ho smaž (×). Šedá kolečka jsem na mapě našel navíc: do "
+    "tratě nepatří, pokud je sám neoznačíš.":
+        "Pick a missing control in the list and click the centre of its circle on the map (start: the centre of the "
+        "triangle, finish: the centre of the double circle). Drag a point that is in the wrong place, or remove it (×). "
+        "The grey circles I found on the map in addition: they are not part of the course unless you mark them "
+        "yourself.",
+    "Počet kontrol": "Number of controls",
+    "Změnit": "Change",
+    "Závod není v ORIS, počet kontrol zadej sám.": "The race is not in ORIS, enter the number of controls yourself.",
+    "Uložená trať platí pro celou kategorii a přežije i přepočet novou verzí aplikace, dokud nenahraješ novou mapu "
+    "s tratí. Analýza všech běžců kategorie se pustí znovu.":
+        "The saved course holds for the whole category, also when a new version of the app computes it again, until "
+        "you upload a new map with the course. The analysis of all runners of the category runs again.",
+    "Smazat ruční trať a číst ji zase z mapy": "Remove the course marked by hand and read it from the map again",
+    "Bod %(n)s je %(v)s m od místa, kde byly hodinky při ražení: asi je na jiné kontrole.":
+        "Point %(n)s is %(v)s m from where the watch was at the punch: it is likely on another control.",
+    "Chybí: %(names)s.": "Missing: %(names)s.",
+    "Všechny kontroly jsou označené. Uložením se trať kategorie nahradí touhle.":
+        "All controls are marked. Saving replaces the course of the category with this one.",
+    "Označ všechny kontroly, start i cíl.": "Mark all controls, the start and the finish.",
+    "Trať kategorie je uložená (%(n)s kontrol). Analýza se spustí znovu.":
+        "The course of the category is saved (%(n)s controls). The analysis runs again.",
+    "Ruční trať je smazaná, trať se zase čte z mapy. Analýza se spustí znovu.":
+        "The course marked by hand is removed, the course is read from the map again. The analysis runs again.",
+})
+
+# one file that cannot be uploaded does not stop the others (issue 6)
+EN.update({
+    "%(filename)s: není soubor z hodinek (.fit), nebo je poškozený. Nenahrál se, ostatní ano.":
+        "%(filename)s: not a file from a watch (.fit), or it is broken. It was not uploaded, the others were.",
+    "%(filename)s: není zip, nebo je poškozený. Nenahrál se, ostatní ano.":
+        "%(filename)s: not a zip, or it is broken. It was not uploaded, the others were.",
+    "%(filename)s je větší než %(mb)s MB, a tak se nenahrál. Ostatní soubory ano.":
+        "%(filename)s is larger than %(mb)s MB, so it was not uploaded. The other files were.",
+    "%(filename)s je větší, než server přijme, a tak se nenahrál. Ostatní soubory ano.":
+        "%(filename)s is larger than the server takes, so it was not uploaded. The other files were.",
+    "Soubory jsou dohromady větší, než server přijme (nejvýš %(mb)s MB). Nahraj je po jednom.":
+        "The files together are larger than the server takes (at most %(mb)s MB). Upload them one at a time.",
+})
+
 EN_JS = {
+    'Podrobnosti jsou nahoře na stránce.':
+        'The details are at the top of the page.',
+    'Zkusit znovu':
+        'Try again',
     "Roh obdélníku":
         "Corner of the rectangle",
     "Mapa: %(w)s × %(h)s px ze snímku %(W)s × %(H)s px.":
@@ -1926,7 +2235,7 @@ EN_JS = {
         "loss %(t)s",
     "stání %(s)s s":
         "standing %(s)s s",
-    "Občerstvovačka: zastávky do 30 m od ní jsou schválné.":
+    "Občerstvovačka: zastávky do 30 m od ní jsou záměrné.":
         "Refreshment control: stops within 30 m of it are deliberate.",
     "možnost %(n)s":
         "option %(n)s",
@@ -1958,13 +2267,13 @@ EN_JS = {
         "fatigue %(t)s",
     "Ztráta celkem <b>%(sum)s</b>:":
         "Total loss <b>%(sum)s</b>:",
-    "Schválné zastávky %(t)s se jako chyba nepočítají.":
+    "Záměrné zastávky %(t)s se jako chyba nepočítají.":
         "Deliberate stops %(t)s do not count as a mistake.",
     "Zakázané přechody se změnily, postupy se přepočítávají.":
         "The impassable crossings changed, the routes are being recomputed.",
     "občerstvení":
         "refreshment",
-    "schválná zastávka":
+    "záměrná zastávka":
         "deliberate stop",
     "ztráta kontaktu s mapou":
         "lost contact with the map",
@@ -2104,9 +2413,9 @@ EN_JS = {
         "Catching feature (what you meet if you run past the control):",
     "do 200 m za kontrolou není cesta, voda ani nic velkého, co by tě zastavilo":
         "within 200 m beyond the control there is no path, water or anything big that would stop you",
-    "Zastávka u občerstvovačky (%(s)s s) se bere jako schválná automaticky.":
+    "Zastávka u občerstvovačky (%(s)s s) se bere jako záměrná automaticky.":
         "A stop at a refreshment control (%(s)s s) counts as deliberate automatically.",
-    "Schválná zastávka: %(s)s s se nepočítá jako chyba.":
+    "Záměrná zastávka: %(s)s s se nepočítá jako chyba.":
         "Deliberate stop: %(s)s s do not count as a mistake.",
     "Na úseku není žádná zastávka delší než 6 s, takže se nic neodečítá.":
         "There is no stop longer than 6 s on the leg, so nothing is subtracted.",
@@ -2138,6 +2447,9 @@ EN_JS = {
         "Uploading…",
     "Nahráno, server soubory ukládá…":
         "Uploaded, the server is saving the files…",
+    "Klikni na mapě: %(name)s.": "Click on the map: %(name)s.",
+    "Žádný soubor se nenahrál: všechny jsou větší, než server přijme.":
+        "No file was uploaded: all of them are larger than the server takes.",
     "Soubor je větší, než server přijme.":
         "The file is larger than the server accepts.",
     "Nahrání se nepovedlo (HTTP %(status)s). Zkus to znovu.":
@@ -2204,6 +2516,77 @@ EN_JS = {
         "For each race the app needs three things: a watch run, a map with the course and a map without the course. It loads times and splits from ORIS. You can upload a KMZ or map photo at any time; the photo waits until the run and split times are available. Livelox screenshots can also be uploaded at any time, separately; the app waits for both screenshots, the run and the ORIS split times.",
     "Uložená fotka mapy už tu není; nahraj ji znovu.":
         "The saved map photo is no longer here; upload it again.",
+    # merged from the branch chain of 2026-11-01 (revize: one main loss number)
+    'chyby %(t)s':
+        'mistakes %(t)s',
+    'rychleji než model o %(t)s':
+        'faster than the model by %(t)s',
+    'čas nejlepšího postupu podle tvého modelu rychlosti':
+        'time of the best route by your speed model',
+    'Ideál':
+        'Ideal',
+    'zvolil jsi pomalejší variantu':
+        'you chose a slower option',
+    'Volba postupu':
+        'Route choice',
+    'bloudění, přeběhnutí, kroužení a dohledávání u kontroly, zastavení':
+        'getting lost, overshooting, circling and searching near the control, stopping',
+    'Chyba':
+        'Mistake',
+    'ztráta proti tvému obvyklému tempu podle mezičasů kategorie':
+        'loss against your usual pace by the class split times',
+    'z úseku bez chyby se učí tvůj model rychlosti':
+        'your speed model learns from a leg without mistakes',
+    'Učí model':
+        'Teaches model',
+    'model a mezičasy kategorie se tu rozcházejí o víc než minutu':
+        'the model and the class split times differ here by more than a minute',
+    'víc v panelu úseku':
+        'more in the leg panel',
+    'Bez ztráty: podle modelu jsi úsek běžel o %(t)s rychleji než nejlepší postup.':
+        'No loss: by the model you ran the leg %(t)s faster than the best route.',
+    'Bez ztráty (rozdíl do 20 s je v nepřesnosti modelu).':
+        "No loss (a difference under 20 s is within the model's accuracy).",
+    'Ztráta asi <b>%(t)s</b>':
+        'Loss about <b>%(t)s</b>',
+    'Smyčky u kontroly se počítají jako chyba, ne jako volba postupu.':
+        'Loops near the control count as a mistake, not as route choice.',
+    'Stopa vypadá na bloudění, takže se to počítá jako chyba, ne jako volba postupu.':
+        'The track looks like getting lost, so it counts as a mistake, not as route choice.',
+    'Podle mezičasů kategorie je to %(t)s proti tvému obvyklému tempu. Model a mezičasy se tu rozcházejí, ztrátu z modelu ber s rezervou.':
+        'By the class split times it is %(t)s against your usual pace. The model and the split times differ here, take the loss from the model with a pinch of salt.',
+    'Odhad ztráty z GPS <b>%(t)s</b>.':
+        'Loss estimate from GPS <b>%(t)s</b>.',
+    'podle mezičasů kategorie %(t)s proti tvému obvyklému tempu':
+        'by the class split times %(t)s against your usual pace',
+    'Stopa úseku je opravená ručně: volba postupu a chyba se počítají po nakreslené čáře, z osobního modelu je úsek vyřazený.':
+        'The track of the leg is corrected by hand: route choice and mistake are computed along the drawn line, the leg is left out of the personal model.',
+    'Varianty jsou skoro stejně rychlé: rozdíl mezi nimi je menší, než jak přesný je model. Obě byly dobrá volba, ztrátu volbou postupu ber jen orientačně.':
+        "The options are almost equally fast: the difference between them is smaller than the model's accuracy. Both were a good choice, take the route choice loss only as a rough guide.",
+    'chyba a únava %(t)s':
+        'mistake and fatigue %(t)s',
+    'chyba u kontroly %(t)s':
+        'mistake at the control %(t)s',
+    'bloudění %(t)s':
+        'getting lost %(t)s',
+    'chyba v provedení %(t)s':
+        'execution mistake %(t)s',
+    "plot": "fence",
+    "neprůchozí plot": "impassable fence",
+    "oplocenka": "enclosure",
+    "šrafy (zakázaný prostor)": "hatching (out of bounds)",
+    "OSM: železnice": "OSM: railway",
+    "OSM: dálnice": "OSM: motorway",
+    "OSM: plot nebo zeď": "OSM: fence or wall",
+    "Opraveno: není překážka": "Corrected: not an obstacle",
+    "Opraveno: jen těžký průchod": "Corrected: only hard to cross",
+    "Opraveno: neprůchozí": "Corrected: impassable",
+    "Opraveno: plot": "Corrected: a fence",
+    "Není překážka": "Not an obstacle",
+    "Jen těžký průchod": "Only hard to cross",
+    "Neprůchozí plot": "Impassable fence",
+    "Je plot": "It is a fence",
+    "Vrátit původní": "Restore the original",
 }
 
 # Texts of the pages that ended up among the script texts above: the pages need them in EN.
@@ -2225,4 +2608,48 @@ EN.update({
     "V ORIS u tebe v kategorii %(class_name)s nejsou časy ražení ani čas v cíli, podle kterých se mapa usazuje. Nahraj místo snímků KMZ z Livelox.":
         "ORIS has no punch times or finish time for you in category %(class_name)s, which the map is placed by. "
         "Upload a KMZ from Livelox instead of the screenshots.",
+})
+
+EN.update({
+    "Rozpoznané překážky": "Recognised obstacles",
+    "rozpoznaná překážka (vrstva 4: kliknutím ji opravíš)": "recognised obstacle (layer 4: click it to correct it)",
+})
+
+EN.update({
+    "Načíst z hodinek": "Load from the watch",
+    "Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty, které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.":
+        "Connect your Garmin watch with the cable. When it shows up as a disk, I find the runs on it by myself. I offer only"
+        " the ones that are not in the app yet. Nothing on the watch is changed or deleted.",
+    "Nalezené hodinky:": "Watches found:",
+    "Žádné hodinky jako disk nevidím. Buď ještě nejsou připojené, nebo jsou v režimu MTP: ten appka neumí.":
+        "I see no watch as a disk. Either it is not connected yet, or it is in MTP mode, which the app cannot read.",
+    "<b>Přepni hodinky na režim Garmin</b> (disk), pokud ho mají. Fēnix 5X Plus a podobné: na hodinkách Nastavení → Systém → Režim USB → Garmin (anglicky Settings → System → USB Mode → Garmin). Pak kabel odpoj a znovu připoj.":
+        "<b>Switch the watch to Garmin mode</b> (disk) if it has one. Fēnix 5X Plus and similar: on the watch, Settings →"
+        " System → USB Mode → Garmin. Then unplug the cable and plug it in again.",
+    "<b>Windows a MTP</b>: hodinky jsou v Průzkumníku jako zařízení bez písmene disku. Zkopíruj složku GARMIN\\Activity z hodinek do počítače a tu složku zadej níže.":
+        "<b>Windows and MTP</b>: the watch is in File Explorer as a device without a drive letter. Copy the folder"
+        " GARMIN\\Activity from the watch to the computer and enter that folder below.",
+    "<b>Mac a MTP</b>: bez dalšího programu to nejde. Když hodinky režim Garmin nemají, načti běhy z Garmin Connect.":
+        "<b>Mac and MTP</b>: this does not work without another program. When the watch has no Garmin mode, load the runs"
+        " from Garmin Connect.",
+    "Programy Garmin Express a Android File Transfer si hodinky po připojení zaberou. Zavři je, ať se hodinky ukážou jako disk.":
+        "Garmin Express and Android File Transfer take hold of the watch when it is connected. Close them so that the"
+        " watch shows up as a disk.",
+    'Jinak: <a href="%(garmin)s">Načíst přímo z Garmin Connect</a>, nebo běhy exportuj a nahraj (<a href="%(help)s#garmin">Jak na to</a>).':
+        'Otherwise: <a href="%(garmin)s">Load straight from Garmin Connect</a>, or export the runs and upload them'
+        ' (<a href="%(help)s#garmin">How to</a>).',
+    "Nebo složka se soubory .fit": "Or a folder with .fit files",
+    "Zobrazit běhy": "Show runs",
+    "Ve složce <code>%(base)s</code> je běhů: %(n)s, nových %(new)s.":
+        "The folder <code>%(base)s</code> has %(n)s runs, %(new)s of them new.",
+    "už v aplikaci": "already in the app",
+    "Načtou se jen zaškrtnuté. Ty, které nezaškrtneš, už ti appka na Přehledu sama nenabídne.":
+        "Only the ticked ones are loaded. The ones you leave unticked are not offered on Races again.",
+    "Ve složce nejsou žádné běhy (.fit se záznamem aktivity).": "The folder has no runs (.fit with a recorded activity).",
+})
+
+EN_JS.update({
+    "Našly se nové aktivity z hodinek (%(n)s).": "New activities found on the watch (%(n)s).",
+    "Načíst…": "Load…",
+    "Teď ne": "Not now",
 })

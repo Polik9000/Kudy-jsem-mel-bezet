@@ -660,3 +660,190 @@ V obou dvojicích byl delší závod pomalejší. Průměrný tep z Garminu je n
 Zisk je malý a na čtyřech závodech v šumu; rozhodne až víc závodů různé délky (sprinty a zimní liga z `data-extra/`). Na tom, **který postup je nejlepší, to nic nemění** (všechny postupy úseku se zrychlí nebo zpomalí stejně); mění se časy postupů a rozdělení ztráty na volbu postupu a provedení. `oroute/personal_model.json` v repu se nepřepočítal (vzorky v `data/` nemají délku závodu), webová appka si exponent spočítá při dalším přepočtu modelu z `leg_samples.npz`.
 
 **Stav k 24. 10. 2026.** Kód je v `main` od sloučení `ae21cbf` (19. 10.), tenhle oddíl se tehdy při konfliktu ve `docs/validace.md` ztratil (na jeho místě je oddíl 18 o kontrole tras) a vrací se sem beze změny obsahu. Model v repu (`oroute/personal_model.json`) už exponent má: `dur_exp` 0,073, tedy 15 min ×1,11, 30 min ×1,05, 90 min ×0,97. Test `tests/test_race_length.py`.
+
+## 24. Kolečka kontrol proti ORIS (11. 11. 2026, větev `kontroly-podle-oris`)
+
+Issue 9: appka u tátových KITL 2025 (H45B) nepoznala některé kontroly, na Macu jednou našla 6 z 19, jindy 169
+„koleček“ místo 18. Nástroj `tools/kolecka.py` porovná u každé mapy na tomhle počítači kolečka z `detect_course`
+(počítaná jako v `analyze.py`, 25 m a dál od cíle) s počtem kontrol podle ORIS (počet mezičasů, jinak kódy kontrol
+kategorie). S během a oficiálními časy ukáže i kolečka dohledaná u míst ražení (+) a vynechaná (−). S `--rozbor` uloží
+výřezy do `kontrola/kitl-kolecka/`. Tátovy KITL tu nejsou (`docs/co-zbyva.md`, otázka 51); Tobiasovy H16B z týchž dnů
+sedí (13 z 13, 12 z 12).
+
+**Počet z ORIS.** `classes.controls` („Controls“ z `getEvent`) nesedí s mezičasy u 12 z 83 přihlášek v databázi
+autora: vždy říká víc (SZL 15. 2. 2025: 28, mapa i popisy kontrol mají 26; Zkouška sirén 6. 11. 2024: 20 proti 16).
+Kódy kontrol z mezičasů sedí s mezičasy vždy. Porovnává se proto jen s nimi.
+
+**30 map.** U 23 map s počtem z ORIS vycházelo před změnou:
+
+| Mapa | ORIS | Kolečka | Proč |
+|---|---|---|---|
+| Bohemia 2025 E1 (H16B) | 11 | 2 | Mapa 0,43 m/px, čára kolečka 7 px. Jedno kolečko se trefí na několika poloměrech až 7 px od sebe a `_circles` bral každou skupinu s rozpětím ≥ 5 px jako cíl. Dvě kolečka (4, 6) jsou navíc rozřezaná. |
+| Přebor BFM+SFM 2026 | 13 | 14 | Číslo „10“ vytištěné přes „4“: nula se čte jako kolečko (vnitřek 0,22 fialové, 105 m od všech ražení). |
+| Grand Prix Silesia E1 (H16B) | 22 | 21 | Kontrola 16 je rozřezaná černou kresbou: skóre 0,33 (práh 0,35), obvod 69 %, největší mezera 55°. Mapa nemá běh, takže se nedohledá; zbývá ruční oprava. |
+| ostatních 20 | = | = | |
+
+**Rozřezaná kolečka.** Celé kolečko z Livelox má skóre `hough_circles` kolem 0,5 a skóre klesá s vytištěnou částí obvodu
+(na umělé mapě 0,51 · podíl). Práh 0,35 tak nevezme kolečko, kterému chybí víc než asi třetina. Naměřené
+rozřezané kontroly:
+
+| Kontrola | Obvod | Největší mezera | Spojnice | Od hodinek |
+|---|---|---|---|---|
+| Bohemia E1, 4 | 69 % | 40° | 0,97 | 10,7 m |
+| Bohemia E1, 6 | 65 % | 55° | 0,93 | 18,1 m |
+| GPS E1, 16 | 69 % | 55° | (bez běhu) | |
+
+**Po změně** (`oroute/course.VERSION` 1): Bohemia E1 9 koleček + 2 dohledaná = 11 a oficiální časy se použily (dřív
+GPS); Přebor 14 − 1 = 13 a oficiální časy se použily. Ostatních 28 map dává stejný počet koleček a najde start i cíl
+jako před změnou (porovnání `vse-pred.json` a `vse-po.json`). Změnilo se jen, kdy je skupina kruhů cíl;
+kdyby se některá zařadila jinak, změnil by se počet. Zlaté soubory čtyř referenčních závodů viz níže. Hledání u míst ražení se pouští jen tam, kde počet nesedí, takže
+se jejich trať nemůže změnit. Na umělé mapě (`tests/test_kolecka.py`) se dohledají kolečka s 64 % a 43 % obvodu (ve třech
+obloucích), s 33 % a 28 % ne. Číslo kontroly, šrafy a křížení spojnic u místa ražení kolečko nedají.
+
+**Referenční závody** (`tests/test_regression.py`, `tests/test_official_races.py`, 11. 11. na Windows, Python 3.14):
+`legs.csv` a `course.json` Pohory a Petřvaldu jsou stejné jako zlaté soubory, i s oficiálními časy. Bajtově testy na
+Windows neprojdou kvůli koncům řádků (`\r\n` proti `\n` ve zlatých souborech z Linuxu). `best_legs.csv` se od zlatých
+liší o pár metrů v `best_path_m` a `best_green_m` (časy stejné). Stejně ale vyjde i `bestroute.py` z `main` na stejných
+vstupech, takže to dělá prostředí, ne tahle změna. Zlaté soubory se nemění.
+
+## 25. Barometr hodinek a poloha stopy podle výškopisu (14. 11. 2026, větev `barometr-poloha`, issue 41)
+
+Jen měření, v `oroute/` se nic nemění. Nástroj `tools/fit_vyska.py`: pro `.fit` vypíše, co v souboru je, jak se
+chová výška a jak sedí s výškopisem pod stopou; s `--posun` zkouší stopu posunout tak, aby výškový profil pod ní
+seděl s barometrem. Data: 30 závodů z Garmin exportu autora (24 v Česku s ČÚZK DMR 5G, 6 v Polsku s AWS), Pohora a
+Petřvald i s oficiálními časy z ORIS (`tests/fixtures/oris`) a kolečky z mapy.
+
+**Co je v souboru.** Všech 30 záznamů je z fēnix 5X Plus. Výška je v poli `enhanced_altitude` (to čte
+`oroute/fitload.py`), záznam po 2 s (dva starší po 3 s), rozlišení 0,2 m. Šum kolem průměru za 15 s je 0,1 až 0,4 m:
+to je barometr, výška z GPS by šuměla o metry. Soubor to říká i sám: zpráva `device_info` má senzor
+`local_device_type = barometer`. **Jak poznat barometr:** senzor `barometer` v `device_info`, a pro jistotu šum pod
+0,7 m (`file_facts`: `barometer_listed`, `barometer_like`). Hodinky bez barometru jsem neměl (otázka 62 v
+`co-zbyva.md`).
+
+**Výška proti výškopisu** (barometr i výškopis pod stopou průměrované přes 15 s; posun = medián rozdílu; drift =
+přímka v čase, jen kde se běží; sklon po 50 m uražené vzdálenosti):
+
+| Datum | Závod | Disciplína | Výškopis | Posun | RMS po posunu | Drift | RMS po driftu | Chyba sklonu | Korelace sklonu | Stoupání hodinky / model |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 6. 11. 2024 | Místek | sprint | ČÚZK | 11 m | 2,5 m | 7,0 m/h | 2,3 m | 1,3 % | 0,29 | 27 / 12 m |
+| 17. 11. 2024 | Frýdek | sprint | ČÚZK | 7 m | 1,0 m | -1,8 m/h | 1,0 m | 1,1 % | 0,58 | 21 / 12 m |
+| 4. 12. 2024 | O-RUNNAŘI Beskydy | jiná | ČÚZK | 4 m | 2,1 m | -11,2 m/h | 1,4 m | 1,7 % | 0,92 | 80 / 82 m |
+| 8. 1. 2025 | Ostrava - Bělský les | noční | ČÚZK | 8 m | 1,0 m | 2,7 m/h | 0,8 m | 1,2 % | 0,45 | 14 / 5 m |
+| 15. 2. 2025 | Ostrava - Zábřeh | střední | ČÚZK | 3 m | 3,0 m | -11,5 m/h | 1,6 m | 1,0 % | 0,67 | 37 / 32 m |
+| 18. 4. 2025 | Bohdanovice | sprint | ČÚZK | 9 m | 2,0 m | 7,6 m/h | 1,8 m | 4,1 % | 0,91 | 65 / 64 m |
+| 20. 4. 2025 | Bohdanovice | střední | ČÚZK | 9 m | 2,4 m | 4,5 m/h | 2,2 m | 3,1 % | 0,95 | 129 / 132 m |
+| 26. 4. 2025 | Městský stadion Třinec | sprint | ČÚZK | 8 m | 0,8 m | -4,6 m/h | 0,8 m | 1,5 % | 0,88 | 28 / 30 m |
+| 3. 5. 2025 | Krnov | střední | ČÚZK | 2 m | 2,4 m | 4,5 m/h | 2,1 m | 4,0 % | 0,93 | 187 / 178 m |
+| 17. 5. 2025 | Pohora | střední | ČÚZK | -294 m | 3,5 m | 12,7 m/h | 1,3 m | 2,1 % | 0,88 | 103 / 94 m |
+| 15. 6. 2025 | Ostrava - Výškovice | sprint | ČÚZK | 36 m | 6,0 m | 61,0 m/h | 2,2 m | 2,5 % | 0,83 | 52 / 48 m |
+| 30. 7. 2025 | Mimoň | střední | ČÚZK | 14 m | 1,3 m | 2,1 m/h | 1,3 m | 2,7 % | 0,88 | 106 / 96 m |
+| 31. 7. 2025 | Mimoň | dlouhá | ČÚZK | 12 m | 1,6 m | 3,4 m/h | 1,4 m | 1,8 % | 0,94 | 110 / 107 m |
+| 1. 8. 2025 | Okřešice | sprint | ČÚZK | 5 m | 2,5 m | 13,4 m/h | 2,0 m | 3,1 % | 0,89 | 60 / 51 m |
+| 2. 8. 2025 | Okřešice | střední | ČÚZK | 2 m | 3,3 m | -13,2 m/h | 2,4 m | 2,9 % | 0,93 | 109 / 111 m |
+| 3. 8. 2025 | Okřešice | dlouhá | ČÚZK | 3 m | 1,9 m | -2,4 m/h | 1,8 m | 2,4 % | 0,94 | 133 / 138 m |
+| 6. 9. 2025 | Sobotín | střední | ČÚZK | 9 m | 1,9 m | -3,5 m/h | 1,6 m | 2,4 % | 0,97 | 190 / 197 m |
+| 7. 9. 2025 | Sobotín | dlouhá | ČÚZK | -2 m | 2,5 m | -0,4 m/h | 2,5 m | 2,7 % | 0,97 | 321 / 324 m |
+| 14. 9. 2025 | Hodoňovice | střední | ČÚZK | -83 m | 2,3 m | 4,5 m/h | 2,1 m | 3,0 % | 0,93 | 137 / 145 m |
+| 27. 9. 2025 | Kunčice pod Ondřejníkem | střední | ČÚZK | 3 m | 2,8 m | 3,9 m/h | 2,7 m | 3,6 % | 0,96 | 190 / 192 m |
+| 28. 3. 2026 | Petřvald u Karviné | dlouhá | ČÚZK | 10 m | 2,2 m | 0,8 m/h | 2,2 m | 2,6 % | 0,95 | 309 / 288 m |
+| 18. 4. 2026 | Zlín | střední | ČÚZK | 17 m | 1,9 m | -0,2 m/h | 1,9 m | 3,0 % | 0,94 | 150 / 149 m |
+| 26. 4. 2026 | Místek | sprint | ČÚZK | -1 m | 1,1 m | -8,1 m/h | 0,9 m | 1,8 % | 0,10 | 18 / 12 m |
+| 13. 6. 2026 | Hradec nad Moravicí | střední | ČÚZK | 3 m | 1,8 m | 3,0 m/h | 1,6 m | 2,7 % | 0,95 | 165 / 173 m |
+| 8. 8. 2026 | Azymut Day 1 |  | AWS | 3 m | 2,5 m | -3,1 m/h | 2,5 m | 2,6 % | 0,50 | 27 / 25 m |
+| 9. 8. 2026 | Azymut Day 2 |  | AWS | -15 m | 1,2 m | 2,2 m/h | 1,2 m | 1,4 % | 0,44 | 19 / 17 m |
+| 11. 8. 2026 | Żołynia |  | AWS | -4 m | 3,9 m | 3,2 m/h | 3,8 m | 4,1 % | 0,18 | 66 / 47 m |
+| 12. 8. 2026 | Azymut Day 4 |  | AWS | -5 m | 6,9 m | 22,1 m/h | 3,0 m | 3,0 % | 0,32 | 80 / 53 m |
+| 14. 8. 2026 | Azymut Day 5 |  | AWS | 3 m | 4,7 m | 1,6 m/h | 4,7 m | 7,1 % | 0,81 | 316 / 218 m |
+| 13. 9. 2026 | Bílá | střední | ČÚZK | 23 m | 2,4 m | 3,5 m/h | 2,1 m | 3,8 % | 0,95 | 227 / 226 m |
+
+- **Absolutní výška barometru neplatí.** Obvykle je 0 až 25 m od terénu, ale Pohora −294 m a Hodoňovice −83 m
+  (hodinky se před startem nekalibrovaly). Proto se má brát jen změna výšky, ne výška.
+- **Drift je.** Medián 3,7 m/h, 90 % do 13 m/h, nejvíc 61 m/h (sprint ve Výškovicích, za 19 minut 19 m). Za celý
+  závod obvykle 2,5 m, nejvíc 21 m. Na sklon po 50 m to vliv nemá (61 m/h při 3 m/s je 0,2 %).
+- **Sklon v kopcích sedí.** V 15 kopcovitých závodech v Česku (členitost aspoň 7 m) je korelace sklonu s ČÚZK
+  0,88 až 0,97 (medián 0,94) a stoupání barometru je 0,9 až 1,1 násobek stoupání podle ČÚZK. Čísla oddílu 3 platí
+  znovu: Petřvald 2,2 m (tam 2,3 m), Pohora 3,5 m. Na rovině a ve městě korelace klesá (0,10 až 0,67): sklon tam je
+  šum obou zdrojů, ne chyba barometru. S AWS v Polsku je korelace 0,18 až 0,81 a stoupání podle AWS až o třetinu menší.
+
+**Posun stopy.** Pro celou stopu a pro úseky po 800 m (překryv půlkou) jsem zkusil posuny ±40 m po 2 m a pro každý
+spočítal RMS rozdílu barometru a výškopisu pod posunutou stopou, po odečtení nejlepšího posunu výšky a driftu.
+„Ostrost“ je RMS druhého nejlepšího posunu aspoň 10 m od nejlepšího děleno RMS nejlepšího. Úsek je důvěryhodný jen
+s členitostí aspoň 4 m, ostrostí aspoň 1,5 a posunem do 30 m (`confident()`). Nesmyslný je posun na okraji mřížky
+nebo nad 40 m. Zkouška se známým posunem: celou stopu jsem nejdřív posunul o 20 m na východ, pak o 20 m na jih
+(`--zkusebni-posun`), a díval se, jestli hledání vrátí totéž o 20 m jinak.
+
+| Datum | Závod | Členitost | Posun celé stopy | Věřit | Stopa posunutá o 20 m na východ | o 20 m na jih | Úseků 800 m | důvěryhodných | na rovině | nesmyslných |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 6. 11. 2024 | Místek | 1 m | -38, -40 m | ne |  |  | 12 | 0 | 12 | 7 |
+| 17. 11. 2024 | Frýdek | 2 m | -34, -32 m | ne |  |  | 9 | 0 | 9 | 2 |
+| 4. 12. 2024 | O-RUNNAŘI Beskydy | 5 m | +0, -8 m | ne |  |  | 11 | 0 | 7 | 0 |
+| 8. 1. 2025 | Ostrava - Bělský les | 4 m | +38, +40 m | ne |  |  | 9 | 0 | 9 | 6 |
+| 15. 2. 2025 | Ostrava - Zábřeh | 3 m | -20, -40 m | ne |  |  | 17 | 0 | 17 | 6 |
+| 18. 4. 2025 | Bohdanovice | 15 m | -2, -2 m | ano | -22, -2 m | -2, +18 m | 5 | 0 | 2 | 0 |
+| 20. 4. 2025 | Bohdanovice | 11 m | +2, -4 m | ano | -18, -4 m | +2, +16 m | 9 | 0 | 4 | 0 |
+| 26. 4. 2025 | Městský stadion Třinec | 5 m | +2, -12 m | ne |  |  | 7 | 0 | 7 | 3 |
+| 3. 5. 2025 | Krnov | 12 m | +2, +0 m | ano | -18, +0 m | +2, +20 m | 11 | 0 | 1 | 0 |
+| 17. 5. 2025 | Pohora | 7 m | +2, -8 m | ne |  |  | 13 | 0 | 10 | 2 |
+| 15. 6. 2025 | Ostrava - Výškovice | 10 m | +26, -10 m | ne | +6, -10 m | +26, +10 m | 7 | 0 | 6 | 2 |
+| 30. 7. 2025 | Mimoň | 9 m | +2, -8 m | ano | -18, -8 m | +2, +12 m | 12 | 0 | 9 | 1 |
+| 31. 7. 2025 | Mimoň | 10 m | -4, -4 m | ano | -24, -4 m | -4, +16 m | 14 | 0 | 13 | 0 |
+| 1. 8. 2025 | Okřešice | 5 m | +0, -6 m | ne |  |  | 6 | 0 | 4 | 0 |
+| 2. 8. 2025 | Okřešice | 8 m | -2, -8 m | ano | -22, -8 m | -2, +12 m | 10 | 0 | 3 | 0 |
+| 3. 8. 2025 | Okřešice | 7 m | -2, -4 m | ne |  |  | 15 | 0 | 9 | 0 |
+| 6. 9. 2025 | Sobotín | 27 m | +0, +12 m | ano | -20, +12 m | +0, +32 m | 12 | 0 | 2 | 0 |
+| 7. 9. 2025 | Sobotín | 39 m | +6, -4 m | ano | -14, -4 m | +6, +16 m | 24 | 0 | 8 | 1 |
+| 14. 9. 2025 | Hodoňovice | 21 m | +0, +6 m | ano | -20, +6 m | +0, +26 m | 11 | 0 | 3 | 0 |
+| 27. 9. 2025 | Kunčice pod Ondřejníkem | 23 m | -4, -4 m | ano | -24, -4 m | -4, +16 m | 9 | 0 | 1 | 0 |
+| 28. 3. 2026 | Petřvald u Karviné | 9 m | -2, -4 m | ano | -22, -4 m | -2, +16 m | 25 | 2 | 5 | 0 |
+| 18. 4. 2026 | Zlín | 34 m | +6, -4 m | ano | -14, -4 m | +6, +16 m | 12 | 0 | 6 | 0 |
+| 26. 4. 2026 | Místek | 1 m | -4, -4 m | ne |  |  | 8 | 0 | 8 | 3 |
+| 13. 6. 2026 | Hradec nad Moravicí | 28 m | -4, -6 m | ano | -24, -6 m | -4, +14 m | 14 | 0 | 4 | 0 |
+| 8. 8. 2026 | Azymut Day 1 | 5 m | -26, -40 m | ne |  |  | 8 | 0 | 8 | 8 |
+| 9. 8. 2026 | Azymut Day 2 | 1 m | +40, -26 m | ne |  |  | 8 | 0 | 8 | 6 |
+| 11. 8. 2026 | Żołynia | 4 m | -12, -40 m | ne |  |  | 12 | 0 | 12 | 8 |
+| 12. 8. 2026 | Azymut Day 4 | 5 m | -28, +10 m | ne |  |  | 18 | 0 | 18 | 13 |
+| 14. 8. 2026 | Azymut Day 5 | 28 m | +10, -18 m | ne |  |  | 16 | 0 | 6 | 15 |
+| 13. 9. 2026 | Bílá | 45 m | -2, +0 m | ano | -22, +0 m | -2, +20 m | 13 | 0 | 0 | 0 |
+
+- **Úseky nefungují.** Z 357 úseků jsou důvěryhodné 2 (oba v Petřvaldu, 4,5 a 10 m). Minimum je ploché: ostrost
+  medián 1,04, 90 % do 1,23. Na rovině (211 úseků) a s AWS vychází 83 nesmyslných posunů. Na 800 m je profil terénu
+  po průměrování 15 s moc hladký, aby rozlišil 10 m. Zkusil jsem i průměrování 5 s, ČÚZK vyhlazený jen na 2 nebo
+  4 m a úseky 1500 m (na Pohoře a Petřvaldu): důvěryhodných úseků je stejně 0 až 2.
+- **Celá stopa funguje v kopcích s ČÚZK.** Pravidlo `whole_trusted()`: ČÚZK, členitost aspoň 7 m, korelace
+  sklonu aspoň 0,85. Tak vyjde 14 závodů a u všech 14 vrátí hledání po posunu o 20 m přesně původní výsledek
+  posunutý o 20 m, v obou směrech (chyba 0 m). Bez umělého posunu je posun celé stopy u nich 0 až 12 m, medián 6 m,
+  nejčastěji kolem 4 m na jih. Pravidlo vyřadí roviny, Polsko (AWS) i sprint ve Výškovicích, kde hledání posun 20 m
+  nenašlo (ČÚZK DMR 5G je terén bez budov).
+- **U kontrol skoro nic.** Pohora a Petřvald, poloha stopy v oficiálních časech ražení proti středu kolečka v mapě
+  (Livelox KMZ), medián / 90 %:
+
+| Závod | Kontrol | Původní GPS | Po posunu úseků | Po posunu celé stopy | Průměrná odchylka kolečka od GPS (x, y) | Stopa navíc posunutá o 20 m na východ, pak opravená celá |
+|---|---|---|---|---|---|---|
+| Pohora | 16 | 14,4 / 19,0 m | 14,4 / 19,0 m | 12,4 / 19,6 m | −1, −5 m | 27,2 → 12,4 m |
+| Petřvald | 19 | 8,6 / 20,3 m | 8,6 / 20,3 m | 7,2 / 17,5 m | −2, −5 m | 23,7 → 7,2 m |
+
+  Celá stopa se posune stejným směrem (na jih), jakým od ní leží kolečka, a medián se zlepší o 1,4 a 2 m. Zbytek
+  chyby (7 až 14 m) je šum GPS u kontroly a čas ražení proti záznamu po 2 s, posun celé stopy ho neopraví.
+
+**Odpovědi na issue 41.**
+
+1. *Je výška v poli spolehlivě barometr?* U fēnix 5X Plus ano, ve všech 30 souborech (senzor v `device_info`, šum
+   0,1 až 0,4 m). U jiných hodinek se pozná stejně; bez barometru tu soubor nemám.
+2. *Má drift?* Ano, obvykle jednotky m/h, výjimečně 61 m/h, a absolutní výška může být o stovky metrů jinde. Pro sklon
+   to nevadí, pro absolutní výšku ano.
+3. *Pomáhá v kopcích a ne na rovině?* Ano: v kopcích s ČÚZK najde posun celé stopy spolehlivě, na rovině, ve městě a
+   s AWS ne. Opravit stopu po úsecích neumí ani v kopcích.
+
+**Verdikt: do `oroute/georef.py` nezapojovat.** Oprava po úsecích nefunguje a posun celé stopy u správně usazené
+mapy zlepší kontroly o 1 až 2 m, což na postupy nemá vliv. Jako kontrola usazení mapy se nehodí: výškopis měří, kde je
+stopa proti terénu, ne kde je mapa proti stopě, a `georef` usazuje mapu právě podle stopy. Nález, který zůstává:
+GPS hodinek leží proti terénu v kopcích systematicky asi 4 m na sever. Kdyby se někdy usazovaly mapy, které nesou
+vrstevnice, dal by se výškopis porovnat přímo s mapou; to je jiná úloha.
+
+**Co dělat bez barometru** (návrh na samostatný PR, až bude soubor z takových hodinek): postupy a model rychlosti
+závodu už berou sklon z výškopisu (`bestroute.py`), barometr používá jen stoupání úseku (`oroute/analysis.py`)
+a model sklonu z běžných běhů (`oroute/slopefit.py`). Bez barometru (žádný senzor `barometer` nebo šum nad 0,7 m) brát
+stoupání úseku z výškopisu a běhy do modelu sklonu nepouštět.
+
+Spuštění: `python tools/fit_vyska.py private/garmin/*.fit --posun`, `python tools/fit_vyska.py --zavod pohora petrvald
+--posun` (s `--zkusebni-posun 20 0` zkouška se známým posunem). Test na umělém terénu: `tests/test_fit_vyska.py`.

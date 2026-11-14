@@ -205,6 +205,7 @@ def main():
     model = SpeedModel.load(os.path.join(best_dir, "speed_model.json"))
     height_at = lambda u, v: dem.height(*gm.px_to_latlon(u, v))
     lines = mapdata.barriers(args.barriers, gm) if args.barriers else None
+    fixes = mapdata.overrides(args.barriers, gm)           # what a person corrected of the obstacles read from the map
     pad = int(AROUND_M / gm.m_per_px_x)
     routes = {l["leg"]: l for l in best["legs"]}
     spans = {l["leg"]: (l["a"], l["b"]) for l in analysis["legs"]}
@@ -219,7 +220,8 @@ def main():
         px = np.c_[gm.latlon_to_px(la, lo)]
         # the terrain and the obstacles as the best route saw them, read around the plan only
         obs = mapdata.obstacles(gm, cls, (int(px[:, 0].min()) - pad, int(px[:, 1].min()) - pad,
-                                          int(px[:, 0].max()) + pad, int(px[:, 1].max()) + pad), open_at=ctrl)
+                                          int(px[:, 0].max()) + pad, int(px[:, 1].max()) + pad),
+                                open_at=ctrl, overrides=fixes)
         P = price(px, obs["cls"], height_at, gm.m_per_px_x, model)
         # a fence the plan climbs over costs what it costs the best route (routing.HARD_CROSS_S)
         n = fence_crossings(px, obs["hard"])

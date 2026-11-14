@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import pytest
-from races import ROOT
+from races import ROOT, inputs
 
 from oroute import dem, osm
 
@@ -85,7 +85,6 @@ def test_fetch_asks_the_second_server_when_the_first_is_busy(monkeypatch):
     assert {c[1] for c in calls} == {osm.AGENT}
 
 
-@pytest.mark.needs_data
 def test_user_is_told_plainly_when_openstreetmap_is_down(tmp_path):
     from types import SimpleNamespace
 
@@ -94,7 +93,7 @@ def test_user_is_told_plainly_when_openstreetmap_is_down(tmp_path):
     def down(*box):
         raise OSError("Overpass: HTTP Error 502: Bad Gateway")
     conf = SimpleNamespace(osm=True, osm_fetch=down, path=lambda *p: str(tmp_path.joinpath(*p)))
-    kmz = os.path.join(ROOT, "data", "petrvald", "maponly.kmz")
+    kmz = inputs("petrvald")[1]
     note = runner.fetch_osm(conf, 1, kmz)
     assert note == ("OpenStreetMap teď neodpovídá (přetížený server). Zakázané přechody se doplní při příštím "
                     "přepočtu.")
@@ -169,3 +168,17 @@ def test_auto_uses_cuzk_only_inside_czechia(tmp_path, monkeypatch):
     assert dem.load_dem(1, 0, 1, 0, out, "aws").source == "aws" and made[-1].endswith("dem_cache.npz")
     with pytest.raises(ValueError):
         dem.load_dem(1, 0, 1, 0, out, "lidar")
+
+
+def test_power_lines_ski_lifts_pipelines_and_borders_are_never_an_obstacle():
+    """One runs under a power line and a lift, over a pipeline and across a border: nothing of them is asked of
+    OpenStreetMap, and nothing of them is read even when the answer holds them (issue 37)."""
+    q = osm.query(49.82, 18.35, 49.85, 18.39)
+    for tag in ("power", "aerialway", "man_made", "pipeline", "boundary", "cable"):
+        assert tag not in q
+    geom = [dict(lat=49.83, lon=18.37), dict(lat=49.84, lon=18.38)]
+    data = dict(elements=[dict(type="way", id=i, tags=tags, geometry=geom) for i, tags in enumerate((
+        dict(power="line"), dict(power="minor_line"), dict(aerialway="chair_lift"), dict(aerialway="cable_car"),
+        dict(man_made="pipeline"), dict(boundary="administrative"), dict(power="line", barrier="yes")), 1)])
+    for fences in (True, False):
+        assert osm.parse(data, fences=fences) == dict(lines=[], crossings=[])

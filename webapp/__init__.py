@@ -12,7 +12,7 @@ import datetime as dt
 import hashlib
 import os
 
-from flask import Flask, current_app, g, request
+from flask import Flask, current_app, flash, g, request, url_for
 from markupsafe import Markup
 
 from . import club
@@ -75,6 +75,17 @@ def create_app(instance=None):
                       PERMANENT_SESSION_LIFETIME=dt.timedelta(days=90), SESSION_REFRESH_EACH_REQUEST=False,
                       TEMPLATES_AUTO_RELOAD=bool(os.environ.get("OB_DEV")))
     app.teardown_appcontext(_close_db)
+
+    @app.errorhandler(413)
+    def _too_large(_err):
+        """The whole upload is larger than OB_MAX_UPLOAD_MB (the page leaves such files out before sending, static/ob.js;
+        this is a form sent without the script). Back to the page with a message, not the bare error page."""
+        from .i18n import _
+        from .views import go
+        flash(_("Soubory jsou dohromady větší, než server přijme (nejvýš %(mb)s MB). Nahraj je po jednom.",
+                mb=conf.max_upload // (1024 * 1024)), "error")
+        back = request.referrer if (request.referrer or "").startswith(request.host_url) else url_for("ob.races")
+        return go(back)
 
     with open(os.path.join(STATIC, "app-icons.svg"), encoding="utf-8") as f:
         sprite = Markup(f.read())

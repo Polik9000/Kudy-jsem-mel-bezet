@@ -3,7 +3,7 @@ from flask import abort, flash, g, jsonify, redirect, request, url_for
 
 from .. import cfg, get_db
 from ..auth import login_required
-from ..db import dumps
+from ..db import dumps, loads
 from ..i18n import _
 from ..services import barriers, jobs, plans, view
 from . import bp
@@ -69,6 +69,32 @@ def barrier_add(entry_id):
     db.commit()
     barriers.requeue_event(db, e["event_id"])
     return _legs_json(db, e)
+
+
+@bp.route("/races/<int:entry_id>/obstacles", methods=["POST"])
+@login_required
+def obstacle_override(entry_id):
+    """Correct an obstacle that was read from the map (a fence, an enclosure, an OSM line, a hatched area): it is
+    no obstacle (action "remove") or another kind. Only for the runner's own routes, which are drawn again.
+    {kind, key, action}; action null takes the correction back."""
+    e = get_entry(entry_id)
+    db = get_db()
+    d = request.get_json(silent=True) or {}
+    try:
+        kind, key, action = str(d["kind"]), str(d["key"]), d.get("action")
+        barriers.set_override(db, entry_id, kind, key, None if action is None else str(action))
+    except (KeyError, ValueError):
+        abort(400)
+    db.commit()
+    if e["has_routes"]:
+        barriers.requeue_entry(db, entry_id, g.user["id"])
+    return jsonify(dict(_obstacles_json(db, e), rerouting=rerouting(db, entry_id)))
+
+
+def _obstacles_json(db, e):
+    analysis = db.execute("SELECT summary FROM analyses WHERE entry_id = ?", (e["id"],)).fetchone()
+    found, osm, areas = barriers.obstacles_view(db, cfg(), e, loads(analysis["summary"], {}) if analysis else {})
+    return dict(obstacles=found, osm=osm, areas=areas)
 
 
 def _own(db, table, row_id, event_id):

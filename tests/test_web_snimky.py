@@ -79,7 +79,7 @@ def class_of(con, entry_id):
 @pytest.mark.needs_data
 def test_two_screenshots_give_both_maps_then_a_kmz_replaces_the_one_without_course(app, client, user, pair_png):
     con, mine = entry(app, client, user)
-    assert "Snímky jsou nahrané" in upload(client, mine, *pair_png)
+    assert "Snímky z Livelox jsou uložené" in upload(client, mine, *pair_png)
     work_georef(app)
     j = job(con)
     assert j["status"] == "done", j["error"]
@@ -120,25 +120,21 @@ def test_two_screenshots_give_both_maps_then_a_kmz_replaces_the_one_without_cour
 @pytest.mark.needs_data
 def test_the_one_without_course_can_come_later(app, client, user, pair_png):
     con, mine = entry(app, client, user)
-    # alone and first: it has nothing to be placed by
-    assert "Nahraj nejdřív oba snímky" in upload(client, mine, maponly=pair_png[1])
+    # alone and first: it waits (saved) for the screenshot with the course from the same view
+    assert "Snímek bez tratě je uložený" in upload(client, mine, maponly=pair_png[1])
     assert not job(con)
+    # the course screenshot completes the pair: both are placed together
     upload(client, mine, course=pair_png[0])
     work_georef(app)
     j = job(con)
     assert j["status"] == "done" and "Snímek s tratí usazen" in j["message"], j["error"]
-    assert class_of(con, mine)["course_source"] == "screen" and event_of(con, mine)["maponly_file"] is None
-    upload(client, mine, maponly=pair_png[1])
-    work_georef(app)
-    j = job(con)
-    assert j["status"] == "done" and "Mapa bez tratě uložena" in j["message"], j["error"]
-    assert event_of(con, mine)["maponly_source"] == "snimek"
+    assert class_of(con, mine)["course_source"] == "screen" and event_of(con, mine)["maponly_source"] == "snimek"
 
 
 @pytest.mark.needs_data
 def test_screenshots_need_the_run_and_official_times(app, client, user, pair_png):
     con, mine = entry(app, client, user, run=False)
-    assert "chybí běh z hodinek" in upload(client, mine, *pair_png)
+    assert "Jakmile bude k dispozici běh z hodinek" in upload(client, mine, *pair_png)
     assert not job(con)
 
 

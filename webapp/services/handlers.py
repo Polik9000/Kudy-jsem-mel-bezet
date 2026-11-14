@@ -18,7 +18,8 @@ from . import garmin_api, jobs, matching, personal, plans, results, runner, stor
 
 @jobs.handler("sync_oris")
 def _sync_oris(ctx, job):
-    message = sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"])
+    message = sync_oris.sync_user(ctx.con, ctx.conf, job["user_id"],
+                                  progress=lambda text: jobs.progress(ctx.con, job["id"], text))
     matching.queue_waiting_photos(ctx.con, job["user_id"])
     matching.queue_waiting_screens(ctx.con, job["user_id"])
     return message
@@ -205,7 +206,8 @@ def fit_slope(ctx, user_id, export):
             w.writerows([n] for n in names)
         cmd += ["--races", races_csv]
     try:
-        p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=runner.TIMEOUT)
+        p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=runner.TIMEOUT)
     except subprocess.TimeoutExpired:
         return _("Model kopců se nestihl spočítat.")
     if p.returncode != 0 or not os.path.exists(conf.path(rel)):

@@ -2,6 +2,14 @@
 {% block title %}{{ _('Nahrát běhy') }}{% endblock %}
 {% block content %}
 <h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Nahrát běhy') }}</h2>
+{% if local_app %}<p class="karta ob-hodinky" data-hodinky="{{ url_for('ob.watch_news') }}" data-ted-ne="{{ url_for('ob.watch_not_now') }}" role="status" hidden></p>{% endif %}
+{% if local_app %}
+{# the simplest ways first (Jak na to, #garmin): straight from the account or from the watch #}
+<p class="karta"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}</a>
+  <span class="hint">{% trans %}Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.{% endtrans %}</span></p>
+<p class="karta"><a class="btn" href="{{ url_for('ob.watch_page') }}">{{ _('Načíst z hodinek přes USB nebo ze složky') }}</a>
+  <span class="hint">{{ _('Hodinky Garmin připojené kabelem jako disk, nebo složka se soubory .fit.') }}</span></p>
+{% endif %}
 <form method="post" enctype="multipart/form-data" class="karta" data-nahravani data-pretahni>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label class="ob-pole">{{ _('Soubory .fit nebo .zip (jde vybrat víc najednou)') }}
@@ -18,10 +26,6 @@
     <span class="hint ob-nahravani-stav" role="status"></span>
   </div>
 </form>
-{% if local_app %}
-<p class="karta"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}</a>
-  <span class="hint">{% trans %}Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.{% endtrans %}</span></p>
-{% endif %}
 <h2>{% trans %}Nahrané aktivity ({{ total }}){% endtrans %}</h2>
 {% if acts %}
 <div class="tablewrap"><table>
@@ -29,7 +33,8 @@
       <th class="num" data-sort="number">km</th><th>GPS</th><th data-sort="text">{{ _('Závod') }}</th></tr></thead>
   <tbody>
   {% for a in acts %}
-  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ a.sport }}</td>
+  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ {'running': 'běh', 'walking': 'chůze', 'hiking': 'turistika', 'cycling': 'kolo', 'training': 'trénink',
+                  'generic': 'jiná aktivita', 'trail_running': 'běh v terénu'}.get(a.sport, a.sport) }}</td>
       <td class="num" data-value="{{ a.timer_s or 0 }}">{{ a.timer_s | mmss }}</td>
       <td class="num">{{ '%.2f' | format((a.dist_m or 0) / 1000) }}</td>
       <td>{{ _('ano') if a.has_gps else _('ne') }}</td>

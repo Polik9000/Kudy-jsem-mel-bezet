@@ -7,7 +7,6 @@ import os
 import zipfile
 
 import numpy as np
-import pytest
 from conftest import clear_jobs, csrf, post, register
 from PIL import Image
 from races import inputs
@@ -113,7 +112,6 @@ def work(app):
     return run_once(app.config["OB"])
 
 
-@pytest.mark.needs_data
 def test_planned_route_is_priced_by_the_model(app, client, user, monkeypatch):
     con, conf = dbm.connect(app.config["OB"].db_path), app.config["OB"]
     page = post(client, "/races/new", name="Trénink na louce", date="2026-03-28", class_name="T").headers["Location"]

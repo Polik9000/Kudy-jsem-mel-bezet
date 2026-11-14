@@ -59,7 +59,6 @@ def test_unknown_regno_fails_with_a_message(app):
         assert "XXX0000 v ORIS není" in str(e)
 
 
-@pytest.mark.needs_data
 def test_manual_race_and_fit_upload_are_matched(app, client, user):
     r = post(client, "/races/new", name="Azymut Cup 2026 - Day 5", date="2026-08-14", class_name="O3", time="76:57")
     assert r.status_code == 302
@@ -89,12 +88,19 @@ def test_upload_refuses_other_files(app, client, user):
     r = client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"x"), "photo.jpg")),
                     content_type="multipart/form-data")
     assert "jen .fit nebo .zip" in r.get_data(as_text=True)
-    client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"not a fit"), "bad.fit")),
+    # a file that does not even begin as a .fit or a zip is refused at once, by its name (test_nahravani.py)
+    r = client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"not a fit"), "bad.fit")),
+                    content_type="multipart/form-data", follow_redirects=True)
+    assert "bad.fit: není soubor z hodinek" in r.get_data(as_text=True)
+    assert not con_of(app).execute("SELECT 1 FROM jobs").fetchone()
+    # one that begins as one and is broken further on fails in its own job
+    client.post("/upload", data=dict(csrf_token=csrf(client),
+                                     files=(io.BytesIO(b"\x0e\x10\x00\x00\x00\x00\x00\x00.FITnot a fit"), "bad.fit")),
                 content_type="multipart/form-data")
     work(app)
     job = con_of(app).execute("SELECT * FROM jobs").fetchone()
     assert job["status"] == "failed" and "není aktivita" in job["error"]
-    client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"not a zip"), "export.zip")),
+    client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(b"PK not a zip"), "export.zip")),
                 content_type="multipart/form-data")
     work(app)
     job = con_of(app).execute("SELECT * FROM jobs ORDER BY id DESC").fetchone()
@@ -109,7 +115,6 @@ def upload_kmz(client, page, kind, path=None, data=None):
                        content_type="multipart/form-data", follow_redirects=True)
 
 
-@pytest.mark.needs_data
 def test_map_upload_is_shared_by_the_event(app, client, user):
     con, _ = synced(app, client, user)
     mine = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id JOIN events ev"
@@ -142,7 +147,6 @@ def test_map_upload_is_shared_by_the_event(app, client, user):
     assert upload_kmz(client, page, "course", course).status_code == 404
 
 
-@pytest.mark.needs_data
 def test_map_is_read_once_and_kept_by_the_browser(app, client, user, monkeypatch):
     con, _ = synced(app, client, user)
     mine = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id JOIN events ev"
@@ -212,7 +216,6 @@ def _fake_scripts(con, entry_id, log):
     return run
 
 
-@pytest.mark.needs_data
 def test_new_race_shows_the_track_first_and_finds_the_routes_once(app, client, user, monkeypatch):
     """One job of a new race: analyze.py, then the track is on the page; what the speed model learns from
     the race, the refit of the model, and only then the routes, once, with that model."""
@@ -224,7 +227,10 @@ def test_new_race_shows_the_track_first_and_finds_the_routes_once(app, client, u
     state = client.get(f"/jobs.json?entry={entry}").get_json()
     assert state["analysis"] == "" and state["progress"] == "Analýza závodu: čeká ve frontě."
     html = client.get(page).get_data(as_text=True)
-    assert 'id="ob-prubeh"' in html and 'data-analyza=""' in html and "data-obnovit" in html
+    assert 'data-analyza=""' in html and "data-obnovit" in html
+    # the progress is in the bar fixed at the bottom of the window, not in the flow above the map (issue 5)
+    assert '<p class="ob-prubeh" id="ob-prubeh" role="status" aria-live="polite">Analýza závodu: čeká ve frontě.</p>' in html
+    assert html.index('id="ob-prubeh"') > html.index('id="nastaveni"')
 
     log = []
     monkeypatch.setattr(runner, "_run", _fake_scripts(con, entry, log))
@@ -242,7 +248,8 @@ def test_new_race_shows_the_track_first_and_finds_the_routes_once(app, client, u
     state = client.get(f"/jobs.json?entry={entry}").get_json()
     assert state["analysis"] and state["progress"] == "" and state["active"] == 0 and state["running"] == []
     html = client.get(page).get_data(as_text=True)
-    assert 'id="ob-prubeh"' not in html and "data-obnovit" not in html and f'data-analyza="{state["analysis"]}"' in html
+    assert 'id="ob-prubeh" role="status" aria-live="polite" hidden>' in html   # its place is kept, nothing to show
+    assert "data-obnovit" not in html and f'data-analyza="{state["analysis"]}"' in html
     assert "Únava 1–3 jen popisuje" in html            # the panel says which fatigue values count
     assert con.execute("SELECT has_routes FROM analyses WHERE entry_id = ?", (entry,)).fetchone()[0] == 1
 
@@ -258,7 +265,6 @@ def test_new_race_shows_the_track_first_and_finds_the_routes_once(app, client, u
     assert "analysis" not in client.get(f"/jobs.json?entry={entry}").get_json()
 
 
-@pytest.mark.needs_data
 def test_garmin_export_keeps_only_runs_paired_with_races(app, client, user):
     """The whole export is used for pairing (and the hill model), then only the paired runs stay."""
     import zipfile
@@ -355,7 +361,6 @@ def test_garmin_export_loads_the_races_first_and_keeps_unpaired_runs_at_a_race(a
     assert post(client, f"/activities/{other}/delete").status_code == 404
 
 
-@pytest.mark.needs_data
 def test_garmin_export_survives_oris_being_down(app, client, user):
     import zipfile
 
@@ -377,7 +382,6 @@ def test_garmin_export_survives_oris_being_down(app, client, user):
     assert "ORIS teď neodpovídá" in job["message"] and "Smazáno 1 ostatních běhů" in job["message"]
 
 
-@pytest.mark.needs_data
 def test_picture_of_a_map_needs_the_track_and_official_times(app, client, user):
     con, _ = synced(app, client, user)
     mine = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id JOIN events ev"
@@ -391,7 +395,7 @@ def test_picture_of_a_map_needs_the_track_and_official_times(app, client, user):
     buf = io.BytesIO()
     Image.new("RGB", (800, 600), (255, 255, 255)).save(buf, "PNG")
     assert "jen jako mapu s tratí" in send("maponly", "scan.png", buf.getvalue())
-    assert "chybí běh z hodinek" in send("course", "scan.png", buf.getvalue())           # no activity yet
+    assert "Až nahraješ běh z hodinek" in send("course", "scan.png", buf.getvalue())     # no activity yet: it waits
     with open(inputs("pohora")[2], "rb") as f:
         client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
                     content_type="multipart/form-data")
@@ -404,7 +408,7 @@ def test_picture_of_a_map_needs_the_track_and_official_times(app, client, user):
     # a blank picture is accepted, queued, and the worker says why it could not be placed
     con.execute("DELETE FROM jobs")
     con.commit()
-    assert "Usazuje se na pozadí" in send("course", "scan.png", buf.getvalue())
+    assert "usazuje se na pozadí" in send("course", "scan.png", buf.getvalue())
     work(app)
     job = con.execute("SELECT * FROM jobs WHERE kind = 'georef_map'").fetchone()
     assert job["status"] == "failed" and "nejsou vidět fialová kolečka" in job["error"]
@@ -467,7 +471,6 @@ def test_run_and_both_maps_in_one_form(app, client, user):
     assert tuple(ev) == ("forbid", "forbid")
 
 
-@pytest.mark.needs_data
 def test_race_list_shows_races_with_a_run_and_keeps_the_season(app, client, user):
     con, _ = synced(app, client, user)
     assert "Tomuhle filtru žádný závod neodpovídá" in client.get("/?jen=beh").get_data(as_text=True)
@@ -501,7 +504,6 @@ def test_failed_job_can_be_queued_again(app, client, user):
     assert post(client, f"/jobs/{jid}/retry").status_code == 404
 
 
-@pytest.mark.needs_data
 def test_single_fit_from_a_race_not_loaded_yet_loads_the_races_from_oris(app, client, user):
     """A .fit from last weekend's race, uploaded before the race list was refreshed: the race is loaded from
     ORIS (as with a Garmin export) and the run is paired with it, so the race shows up to add a map to."""
@@ -519,7 +521,6 @@ def test_single_fit_from_a_race_not_loaded_yet_loads_the_races_from_oris(app, cl
     assert e["activity_id"] is not None
 
 
-@pytest.mark.needs_data
 def test_single_fit_on_a_known_race_day_does_not_ask_oris(app, client, user):
     con, _ = synced(app, client, user)
     with open(inputs("pohora")[2], "rb") as f:

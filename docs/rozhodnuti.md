@@ -464,3 +464,111 @@ Podklad: Tobiasův závod Bělá (okr. Opava, 18. 10. 2026) z webové appky, sn�
 ## Co jsem nedělal záměrně
 
 Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadání). Žádné volání AI. Nic jsem neposílal na produkční server ani na klubový web; z něj jsem nečetl nic nového (podklady už byly v `docs/reference/`).
+
+## 8. 11. 2026: stránka závodu neposkakuje, Garmin nahoře, režim barev, „záměrná“ (issues 5, 8, 10, 12)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Průběh výpočtu je **lišta pevně dole v okně** (`position: fixed`, na telefonu nad spodní nabídkou), ne odstavec nad mapou. Lišta je ve stránce závodu vždy, schovaná, když se nic nepočítá. | Odstavec nad mapou se objevoval, měnil délku a mizel a obsah pod ním skákal; navíc byl daleko nad místem, kde člověk čte. Lišta mimo tok stránky nic neposune. |
+| Konec úlohy pozná `ob.js` jen podle **viditelné** lišty. | Lišta je teď v každé stránce závodu; bez toho se stránka načítala pořád dokola (našel test v Playwright). |
+| Po vlastním načtení se stránka vrátí na **prvek, který byl nahoře v okně** (a na otevřenou záložku), uložené v `sessionStorage` jen pro záložku prohlížeče; znovu ještě po vykreslení mapy (`ob-vykresleno`) a po `load`, dokud člověk sám neposune. | Pozice v pixelech nestačí: nad mapou se po přepočtu mění hlášky a rozbalení „Jak je rozbor spočítaný“. Na `main` se tabulka úseků po dopočítání posunula o 36 až 54 px, teď do 0,4 px (Playwright, 1280×900 i 390×844, úloha hotová i selhaná). |
+| Hlášky, které se objevit musí (selhaná analýza), zůstávají nahoře; lišta na 12 s řekne, že tam jsou. Místo pro souhrn ztrát a pás úseků se drží od začátku (`min-height`, `visibility`). | Hláška je důležitá a patří k závodu, ale čtenář je jinde; přeskočit ho k ní by bylo horší. |
+| Garmin Connect: tlačítko, počet zaškrtnutých a volba modelu kopců v **liště nad tabulkou** (`position: sticky`); na telefonu se drží jen její spodní řádek. Dolní tlačítko zůstává. Tlačítko říká „Načíst vybrané“, když model kopců není zaškrtnutý. | Rok běhů je dlouhá tabulka. Celá lišta by na telefonu zabrala třetinu výšky (289 px), spodní řádek 169 px. |
+| Odkaz Načíst z Garmin Connect je i na Přehledu závodů (jen lokální appka) a na Nahrát běhy **nad** formulářem. | Je to nejjednodušší cesta (nápověda #garmin). |
+| Světlý / tmavý režim se ukládá **k účtu v databázi** (`users.theme`: `svetly`, `tmavy`, `''` = podle zařízení, `NULL` = ještě nevybráno), server ho píše do `<html data-theme>`; `localStorage` je jen kopie. Jazyk se ukládá taky (`users.lang`) jako záloha za cookie. | Ověřeno: lokální appka startuje na náhodném portu a `localStorage` patří k adrese s portem, takže režim se po restartu ztratil; cookie jazyka port nerozlišuje a zůstala. Cookie by stačila v appce, ale na webu by režim neplatil na jiném zařízení a nová relace by ho neměla; databáze funguje v obou a bez bliknutí. `NULL` proti `''` dovolí převzít režim, který už někdo měl v prohlížeči. |
+| „Schválná zastávka“ → **„záměrná zastávka“** ve všech textech (mapa, panel úseku, nastavení, nápověda, dokumentace). „Schválně“ ve smyslu „úmyslně“ v ostatních dokumentech zůstává. | Tobias (issue 10). |
+
+## 9. 11. 2026: průběh načítání z ORIS, víc registračních čísel, etapové závody (issues 1, 2, 11)
+
+| Rozhodnutí | Proč |
+|---|---|
+| PR stojí na `origin/main`. | PR #47 i #48 už jsou sloučené. |
+| Načítání z ORIS je na Přehledu závodů vidět jako řádek nad přehledem i nad „Jak začít“, se stavem úlohy („zatím 12 z 85 závodů“). Stránka se obnoví, jakmile úloha z `jobs.json` zmizí (`data-ceka-na`), i když doběhne dřív než první dotaz. Výsledek (zpráva úlohy) se ukazuje 10 minut po doběhnutí. | Prázdný přehled vypadal jako chyba. Obnovení jen podle „bylo aktivní, teď není“ nestačí: krátká úloha doběhne před prvním dotazem stránky. |
+| Během načítání je tlačítko zakázané a `/sync` nezaloží druhou úlohu ani vedle běžící (dřív jen vedle čekající). | Zadání; dvě souběžná načtení by se ptala ORIS dvakrát. |
+| Víc registračních čísel v tabulce `user_regnos`; `users.oris_regno` zůstává první číslo účtu a trigger `users_regno_fixed` dál platí. Do seznamu ho kopírují triggery, ne kód. | Registrace, Profil, `seed.py` a nástroje v `tools/` zakládají účty po svém; trigger je pokryje všechny bez změny. |
+| Čísla z vlastních přihlášek v ORIS (stejné ORIS ID) se do účtu připíšou sama, i na serveru. Ručně přidat jde jen v lokální appce. | Ověřeno v ORIS: ID osoby se přestupem nemění a přihlášky nesou staré číslo. Je to tentýž člověk podle ORIS, ne změna čísla účtu; bez toho by účet s novým číslem nenašel mezičasy starých závodů. |
+| Staré číslo, na které `getUser` už neodpoví, nevadí, když je ID známé. | Ověřeno v ORIS (AOV7900, LBM0909): jinak by účet založený se starým číslem po přestupu přestal načítat. |
+| Nové číslo musí mít stejné ORIS ID nebo stejné jméno (bez diakritiky, velikosti písmen a pořadí slov); staré číslo musí být v přihláškách běžce. | Zadání: číslo s jiným jménem odmítnout. Jméno v účtu si běžec může přepsat, proto rozhoduje i ORIS ID a jméno podle ORIS. |
+| Smazat jde jen ručně přidané číslo, pod kterým není v uložených výsledcích žádný závod účtu. | Zadání: jen číslo přidané omylem. |
+| Přihlásit se jde kterýmkoli číslem účtu. | Po přestupu člověk zadá to nové. |
+| `oroute/splits.py` se nemění; `splits.my_regno` vybere z čísel účtu to, které je ve výsledcích kategorie. | Výpočet zůstává stejný (žádná nová verze), mění se jen vstup. |
+| Zastřešující etapový závod se nezakládá, jen se zapamatuje (`oris_umbrellas`). Přihláška na něj se rozloží na etapy podle názvu kategorie, jen kde ORIS etapu nevypisuje zvlášť. | Ověřeno: ORIS u Tobiase vypisuje zastřešující závod i každou etapu, takže etapy už v databázi byly a navíc tři prázdné zastřešující závody. Rozložení je pojistka pro závod, kde by ORIS etapy nevypsal. |
+| Zastřešující závod ze starší verze se pozná podle disciplíny „Etapový závod“ a jednou se ověří `getEvent`; co zastřešující není, dostane `stage_n = 0` a už se na něj appka neptá. | Starší databáze nemá `Stages`; ptát se ORIS u každého závodu by bylo zbytečné (na Tobiasově databázi 3 dotazy). |
+| Přihláška zastřešujícího závodu s během jde na etapu ze dne běhu (místní čas): celá, když tam běžec etapu nemá; jinak jen běh, když etapa běh nemá a přihláška nemá poznámky. Mapy jdou s ní, jen když se přihlášky přesunuly na jedinou etapu. Jinak závod zůstane. | Den běhu je jediné spolehlivé spojení s etapou. Mapa bez jednoznačné etapy by mohla skončit u jiné trati. |
+| Disciplína je vidět v přehledu i na stránce závodu u všech závodů z ORIS, u etapy navíc „E1 / 5“. | Disciplína se dřív nikde neukazovala; u etap ji chce zadání, u ostatních závodů pomůže taky. |
+| KITL 2025 se nemění. | V ORIS to není etapový závod, ale dva závody spojené `MultiEvent1` (8228 6. 9., 8229 7. 9.), viz `docs/oris.md`. |
+
+## 11. 11. 2026: kontroly podle ORIS a nahrání víc souborů (issues 9 a 6, větev `kontroly-podle-oris`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Počet kontrol podle ORIS je **počet mezičasů** (`entries.splits`), jinak počet kódů kontrol kategorie (`classes.control_codes`). `classes.controls` („Controls“ z `getEvent`) se k porovnání nepoužívá. | Ověřeno v databázi autora: u 12 z 83 závodů říká `controls` víc, než mají mezičasy (SZL 15. 2. 2025: 28, na mapě i v popisech 26). Varování by pak bylo falešné u každého sedmého závodu. |
+| Kroužek, který se sám najde na několika poloměrech (tlustá čára), už není cíl: cíl musí mít dva kruhy, které se liší aspoň o 12 % poloměru (dřív pevně 5 px). Na mapách s poloměrem do 41 px (všechny dosavadní) se nic nemění. | Bohemia 2025 E1 (0,43 m/px, čára 7 px): všechna kolečka se brala jako cíl a našla se 2 z 11 kontrol. Ostatních 29 map v `tools/kolecka.py` vychází stejně. |
+| Chybějící kolečko se hledá **jen** s oficiálními časy, jen kolem místa, kde byly hodinky v čase ražení (80 m), jen s poloměrem ostatních koleček a jen dokud počet nesedí s ORIS (`course.find_missing`). Bere se, když je vytištěno aspoň 40 % obvodu, žádná mezera není větší než 150°, uvnitř není fialová (šrafy) a na okraj dosedá spojnice, nebo je vytištěno aspoň 60 %. | Rozřezaná kolečka (ISOM) mají měřeně 65 až 70 % obvodu a mezery 25 až 55° (Bohemia E1, GPS E1). Na mapách, kde počet sedí, se nic nehledá, takže se jejich trať nemůže zhoršit. Čísla kontrol, křížení spojnic a šrafy u místa ražení kolečko nedají (test). |
+| Kolečko navíc se vynechá jen tehdy, když je přes 80 m od všech míst ražení, hodinky ukazují všechna ražení a po vynechání vyjde přesně počet ORIS (`course.drop_extra`). Mapa se stovkami „koleček“ se nechá, jak je, a jen se hlásí. | Přebor BFM+SFM 2026: „10“ přes „4“ se četlo jako kolečko. Mapa se 169 kolečky má fialovou přečtenou špatně; vybírat z nich podle stopy by mohlo potichu dát špatnou trať. |
+| Rozbor zapisuje `course_check` (nalezeno, dohledáno, vynecháno, ORIS, zdroj) a stránka závodu ukáže varování „Kontrol na mapě: 13, v ORIS: 18“ s odkazem **Doplnit kontroly**. Když se dohledávalo, je tam jen poznámka s odkazem „Zkontrolovat kontroly“. Bez ORIS a u ruční tratě se nic neukazuje. | Zadání (Tobias). |
+| **Doplnit kontroly** (`/races/<id>/kontroly`) je stránka ručního usazení (`photo.html`, `photo.js`) v dalším režimu: body S, 1 až N, C, kde N je počet z ORIS. Kolečka z rozboru dostanou číslo podle ražení (přiřazení do 120 m), kolečka navíc jsou šedá. U každého bodu ukáže vzdálenost od místa ražení (nad 40 m červeně). | Zadání: ručně jako u usazení, počet bodů podle ORIS i při 13 nalezených. Stejné ovládání, které už lidé znají. |
+| Ruční trať se ukládá **pro kategorii** do `…kmz.course.json` (stejné místo jako trať z usazené fotky) s `by_hand: true`; smaže ji jen nová mapa s tratí (`storage.save_map`), nebo tlačítko na stránce. Uložení pustí rozbor všech přihlášek kategorie. | Trať je stejná pro všechny v kategorii. Runner tenhle soubor už předával `analyze.py --course`, takže přepočet novou verzí ruční trať zachová. |
+| `analyze.py --course` přepíše `course.json` souřadnicemi spočtenými z pixelů aktuální mapy. | Po ručním posunutí mapy (`mapfix`) byla zeměpisná šířka a délka v souboru stará; `bestroute.py` čte právě je. |
+| Nová `oroute/course.VERSION` (1) v `analysis.json`; přepočet jen postupů (`routes_only`, „Přepočítat vše“) přečte trať z mapy znovu, když byla přečtená starší verzí. `bestroute.VERSION` a `results.ROUTES` 9 → 10, aby appka přepočet nabídla. | Samotná nová verze postupů trať znovu nečetla (`out/course.json` existoval), takže by se oprava Bohemie E1 do starých rozborů nedostala. Model se v kroku 1 učí ze vzorků se starou tratí; až příští přepočet vzorky přečte znovu. |
+| Ruční usazení fotky, mapy i snímků bere body z mezičasů běžce už dřív (ověřeno testem). Bez mezičasů dál odmítne, protože nemá s čím polohu porovnat. Doplnit kontroly mezičasy nepotřebuje: bez nich jen nečísluje podle ražení a u závodu mimo ORIS se počet kontrol zadá. | Zadání (krok 4.1). |
+| Dva snímky z Livelox: každý se kontroluje zvlášť. Ten, který neprojde (přípona, pod 400 px, nad 120 Mpx, HEIC), dostane vlastní hlášku se jménem souboru, druhý se uloží, jako by byl nahraný sám. | Issue 6: jeden příliš velký snímek zahodil oba. |
+| Prohlížeč před odesláním vynechá soubor větší než limit svého pole (`data-max`, běh 50 MB) a pak největší soubory, dokud celek nesedí s `OB_MAX_UPLOAD_MB` (`OBAPP.maxUpload`). Jména vynechaných pošle v poli `vynechano` a server je vypíše. Když se nevejde nic, neodešle se nic a hláška je hned. | Jinak server odmítne celé tělo (413) a nenahraje se nic. |
+| Server vrátí 413 jako přesměrování zpět s hláškou (u skriptu JSON s adresou). | Formulář bez skriptu dřív skončil holou chybovou stránkou Werkzeugu. |
+| `/upload` pozná rozbitý soubor hned podle začátku (`.FIT` na bajtech 8 až 11, zip `PK`): nahlásí ho jménem a ostatní zpracuje. Soubor, který začíná dobře a je poškozený dál, selže ve své úloze jako dřív. | Dřív se rozbitý soubor ukázal až v seznamu úloh. |
+| `.venv/` v `.gitignore`. | Na Windows bez Dockeru se testy pouštějí z místního prostředí v repu. |
+
+## 11. 11. 2026: rozbor jen z mapy s tratí (issue 13, větev `jen-mapa-s-trati`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Závod jen s mapou s tratí z Livelox (KMZ nebo snímek) dostane nejlepší postupy: terén se čte z mapy s vyjmutou tratí a čárou postupu (`oroute/occlusion.py`, varianta `nearest`; `runner.terrain_map`). | Měření na 4 závodech (71 úseků): 85,9 % stejný postup a medián rozdílu času 1,1 % (1,7 % s červenou čárou), tedy nad předem daným prahem 85 % / 5 %. Čísla v `docs/jen-mapa-s-trati.md`. |
+| Záchytné body a „Ztratil jsem se“ se z odhadnuté mapy nepočítají. | Potřebují přesný terén těsně kolem kontroly, kde je právě kolečko. |
+| Bez nového sloupce v databázi: odhad se pozná podle toho, že závod nemá `maponly_file`. Opravdová mapa bez tratě odhad nahradí sama (rozbor se přepočítá jako dnes). | Menší zásah do schématu a do nahrávání. |
+| Doplněná mapa je v `terrain/class_<kategorie>_<otisk>.kmz` a má vlastní cache terénu. | Mapa s tratí je pro každou kategorii jiná. |
+| `bestroute.VERSION` a `results.ROUTES` 10 → 11. | Appka nabídne přepočet starších rozborů. |
+| Nápověda radí vypnout čáru postupu v Livelox před snímkem s tratí. | Zakrývá mapu; snímek bez tratě je pořád lepší. |
+
+
+## 11. 11. 2026: nápověda ke snímkům z Livelox na Macu (issue 4, větev `napoveda-snimky-mac`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Nápověda `#snimky` ukáže zkratky podle systému (Windows F12 / Ctrl+Shift+M, Mac ⌥⌘I / ⇧⌘M), jde přepnout ručně. | Test na Macu: nápověda znala jen Windows. |
+| Doporučený je Chrome i na Macu, Safari je druhá možnost a nápověda rovně říká, že snímek bude menší. | Safari nemá snímek celé stránky ani rozměr 5000 × 4000 (dokumentace Apple). |
+| Obrázek mapy z canvasu v Safari zatím jen zápis v `docs/snimky-livelox.md`, bez pole v Podkladech. | Chybí vzorová data a napasování na snímek s tratí nejde změřit. |
+
+## 11. 11. 2026: překážky v mapě: vedení a oprava rozpoznaných (issues 37 a 38, větev `prekazky-oprava`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Elektrické vedení, lanovky, potrubí a hranice se z OpenStreetMap nestahují a test (`tests/test_osm_dem.py`) hlídá, že by se nečetly, ani kdyby je server poslal. | Pod vedením se běží; do dotazu se dostávají jen železnice, dálnice a ploty/zdi. |
+| Pravidlo pro vedení čtené z obrázku mapy jsem **nezměnil**. Testy hlídají, že příčky přes čáru, střídavé příčky a čtverce pylonů plot nedají. | Na třech mapách, které mám, žádné vedení není (jediný „plot“ na Žebříčku je skutečný plot u silnice). Jednostranná řada krátkých příček je geometricky totéž co plot; pravidlo bez skutečného vzorku by zhoršilo ploty. Otázka 59 v `co-zbyva.md`. |
+| Oprava rozpoznané překážky je **osobní**: tabulka `barrier_overrides (entry_id, kind, key, action)`, k záznamu, nikdo jiný ji nevidí a jeho postupy se kvůli ní nepřepočítají. Ruční čáry zůstávají sdílené. | Stejně jako vlastní nastavení OSM a šrafů: oprava je můj názor na mapu. |
+| Klíč prvku je typ a střed v lat/lon (zaokrouhlený na 1e-5 °). Při použití se prvek hledá nejblíž středu do 15 m. | Pořadí prvků se po novém čtení mapy mění, střed ne. |
+| Opravit jde plot (není překážka, jen těžký průchod, neprůchozí), oplocenka (není překážka, je plot), čára z OSM (není překážka, jen těžký průchod) a šrafy (není překážka). Zdi sprintových map ne. | Zdi jsou v mapě jinak (`terrain.sprint_walls`), otázka 61. |
+| „Není překážka“ u plotu nechá černou čáru jako mapu bez cesty: terén pod ní je to, co leží vedle. | Vrátit ji jako cestu by dalo rychlost cesty vedení, které cesta není. |
+| Opravy jdou do `best/barriers.json` (klíč `overrides`), takže je čtou `bestroute.py`, `oroute/planned.py` i `oroute/relocate.py` bez nových přepínačů a plány s nejlepšími postupy se shodnou. | Všechny tři volají `mapdata.obstacles` samostatně. |
+| Po uložení opravy se přepočítají jen postupy toho záznamu (`barriers.requeue_entry`), ne celý rozbor (`matching.queue_analysis`). | Trasa, mezičasy a model se nemění, jen postupy; stejně jako u změny nastavení OSM. |
+| `best.json` nese seznam rozpoznaných překážek (`obstacles`), `bestroute.VERSION` a `results.ROUTES` 11 → 12. | Starší rozbory ho nemají, appka je nabídne přepočítat; vrstva se jinak u nich nezobrazí. |
+| Opravy jedou v `.obzavod` (`mine.obstacles`), na mapě se vrstva pamatuje po dobu okna prohlížeče (`sessionStorage`) a po přepočtu zůstane zapnutá. | Přepočet stránku načte znovu. |
+
+## 14. 11. 2026: barometr a poloha stopy podle výškopisu (issue 41, větev `barometr-poloha`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Oprava polohy stopy podle výškového profilu se do `oroute/georef.py` **nezapojuje**. V PR je jen měřicí nástroj `tools/fit_vyska.py` a zpráva (`docs/validace.md`, oddíl 25). | Po úsecích 800 m je minimum ploché (důvěryhodné 2 z 357 úseků). Posun celé stopy v kopcích s ČÚZK sice najde známý posun 20 m přesně, ale u správně usazené mapy zlepší kontroly jen o 1 až 2 m. A `georef` usazuje mapu podle stopy, takže výškopis jeho chybu nevidí. |
+| Barometr se pozná podle senzoru `barometer` ve zprávě `device_info` a šumu pod 0,7 m. | Tak to je ve všech 30 souborech z fēnix 5X Plus; výška z GPS šumí o metry. |
+| Z barometru se dál bere jen změna výšky, ne výška. | Absolutní výška bývá o desítky až stovky metrů jinde (Pohora −294 m) a driftuje až 61 m/h; sklon po 50 m sedí s ČÚZK v kopcích s korelací 0,94. |
+| Bez barometru brát stoupání úseku z výškopisu a běhy bez barometru nedávat do modelu sklonu: jen návrh na samostatný PR, až bude soubor z takových hodinek (otázka 62). | Nemám na čem to ověřit. |
+
+
+## 14. 11. 2026: nabídka běhů z hodinek po připojení (issue 39, větev `hodinky-nabidka`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Přehled závodů a Nahrát běhy se na hodinky ptají až po zobrazení stránky (`ob.js`, `/upload/hodinky/nove.json`). Hledání běží ve vlákně, stránka čeká nejvýš 2 s, výsledek platí 60 s. | Prázdná čtečka karet nebo odpojený síťový disk umí volání na disk zdržet o sekundy. Stránka se nesmí zdržet. |
+| Řádek jen odkazuje na stránku hodinek s předvybranými novými běhy. Nic se nenačte bez kliknutí na Načíst vybrané. | Zadání: nic bez potvrzení. |
+| „Teď ne“ a nezaškrtnuté běhy se pamatují v tabulce `watch_seen` (sha1). Stránka hodinek je dál nabízí jako nové. | Jinak by řádek s běhy, které nechci (kolo, posilovna), visel napořád. |
+| MTP se nečte, jen nápověda (`docs/hodinky-mtp.md`). | `pywin32` v sestavení není, PowerShell `CopyHere` je asynchronní a bez hlášení chyb, na Macu to bez další knihovny nejde. Bez testu na skutečných hodinkách to nejde udělat spolehlivě (otázka 63). |
+| Stránka hodinek (`watch.html`) je teď i anglicky. | Texty v ní nebyly obalené `_()`. |

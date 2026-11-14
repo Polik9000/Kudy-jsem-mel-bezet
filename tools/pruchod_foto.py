@@ -76,7 +76,7 @@ def main():
     pick = sorted({int(g[:, 0].argmin()), int(g[:, 0].argmax()), int(g[:, 1].argmin()), int(g[:, 1].argmax())})
     pick.append(max((k for k in range(len(g)) if k not in pick), key=lambda k: np.hypot(*(g[k] - g.mean(0)))))
     pts = [[str(k + 1), round(float(ctrl[k][0]), 1), round(float(ctrl[k][1]), 1)] for k in pick]
-    with open(os.path.join(out, "body.json"), "w") as f:
+    with open(os.path.join(out, "body.json"), "w", encoding="utf-8") as f:
         json.dump(pts, f)
     race, prefix = f"/races/{entry}", "/ob"
     tab = "document.querySelector('a[href=\"#podklady\"]').click(); window.scrollTo(0, 0)"

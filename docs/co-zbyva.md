@@ -550,6 +550,58 @@ Co hotové není nebo nesedí:
     cesty (75 m), ne po čáře.
 46. Oplocenku bez zoubků (jen uzavřená černá čára) appka za oplocenku nebere, aby nezavřela smyčku cest. Potkáš
     takovou někde, kde je opravdu neprůchozí?
+47. Na Macu (okno appky, WKWebView): přepni tmavý režim a angličtinu, appku zavři a spusť znovu. Zůstane obojí? Na
+    Windows a v Chromu jsem to ověřil (8. 11.), Mac jsem neměl.
+48. Garmin Connect na telefonu nebo iPadu: lišta s tlačítkem Načíst vybrané zůstává při posunu tabulky nahoře (na
+    telefonu jen spodní řádek lišty, asi pětina výšky). Nepřekáží? Je z ní jasné, co tlačítko udělá?
+49. KITL 2025: v ORIS to není etapový závod, ale dva samostatné závody, střední trať 6. 9. (8228) a dlouhá 7. 9.
+    (8229); v appce jsou oba se svou disciplínou. V zadání byly etapy 5. a 6. 9. Běželi jste ještě něco 5. 9. (třeba
+    sprint v pátek)? Jiný KITL jsem v ORIS kolem těch dnů nenašel (`docs/oris.md`).
+50. Přestoupil někdy Tobias nebo táta do jiného oddílu (jiné registrační číslo)? Ověřoval jsem na cizích běžcích z
+    výsledků (Jiří Vlach AOV7900 → SFM7900, Matěj Toman LBM0909 → ZBM0919): ORIS ID zůstává, staré závody nesou staré
+    číslo. Kdyby to u vás vypadalo jinak, napiš.
+51. Tátovy KITL 2025 (H45B, issue 9: nepoznané kontroly 2, 3, 8, 9 a 4, 9): v tátově appce u obou závodů dej
+    **Uložit závod do souboru** se zaškrtnutým „přidat i můj běh z hodinek a můj výsledek“ a soubory `.obzavod` dej
+    do `data-extra/kitl-2025-09-06/` a `data-extra/kitl-2025-09-07/` (KITL byl 6. a 7. 9., viz 49). Na tomhle počítači
+    jsou jen tvoje H16B, a ty sedí: 13 z 13 a 12 z 12 kontrol. `tools/kolecka.py` soubory `.obzavod` čte sám:
+    `python tools/kolecka.py --rozbor data-extra/kitl-2025-09-06 data-extra/kitl-2025-09-07`.
+52. Mapa, kde appka našla 169 „koleček“ místo 18 (a tátův případ 6 z 19 na Macu): dej ji (KMZ s tratí, případně
+    `.fit`, nebo celý `.obzavod`) do `data-extra/kolecka-problem/`. Na všech 30 mapách tady je největší rozdíl 9 kontrol
+    (Bohemia 2025 E1, opraveno). Tipuju mapu s jemným rozlišením a tlustou čarou, jako Bohemia E1; nová verze ji
+    možná přečte sama.
+53. Na Macu: otevři u závodu **Doplnit kontroly** (Podklady, pod mapou s tratí), doplň chybějící kontrolu, ulož
+    a počkej na nový rozbor. Funguje klikání a přetahování v okně appky (WKWebView)? Stránka je stejná jako Usadit
+    mapu ručně; ověřil jsem ji testy serveru, v okně appky ne.
+54. Nahraj u závodu najednou běh a dva snímky, z nichž jeden je moc velký (nebo menší než 400 px). Uloží se ten
+    dobrý a hláška řekne jménem, který se nenahrál? Na Macu jsem to nezkoušel.
+55. Rozbor jen z mapy s tratí (`docs/jen-mapa-s-trati.md`): nahraj u závodu jen snímek s tratí z Livelox, **se zapnutou
+    čárou postupu** a pak bez ní. Odpovídají postupy zhruba tomu, co dává mapa bez tratě? Měřilo se na uměle nakreslené
+    červené čáře (asi 4 m); potřebuju od tebe nebo od táty snímky s opravdovou čárou i bez ní z jednoho závodu.
+56. Poznámka u úseku, kde postup vede přes hodně zakrytého místa, zatím není. Chceš ji? Stačí jedna věta u úseku.
+57. Na Macu v Safari: Web Inspector → Elements → pravým na prvek mapy → Capture Screenshot, nebo uložení obrázku z
+    `<canvas>` (`docs/snimky-livelox.md`). Pošli obrázek mapy z canvasu a snímek s tratí ze stejného závodu do
+    `data-extra/`; bez nich pole „Obrázek mapy z Livelox“ nepřidávám (napasování nejde změřit).
+58. Na Macu v Chromu i v Safari projdi nápovědu Dva snímky z Livelox krok po kroku a napiš, kde to nesedí (zkratky,
+    české názvy menu, jestli Safari dá dost velký snímek).
+59. Elektrické vedení nebo vlek čtené jako plot (Oblastní žebříček Bílá, 17. 10., postup 11–12, issue 37): na mapách, co
+    mám (`data-extra/real-zebricek-2026-10-17`, `bela`, `real-bela-2026-10-18`), žádné vedení není, jen skutečné
+    ploty, oplocenky a okraj silnice. Pošli prosím soubor `maponly.kmz` z Bílé 17. 10. nebo napiš číslo kontroly a
+    ukaž výřez mapy s tím místem. Pravidlo zatím neměním naslepo: příčky přes čáru, střídavé příčky a čtverce
+    pylonů se plotem nečtou (testy), čte se jen jednostranná řada krátkých příček, což je geometricky skutečný
+    plot. Mezitím si takové místo opravíš ručně (vrstva Rozpoznané překážky, tlačítko Není překážka).
+60. Vrstva Rozpoznané překážky (klávesa 4, kliknutí na plot, oplocenku, čáru z OSM nebo šrafy): v prohlížeči jsem ji
+    nezkoušel (jen kontrola skriptu a testy serveru). Zkus na závodě s plotem: zapnout vrstvu, kliknout, Není
+    překážka, počkat na přepočet. Drží se vrstva zapnutá a prvek šedý přerušovaný?
+61. Zdi sprintové mapy (neprůchozí a přelezitelné) zatím opravit nejde, jen plot, oplocenka, čára z OSM a šrafy.
+    Chceš i zdi?
+62. Hodinky bez barometru: všech 30 tvých závodů je z fēnix 5X Plus, která barometr má (`docs/validace.md`, oddíl 25).
+    Máš (nebo táta, někdo z klubu) jeden `.fit` ze závodu z hodinek bez barometru (třeba Forerunner)? Pusť na něj
+    `python tools/fit_vyska.py SOUBOR.fit` a pošli mi výpis, nebo soubor dej do `private/`. Podle toho udělám, aby se
+    bez barometru stoupání bralo z výškopisu.
+63. Hodinky přes USB (issue #39): na Windows připoj fēnix 5X Plus nejdřív v režimu Garmin (Nastavení → Systém → Režim
+    USB → Garmin), pak v režimu MTP. Otevři v appce Přehled závodů. Ukázal se řádek „Našly se nové aktivity z hodinek“?
+    Jak rychle? Co ukázal Průzkumník u MTP (písmeno disku, nebo jen zařízení)? Napiš mi to, podle toho rozhodnu o čtení
+    MTP (`docs/hodinky-mtp.md`). Stejně na Macu, jestli ho máš po ruce.
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

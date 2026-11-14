@@ -95,7 +95,6 @@ def test_course_alone_is_not_hatching():
     assert hatch.detect(drawn_map(hatched=False, road=True)) == []
 
 
-@pytest.mark.needs_data
 @pytest.mark.parametrize("folder", ["azymut-e5", "azymut-e4", "pohora"])
 def test_maps_without_hatching_give_nothing(folder):
     assert hatch.detect(GeoMap.from_kmz(inputs(folder)[0])) == []
