@@ -451,6 +451,41 @@
     svg.addEventListener("pointerleave", function (ev) { if (ev.pointerType === "mouse") { hide(); } });
   });
 
+  // the app on one's own computer: a connected watch with new runs is offered on Přehled závodů and Nahrát běhy.
+  // Asked after the page is shown (a slow disk never holds it); nothing is loaded without a click on the watch page.
+  var hod = document.querySelector("[data-hodinky]");
+  if (hod && window.fetch) {
+    var tries = 0;
+    var ask = function () {
+      fetch(hod.getAttribute("data-hodinky"), { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) { return; }
+          if (d.pending) { if (++tries < 4) { setTimeout(ask, 4000); } return; }
+          if (!d.n) { return; }
+          hod.textContent = "";
+          var b = document.createElement("b");
+          b.textContent = t("Našly se nové aktivity z hodinek (%(n)s).", { n: d.n });
+          var a = document.createElement("a");
+          a.className = "btn btn-hlavni btn-maly";
+          a.href = d.url;
+          a.textContent = t("Načíst…");
+          var no = document.createElement("button");
+          no.type = "button";
+          no.className = "btn btn-maly";
+          no.textContent = t("Teď ne");
+          no.addEventListener("click", function () {
+            hod.hidden = true;
+            fetch(hod.getAttribute("data-ted-ne"), { method: "POST", headers: { "X-CSRF-Token": window.OBAPP.csrf } });
+          });
+          hod.append(b, " ", a, " ", no);
+          hod.hidden = false;
+        })
+        .catch(function () { /* no watch, no note */ });
+    };
+    ask();
+  }
+
   window.addEventListener("error", function (e) { (window.__errors = window.__errors || []).push(String(e.message)); });
 
   // the app window (desktop app): a link to another site opens in the system browser, the window stays on the app

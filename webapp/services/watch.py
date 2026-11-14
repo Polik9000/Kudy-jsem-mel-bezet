@@ -6,6 +6,8 @@ import hashlib
 import os
 import string
 import sys
+import threading
+import time
 
 from oroute import garmin
 
@@ -13,6 +15,8 @@ from . import matching, storage
 
 MAX_FILES = 3000            # one watch keeps a few hundred; a folder with more than this is not a watch
 MAX_FIT = 50 * 1024 * 1024
+WAIT_S = 2.0                # how long a page waits for the look at the watch; longer and it asks again later
+KEEP_S = 60.0               # how long a finished look is good for (a watch is plugged in for minutes, not seconds)
 
 
 def watch_folders():
@@ -85,4 +89,108 @@ def load(con, conf, user, folder, names):
         there += not new
     if loaded:
         matching.match_user(con, user["id"])
+    # the runs left unticked were offered and said no to: the note on the pages does not bring them up again
+    set_aside(con, user["id"], [r["sha1"] for r in rows if r["new"] and r not in chosen])
     return loaded, there, len(set(names)) - len(chosen)
+
+
+# The look at the connected watches when a page opens (Přehled závodů, Nahrát běhy). It runs in a thread of its own:
+# a drive letter without a card or a network drive that went away can block a call to the disk for seconds, and
+# the page must not wait for it. What the thread found is kept for KEEP_S, and what each file is (by name, size and
+# time) for as long as the app runs, so a watch with hundreds of runs is read once.
+_lock = threading.Lock()
+_state = dict(at=0.0, result=None, thread=None)
+_files = {}                 # (path, size, mtime) -> (sha1, is a run with a start) or None for no activity
+
+
+def _look_at_file(path):
+    try:
+        st = os.stat(path)
+    except OSError:
+        return None
+    key = (path, st.st_size, st.st_mtime)
+    if key not in _files:
+        if st.st_size > MAX_FIT:
+            _files[key] = None
+        else:
+            with open(path, "rb") as f:
+                data = f.read()
+            info = garmin.scan_fit(data)
+            ok = info.get("type") == "activity" and not info.get("error") and info.get("start") is not None
+            _files[key] = hashlib.sha1(data).hexdigest() if ok else None
+    return _files[key]
+
+
+def _look():
+    """{Activity folder: [sha1 of each run in it]} of the connected watches."""
+    out = {}
+    for folder in watch_folders():
+        try:
+            base, names = _fit_files(folder)
+        except OSError:
+            continue
+        out[base] = [s for s in (_look_at_file(os.path.join(base, n)) for n in names) if s]
+    return out
+
+
+def _run():
+    try:
+        result = _look()
+    except Exception:  # noqa: BLE001 - a look that fails is the same as no watch; the page never breaks over it
+        result = {}
+    with _lock:
+        _state.update(at=time.monotonic(), result=result, thread=None)
+
+
+def look_now(wait=WAIT_S):
+    """{folder: [sha1, ...]} of the watches connected now, or None when the look is still running after wait
+    seconds (the page asks again later). Starts a new look when the last one is older than KEEP_S."""
+    with _lock:
+        fresh = _state["result"] is not None and time.monotonic() - _state["at"] < KEEP_S
+        if fresh:
+            return _state["result"]
+        th = _state["thread"]
+        if th is None:
+            th = threading.Thread(target=_run, name="watch-look", daemon=True)
+            _state["thread"] = th
+            th.start()
+    th.join(wait)
+    with _lock:
+        return _state["result"] if _state["thread"] is None else None
+
+
+def forget():
+    """Look again at the next ask (after loading, or in tests)."""
+    with _lock:
+        if _state["thread"] is None:
+            _state.update(at=0.0, result=None)
+
+
+def news(con, user_id, wait=WAIT_S):
+    """What the page offers: dict(pending=True) while the look runs, else dict(n=new runs, folder=the watch with
+    most of them). New = not in the app and not set aside by the runner ("Teď ne"). Reads nothing into the app."""
+    found = look_now(wait)
+    if found is None:
+        return dict(pending=True, n=0, folder=None)
+    skip = {r["sha1"] for r in con.execute("SELECT sha1 FROM activities WHERE user_id = ?", (user_id,))}
+    skip |= {r["sha1"] for r in con.execute("SELECT sha1 FROM watch_seen WHERE user_id = ?", (user_id,))}
+    best, n = None, 0
+    for folder, sha1s in found.items():
+        k = len(set(sha1s) - skip)
+        if k > n:
+            best, n = folder, k
+    return dict(pending=False, n=n, folder=best)
+
+
+def set_aside(con, user_id, sha1s):
+    """The runner said no to these runs for now: the note on the pages does not offer them again (the watch page
+    still lists them)."""
+    con.executemany("INSERT OR IGNORE INTO watch_seen (user_id, sha1) VALUES (?, ?)",
+                    [(user_id, s) for s in set(sha1s)])
+    con.commit()
+
+
+def set_aside_all(con, user_id):
+    """"Teď ne" on the note: every run the watches have now."""
+    found = look_now(0) or {}
+    set_aside(con, user_id, [s for sha1s in found.values() for s in sha1s])

@@ -562,3 +562,13 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | Z barometru se dál bere jen změna výšky, ne výška. | Absolutní výška bývá o desítky až stovky metrů jinde (Pohora −294 m) a driftuje až 61 m/h; sklon po 50 m sedí s ČÚZK v kopcích s korelací 0,94. |
 | Bez barometru brát stoupání úseku z výškopisu a běhy bez barometru nedávat do modelu sklonu: jen návrh na samostatný PR, až bude soubor z takových hodinek (otázka 62). | Nemám na čem to ověřit. |
 
+
+## 14. 11. 2026: nabídka běhů z hodinek po připojení (issue 39, větev `hodinky-nabidka`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Přehled závodů a Nahrát běhy se na hodinky ptají až po zobrazení stránky (`ob.js`, `/upload/hodinky/nove.json`). Hledání běží ve vlákně, stránka čeká nejvýš 2 s, výsledek platí 60 s. | Prázdná čtečka karet nebo odpojený síťový disk umí volání na disk zdržet o sekundy. Stránka se nesmí zdržet. |
+| Řádek jen odkazuje na stránku hodinek s předvybranými novými běhy. Nic se nenačte bez kliknutí na Načíst vybrané. | Zadání: nic bez potvrzení. |
+| „Teď ne“ a nezaškrtnuté běhy se pamatují v tabulce `watch_seen` (sha1). Stránka hodinek je dál nabízí jako nové. | Jinak by řádek s běhy, které nechci (kolo, posilovna), visel napořád. |
+| MTP se nečte, jen nápověda (`docs/hodinky-mtp.md`). | `pywin32` v sestavení není, PowerShell `CopyHere` je asynchronní a bez hlášení chyb, na Macu to bez další knihovny nejde. Bez testu na skutečných hodinkách to nejde udělat spolehlivě (otázka 63). |
+| Stránka hodinek (`watch.html`) je teď i anglicky. | Texty v ní nebyly obalené `_()`. |

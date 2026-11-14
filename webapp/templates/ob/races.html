@@ -6,6 +6,7 @@
 <p class="evhead">{% trans %}Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.{% endtrans %}
   {% if user.oris_synced_at %}{% trans when=user.oris_synced_at | kdy %}ORIS načten {{ when }}.{% endtrans %}{% endif %}
   {% if numbers | length > 1 %}{% trans numbers=numbers | join(', ') %}Registrační čísla: {{ numbers }}.{% endtrans %}{% endif %}</p>
+{% if local_app %}<p class="karta ob-hodinky" data-hodinky="{{ url_for('ob.watch_news') }}" data-ted-ne="{{ url_for('ob.watch_not_now') }}" role="status" hidden></p>{% endif %}
 {% if sync_active %}
 <p class="karta ob-nacitani" id="ob-oris-nacitani" data-ceka-na="{{ sync.id }}" role="status">
   <b>{{ _('Načítám závody z ORIS…') }}</b>
