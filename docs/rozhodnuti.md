@@ -572,3 +572,16 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | „Teď ne“ a nezaškrtnuté běhy se pamatují v tabulce `watch_seen` (sha1). Stránka hodinek je dál nabízí jako nové. | Jinak by řádek s běhy, které nechci (kolo, posilovna), visel napořád. |
 | MTP se nečte, jen nápověda (`docs/hodinky-mtp.md`). | `pywin32` v sestavení není, PowerShell `CopyHere` je asynchronní a bez hlášení chyb, na Macu to bez další knihovny nejde. Bez testu na skutečných hodinkách to nejde udělat spolehlivě (otázka 63). |
 | Stránka hodinek (`watch.html`) je teď i anglicky. | Texty v ní nebyly obalené `_()`. |
+
+
+## 14. 11. 2026: nový vzhled stránky závodu (prompt 9, maketa `docs/vzhled-navrh/zavod.html`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Stránka závodu nemá záložky. Pořadí: záhlaví s akcemi, pás čísel, mapa (63 %) a tabulka úseků (37 %) vedle sebe, vybraný úsek pod nimi, zbytek v rozbalovacích oddílech `<details class="ob-oddil">` (Úseky podrobně, Jak je rozbor spočítaný, GPS stopa, Mezičasy kategorie, Podklady, Nastavení). | Uživatel se nemusí rozklikávat a mapa s úseky je hned vidět. Oddíly fungují i bez skriptu. |
+| Ostatní akce (odkazy na ORIS, OResults, klub, Livelox, jiná kategorie, poslat závod, spustit analýzu) jsou v menu „Další možnosti“ (`<details>`). „Běžel jsem jinou kategorii“ je v oddílu Nastavení. | Záhlaví má jen tři tlačítka. Menu jde otevřít i bez skriptu. |
+| Odkaz na prvek uvnitř oddílu (`#podklady`, `#kategorie`, `#soubor`) oddíl nejdřív otevře (`ob.js` `openTo`). Po samočinném obnovení stránky zůstanou otevřené tytéž oddíly. | Náhrada za přepínání záložek; přesměrování na `#kategorie` dál funguje. |
+| Pás úseků (čipy ‹ ›) a velká tabulka úseků zůstaly: čipy v liště mapy, velká tabulka v oddílu Úseky podrobně. Malý seznam úseků z pravého panelu zmizel, nahradila ho tabulka vedle mapy. | Nic funkčního se neodebírá. |
+| V tabulce vedle mapy je ztráta šedě do 20 s, oranžově nad 20 s a červeně se štítkem jen u chyby, kterou rozpoznal `oroute/mistakes.py` (`leg.mistake`). Mapa a čipy dál barví podle velikosti ztráty. | Červená jen pro skutečnou chybu, barva nestačí sama, proto štítek. Barvy mapy se v tomhle PR nemění. |
+| Šipky ← → a klávesy vrstev fungují, jen když je mapa aspoň zčásti v okně. | Dřív hlídala otevřená záložka; při čtení oddílů pod mapou by šipky jinak přepínaly úseky místo posunu stránky. |
+| Mapa a tabulka jsou vedle sebe od 960 px, užší okno je dá pod sebe. Písmo tabulky 13 px, štítky a hlavičky 12 px, číslice JetBrains Mono. | Zadání: okno od 960 px, nic pod 12 px. |

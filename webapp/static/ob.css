@@ -242,7 +242,7 @@ tr.ob-ja td { font-weight: 650; background: color-mix(in srgb, var(--brand-2) 22
 :root[data-theme="tmavy"] .ob-cip[aria-pressed="true"] { background: color-mix(in srgb, var(--brand-svetla) 25%, var(--bg-elev)); }
 .ob-usek-souhrn { display: none; margin: 0; padding: var(--s2) var(--s3); background: var(--bg-elev);
   border: 1px solid var(--line); border-radius: var(--r2); }
-@media (max-width: 63.99rem) { .ob-usek-souhrn:not([hidden]) { display: block; } }
+@media (max-width: 59.99rem) { .ob-usek-souhrn:not([hidden]) { display: block; } }
 .ob-alt-cislo { display: inline-grid; place-items: center; width: 1.15rem; height: 1.15rem; border-radius: 50%;
   background: var(--ob-nejlepsi); color: #fff; border: 1px solid #fff; font: 700 11px/1 system-ui, sans-serif; font-style: normal; }
 #p-alts tr[data-alt] { cursor: pointer; }

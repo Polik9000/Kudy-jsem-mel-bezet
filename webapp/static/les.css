@@ -236,33 +236,123 @@ tr.ob-ja td { font-weight: 650; }
 .ob-posledni-akce { margin-left: auto; color: var(--odkaz); font-weight: 600; }
 @media (max-width: 40rem) { .ob-karty3 { grid-template-columns: 1fr; } .ob-prehled .karta { flex-direction: row; justify-content: center; gap: .6rem; align-items: baseline; } }
 
-/* ---------- detail závodu: mapa 62 %, rozbor 38 % ---------- */
-.ob-mapa-obal { gap: 1rem; }
-.ob-mapa-ram { flex: 62 1 0; min-width: 0; }
-#panel { flex: 38 1 0; width: auto; min-width: 22rem; max-width: 40rem; max-height: calc(100vh - 7.5rem); position: sticky;
-  top: calc(var(--vyska-hlavicky, 3.4rem) + .6rem); padding: .9rem 1rem; }
-#map { height: calc(100vh - 14.5rem); min-height: 28rem; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-panel-primary); }
+/* ---------- stránka závodu: záhlaví, pás čísel, mapa 63 % a úseky 37 % vedle sebe, vybraný úsek pod nimi,
+   zbytek v rozbalovacích oddílech (prompt 9, maketa docs/vzhled-navrh/zavod.html). Bez záložek. ---------- */
+.ob-zav-hlava { display: flex; align-items: flex-end; justify-content: space-between; gap: .6rem 1.2rem; flex-wrap: wrap; margin: 0 0 .9rem; }
+.ob-zav-hlava h2 { margin: 0 0 .25rem; }
+.ob-zav-hlava .evhead { margin: 0; }
+.ob-zav-hlava .zavododkazy { margin: 0; align-items: center; }
+.ob-vice { position: relative; }
+.ob-vice > summary { list-style: none; cursor: pointer; }
+.ob-vice > summary::-webkit-details-marker { display: none; }
+.ob-vice-menu { position: absolute; right: 0; top: calc(100% + .3rem); z-index: 1100; display: flex; flex-direction: column;
+  align-items: stretch; gap: .3rem; min-width: 15rem; padding: .5rem; margin: 0; box-shadow: var(--stin2); }
+.ob-vice-menu .btn, .ob-vice-menu form .btn { width: 100%; justify-content: flex-start; }
+.ob-vice-menu form { margin: 0; }
+
+.ob-chybi { display: flex; align-items: center; justify-content: space-between; gap: .5rem 1rem; flex-wrap: wrap;
+  margin: 0 0 .9rem; padding: .55rem .8rem; background: var(--bg-panel-primary); border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--status-loss-amber); border-radius: 6px; }
+
+/* pás čísel: pevná výška, ať nic neposkočí, než ho map.js vyplní */
+.ob-cisla { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 3.6rem; margin: 0 0 .8rem;
+  background: var(--bg-panel-primary); border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; }
+.ob-cisla > div { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 0 .9rem;
+  border-right: 1px solid var(--border-subtle); }
+.ob-cisla > div:last-child { border-right: 0; }
+.ob-cisla b { font: 600 19px/1.2 var(--les-mono); color: var(--text-primary); white-space: nowrap; }
+.ob-cisla span { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.ob-plocha { display: grid; grid-template-columns: minmax(0, 63fr) minmax(19rem, 37fr); gap: .8rem; align-items: start; margin: 0 0 .8rem; }
+.ob-mapa-panel, .ob-useky-panel { background: var(--bg-panel-primary); border: 1px solid var(--border-subtle); border-radius: 8px; min-width: 0; }
+.ob-mapa-panel { padding: 0 0 .5rem; }
+.ob-mapa-lista { display: flex; align-items: center; gap: .5rem; min-height: 2.4rem; padding: .3rem .7rem;
+  border-bottom: 1px solid var(--border-subtle); }
+.ob-vrstvy { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: .15rem 1rem; padding: 0; margin: 0;
+  background: none; border: 0; min-width: 0; }
+.ob-vrstvy label.check { margin: 0; padding: .1rem 0; gap: .35rem; cursor: pointer; font-size: 13px; color: var(--text-primary); white-space: nowrap; }
+.ob-vrstvy label.check[hidden] { display: none; }
+.ob-vrstvy kbd { font-size: 11px; color: var(--text-secondary); border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 .25rem; background: var(--bg-panel-secondary); }
+.ob-vrstvy .sw { width: 1.1rem; height: 3px; border-radius: 2px; }
+.ob-vrstvy .sw.zachyt { height: .7rem; width: .7rem; }
+.ob-mapa-panel .ob-pas { margin: 0; padding: .35rem .5rem; border-bottom: 1px solid var(--border-subtle); }
+.ob-mapa-ram { position: relative; }
+#map { height: max(24rem, calc(100vh - 24rem)); min-height: 0; border: 0; border-radius: 0; background: var(--bg-panel-primary); }
 .leaflet-container { background: var(--bg-panel-primary); }
 .ob-mapa-stav, .ob-kresleni { background: var(--bg-map-overlay); color: var(--text-primary); border-color: var(--border-strong); }
 .ob-kresleni { top: auto; bottom: 2.6rem; left: .75rem; right: .75rem; border-color: var(--zelena); }
-.ob-vrstvy { position: absolute; z-index: 5; top: .75rem; right: .75rem; display: flex; flex-direction: column; gap: .15rem;
-  padding: .5rem .65rem; background: var(--bg-map-overlay); border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text-primary);
-  backdrop-filter: blur(2px); min-width: 12.5rem; }
-.ob-vrstvy label.check { margin: 0; padding: .15rem 0; gap: .5rem; cursor: pointer; font-size: 13px; color: var(--text-primary); }
-.ob-vrstvy label.check[hidden] { display: none; }
-.ob-vrstvy label.check span { flex: 1; }
-.ob-vrstvy kbd { font-size: 10.5px; color: var(--text-secondary); border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 .3rem; background: var(--bg-panel-secondary); }
-.ob-vrstvy .sw { width: 1.1rem; height: 3px; border-radius: 2px; }
-.ob-vrstvy .sw.zachyt { height: .7rem; width: .7rem; }
-@media (max-width: 63.99rem) {
-  .ob-mapa-ram { flex: none; }
-  #panel { position: static; max-width: none; min-width: 0; max-height: none; flex: none; }
+.ob-mapa-panel .ob-legenda { margin: .5rem .7rem 0; }
+.ob-mapa-panel .ob-autor { margin: .3rem .7rem 0; font-size: 12px; }
+.ob-mapa-panel .ob-usek-souhrn { margin: 0; border: 0; border-top: 1px solid var(--border-subtle); border-radius: 0; }
+
+/* tabulka úseků vedle mapy: číslice vpravo, JetBrains Mono, m:ss */
+.ob-useky-panel { display: flex; flex-direction: column; position: sticky; top: calc(var(--vyska-hlavicky, 3.4rem) + .6rem); }
+.ob-useky-hlava { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 2.4rem;
+  padding: .3rem .8rem; border-bottom: 1px solid var(--border-subtle); }
+.ob-useky-hlava strong { font-size: 14px; }
+.ob-useky-hlava .hint { font-size: 12px; margin: 0; }
+.ob-useky-svitek { overflow-y: auto; max-height: max(26rem, calc(100vh - 17rem)); }
+.ob-useky { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0; }
+.ob-useky th, .ob-useky td { padding: .42rem .6rem; border-bottom: 1px solid var(--border-subtle); white-space: nowrap; text-align: left; }
+.ob-useky thead th { position: sticky; top: 0; z-index: 1; background: var(--bg-panel-secondary); color: var(--text-secondary);
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.ob-useky th.num, .ob-useky td.num { text-align: right; font-family: var(--les-mono); font-variant-numeric: tabular-nums; }
+.ob-useky tbody th { font-weight: 700; font-family: var(--les-mono); background: transparent; color: var(--text-primary); }
+.ob-useky tbody tr { cursor: pointer; }
+.ob-useky tbody tr:hover { background: var(--bg-panel-secondary); }
+.ob-useky tbody tr.sel > * { background: color-mix(in srgb, var(--zelena) 22%, var(--bg-panel-primary)); }
+.ob-useky tbody tr.sel > :first-child { box-shadow: inset 3px 0 0 var(--zelena); }
+.ob-useky tbody tr:focus-visible { outline: 2px solid var(--zelena); outline-offset: -2px; }
+.ob-useky-pata { margin: 0; padding: .45rem .8rem; font-size: 12px; border-top: 1px solid var(--border-subtle); }
+.ob-ztr { font-family: var(--les-mono); font-weight: 700; }
+.ob-ztr.sum { color: var(--text-secondary); font-weight: 500; }
+.ob-ztr.ztrata { color: var(--status-loss-amber); }
+.ob-ztr.chyba { color: var(--cerv-cit); }
+.ob-stitek { display: inline-block; margin-left: .3rem; padding: 0 .35rem; border: 1px solid var(--border-strong); border-radius: 4px;
+  font: 600 12px/1.5 var(--les-sans); color: var(--text-secondary); background: var(--bg-panel-secondary); vertical-align: 1px; }
+.ob-stitek.chyba { color: var(--cerv-cit); border-color: color-mix(in srgb, var(--cerv-cit) 55%, transparent);
+  background: color-mix(in srgb, var(--cerv-cit) 12%, var(--bg-panel-primary)); }
+
+/* vybraný úsek (nebo celý závod) pod mapou */
+#panel.ob-detail { position: static; width: auto; max-width: none; max-height: none; overflow: visible; margin: 0 0 1rem; padding: .9rem 1rem; }
+#panel .ob-panel-hlava { display: flex; align-items: center; gap: .4rem .8rem; flex-wrap: wrap; margin: 0 0 .7rem; }
+#panel .ob-panel-hlava h3 { margin: 0; font-size: 17px; }
+#panel .ob-klavesy { margin: 0 0 0 auto; font-size: 12px; }
+#panel h3 { margin: .3rem 0 .4rem; }
+.ob-detail .ob-metriky { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+.ob-metriky .ob-co b { font: 600 17px/30px var(--les-sans); }
+.ob-metriky .ob-co.chyba b { color: var(--cerv-cit); }
+.ob-metriky .ob-co.sum b { color: var(--text-secondary); }
+.ob-usek-akce { margin: 0 0 .8rem; }
+.ob-usek-akce [hidden] { display: none; }
+.ob-detail-sloupce { display: grid; grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr); gap: 1rem 1.4rem; align-items: start; }
+.ob-detail-sloupce > * { min-width: 0; }
+.ob-detail-poznamky fieldset { margin-top: 0; }
+
+/* rozbalovací oddíly pod tím */
+.ob-oddily { display: grid; gap: .5rem; margin: 0 0 1rem; }
+details.ob-oddil { background: var(--bg-panel-primary); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0 1rem; margin: 0; }
+details.ob-oddil > summary { cursor: pointer; padding: .7rem 0; font-size: 15px; font-weight: 600; color: var(--text-primary); }
+details.ob-oddil > summary .hint { font-size: 12px; font-weight: 400; margin-left: .4rem; }
+details.ob-oddil[open] { padding-bottom: 1rem; }
+details.ob-oddil[open] > summary { border-bottom: 1px solid var(--border-subtle); margin-bottom: .8rem; }
+.ob-oddily > details.ob-info, .ob-oddily > details.ob-jak { margin: 0; }
+
+@media (max-width: 59.99rem) {
+  .ob-plocha { grid-template-columns: minmax(0, 1fr); }
+  .ob-useky-panel { position: static; }
+  .ob-useky-svitek { max-height: 22rem; }
   #map { height: 62vh; min-height: 22rem; }
+  .ob-detail-sloupce { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 47.99rem) {
-  .ob-vrstvy { position: static; flex-direction: row; flex-wrap: wrap; gap: .2rem .9rem; margin-top: .5rem; min-width: 0; }
+  .ob-cisla { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 6.4rem; }
+  .ob-cisla > div:nth-child(2) { border-right: 0; }
+  .ob-cisla > div:nth-child(-n+2) { border-bottom: 1px solid var(--border-subtle); }
   .ob-vrstvy kbd { display: none; }
   .ob-kresleni { bottom: 3rem; }
+  .ob-vice-menu { right: auto; left: 0; }
+  #panel .ob-klavesy { display: none; }
 }
 .ob-legenda { color: var(--text-secondary); font-size: 12px; }
 

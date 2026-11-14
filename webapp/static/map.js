@@ -121,6 +121,7 @@
     draw();
     trimPreview();
     table();
+    useky();
     strip();
     totals();
     watchPlans();
@@ -176,13 +177,14 @@
         // layer keys shown in the panel over the map: M map, T map with the course, 1-3 the other layers
         var layer = { m: "c-map", t: "c-course", 1: "c-alts", 2: "c-prumer", 3: "c-zachyt", 4: "c-prekazky" }[ev.key.toLowerCase()];
         if (layer && !field && !ev.altKey && !ev.ctrlKey && !ev.metaKey && $(layer) && !$(layer).closest("[hidden]") &&
-            $("mapa").classList.contains("aktivni")) {
+            mapInView()) {
           $(layer).checked = !$(layer).checked;
           $(layer).dispatchEvent(new Event("change"));
         }
-        // ← and → go to the previous and the next leg while the map tab is open
+        // ← and → go to the previous and the next leg while the map is in the window (not while the sections
+        // under it are read)
         if ((ev.key === "ArrowLeft" || ev.key === "ArrowRight") && !field && !ev.altKey && !ev.ctrlKey && !ev.metaKey &&
-            $("mapa").classList.contains("aktivni")) {
+            mapInView()) {
           ev.preventDefault();
           step(ev.key === "ArrowLeft" ? -1 : 1);
         }
@@ -205,11 +207,14 @@
       }
     });
     map.on("dblclick", function () { if (drawing) { drawing.pop(); finishDrawing(); } });
-    // the map sits in a tab: Leaflet has to measure itself again when the tab is shown
-    document.addEventListener("ob-tab", function (ev) {
-      if (ev.detail === "mapa") { map.invalidateSize(); }
+    // "Poznámka k úseku": to the note of the selected leg
+    $("b-poznamka").addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      $("poznamka").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      $("n-text").focus({ preventScroll: true });
     });
-    // links to a leg from the other tabs (split-time table)
+    // links to a leg from the sections below (split-time table)
     Array.prototype.forEach.call(document.querySelectorAll("a[data-usek]"), function (a) {
       a.addEventListener("click", function (ev) {
         ev.preventDefault();
@@ -220,6 +225,12 @@
     if (location.hash.indexOf("#usek-") === 0) { select(Number(location.hash.slice(6))); }
     // the page has its full height now: ob.js may put it back where it was before it loaded itself again
     document.dispatchEvent(new CustomEvent("ob-vykresleno"));
+  }
+
+  // the map is at least partly in the window: the keys of the map work only then
+  function mapInView() {
+    var r = $("map").getBoundingClientRect();
+    return r.bottom > 0 && r.top < window.innerHeight;
   }
 
   // --- modes of the map click: refreshment point, forbidden line ---
@@ -438,8 +449,22 @@
     Array.prototype.forEach.call(document.querySelectorAll("#legs tr[data-n]"), function (tr) {
       tr.classList.toggle("sel", Number(tr.dataset.n) === selected);
     });
-    Array.prototype.forEach.call(document.querySelectorAll(".ob-sl, .ob-mini-r"), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll(".ob-sl"), function (b) {
       b.classList.toggle("sel", Number(b.dataset.n) === selected);
+    });
+    // the table beside the map: the row of the leg, scrolled into view inside the table only (the page stays)
+    var wrap = $("useky-svitek");
+    Array.prototype.forEach.call(document.querySelectorAll("#useky tr[data-n]"), function (tr) {
+      var on = Number(tr.dataset.n) === selected;
+      tr.classList.toggle("sel", on);
+      tr.setAttribute("aria-selected", on ? "true" : "false");
+      if (!on || !wrap) { return; }
+      var head = wrap.querySelector("thead"), top = tr.offsetTop - (head ? head.offsetHeight : 0);
+      if (top < wrap.scrollTop) {
+        wrap.scrollTop = top;
+      } else if (tr.offsetTop + tr.offsetHeight > wrap.scrollTop + wrap.clientHeight) {
+        wrap.scrollTop = tr.offsetTop + tr.offsetHeight - wrap.clientHeight;
+      }
     });
     var box = $("pas-useky");
     Array.prototype.forEach.call(box.querySelectorAll("button"), function (b) {
@@ -549,6 +574,49 @@
     $("totals").innerHTML = T("Ztráta celkem <b>%(sum)s</b>:", { sum: mmss(sum) }) + " " + parts.join(", ") + "." +
       (t.deliberate >= 1 ? " " + T("Záměrné zastávky %(t)s se jako chyba nepočítají.", { t: mmss(t.deliberate) }) : "") +
       (D.rerouting ? " <b>" + T("Zakázané přechody se změnily, postupy se přepočítávají.") + "</b>" : "");
+    // the strip of numbers over the map
+    var top = D.legs.slice().sort(function (a, b) { return lossOf(b) - lossOf(a); })[0];
+    $("ci-useky").textContent = D.legs.length;
+    $("ci-ztrata").textContent = mmss(D.has_routes ? sum : t.mistake) || "0:00";
+    $("ci-max").textContent = top && lossOf(top) >= 20 ? mmss(lossOf(top)) : "–";
+    $("ci-max-usek").textContent = top && lossOf(top) >= 20 ? T("největší ztráta · %(name)s", { name: top.name }) : T("největší ztráta");
+  }
+
+  // How a loss reads in the table beside the map. Red only for a real mistake (the kind recognised in the track,
+  // oroute/mistakes.py), with its name as a label: the colour alone is not enough. Up to 20 s it is the noise of
+  // the model (grey), anything more without a mistake is orange.
+  function lossKind(l) {
+    var v = lossOf(l);
+    if (l.mistake) { return "chyba"; }
+    return v === null || v < 20 ? "sum" : "ztrata";
+  }
+  function useky() {
+    var box = $("useky");
+    if (!box) { return; }
+    var R = D.has_routes;
+    var h = "<thead><tr><th scope='col'>" + T("Úsek") + "</th><th scope='col' class='num'>" + T("Můj čas") + "</th>" +
+      (R ? "<th scope='col' class='num' title='" + T("čas nejlepšího postupu podle tvého modelu rychlosti") + "'>" + T("Nejlepší") + "</th>" : "") +
+      "<th scope='col' class='num'>" + (R ? T("Ztráta") : T("Odhad ztráty")) + "</th></tr></thead><tbody>";
+    D.legs.forEach(function (l) {
+      var k = lossKind(l), v = lossOf(l), tag = "";
+      if (l.mistake) {
+        tag = " <span class='ob-stitek chyba'>" + esc(l.mistake.label) + "</span>";
+      } else if (R && l.best && l.parts.route >= 20 && l.parts.route >= l.parts.mistake) {
+        tag = " <span class='ob-stitek'>" + T("volba") + "</span>";
+      }
+      h += "<tr data-n='" + l.n + "' tabindex='0'" + (selected === l.n ? " class='sel'" : "") + ">" +
+        "<th scope='row'>" + esc(l.name) + tag + "</th>" +
+        "<td class='num'>" + mmss(l.time) + "</td>" +
+        (R ? "<td class='num'>" + (l.best ? mmss(l.best.time) : "–") + "</td>" : "") +
+        "<td class='num'><span class='ob-ztr " + k + "'>" + (v !== null && v >= 1 ? mmss(v, true) : "0:00") + "</span></td></tr>";
+    });
+    box.innerHTML = h + "</tbody>";
+    Array.prototype.forEach.call(box.querySelectorAll("tr[data-n]"), function (tr) {
+      tr.addEventListener("click", function () { select(Number(tr.dataset.n)); });
+      tr.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(Number(tr.dataset.n)); }
+      });
+    });
   }
 
   // the main loss of a leg: never negative (faster than the model is said in words in the panel)
@@ -611,10 +679,11 @@
 
   // --- overview of the whole race (right column) and the bar chart of the losses ---
   function lossOf(l) { return D.has_routes ? l.loss_total : l.est_loss; }
-  function metrics(box, actual, model, loss) {
+  function metrics(box, actual, model, loss, what) {
     box.innerHTML = "<div><span>" + T("Skutečně") + "</span><b class='ob-cislo'>" + (actual === null ? "–" : mmss(actual)) + "</b></div>" +
       "<div class='ob-model'><span>" + T("Model") + "</span><b class='ob-cislo'>" + (model === null ? "–" : mmss(model)) + "</b></div>" +
-      "<div class='ob-zt'><span>" + T("Ztráta") + "</span><b class='ob-cislo'>" + (loss === null ? "–" : mmss(loss, true)) + "</b></div>";
+      "<div class='ob-zt'><span>" + T("Ztráta") + "</span><b class='ob-cislo'>" + (loss === null ? "–" : mmss(loss, true)) + "</b></div>" +
+      (what ? "<div class='ob-co " + what[1] + "'><span>" + T("Co se stalo") + "</span><b>" + esc(what[0]) + "</b></div>" : "");
   }
   function overview() {
     var t = D.totals, sum = t.route + t.mistake + t.fatigue;
@@ -632,12 +701,6 @@
       }).join("") + "</ul>";
     }
     $("o-ztraty").innerHTML = h;
-    var rows = D.legs.map(function (l) {
-      return "<button type='button' data-n='" + l.n + "' class='ob-mini-r z" + grade(lossOf(l)) + "'><span>" + esc(l.name) +
-        "</span><span class='ob-cislo'>" + mmss(l.time) + "</span><span class='ob-cislo ob-zt'>" +
-        (lossOf(l) >= 1 ? mmss(lossOf(l), true) : "") + "</span></button>";
-    }).join("");
-    $("o-useky").innerHTML = "<div class='ob-mini-h'><span>" + T("Úsek") + "</span><span>" + T("Čas") + "</span><span>" + T("Ztráta") + "</span></div>" + rows;
     Array.prototype.forEach.call($("panel-empty").querySelectorAll("button[data-n]"), function (b) {
       b.addEventListener("click", function () { select(Number(b.dataset.n)); });
     });
@@ -724,7 +787,9 @@
                (leg.ws.mistake ? " (<b>" + T("chyba") + "</b>)" : ""));
     }
     $("p-title").textContent = T("Úsek %(name)s", { name: leg.name });
-    metrics($("p-metriky"), leg.time, leg.best ? leg.best.time : null, leg.best ? leg.loss_total : leg.est_loss);
+    var kind = lossKind(leg), what = leg.mistake ? [leg.mistake.label, "chyba"] : kind === "sum" ? [T("bez chyby"), "sum"] :
+      leg.best && leg.parts.route >= leg.parts.mistake ? [T("volba postupu"), "ztrata"] : [T("pomalejší provedení"), "ztrata"];
+    metrics($("p-metriky"), leg.time, leg.best ? leg.best.time : null, leg.best ? leg.loss_total : leg.est_loss, what);
     var gps = leg.corrected ? T("Stopa úseku je opravená ručně: volba postupu a chyba se počítají po nakreslené čáře, z osobního modelu je úsek vyřazený.")
       : n.corrected ? T("Opravená stopa je uložená, postupy se přepočítávají.")
       : leg.gps_trouble || "";
@@ -947,6 +1012,7 @@
     if (D.rerouting) { document.body.setAttribute("data-obnovit", ""); }
     draw();
     table();
+    useky();
     strip();
     totals();
     overview();

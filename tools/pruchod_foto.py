@@ -79,7 +79,7 @@ def main():
     with open(os.path.join(out, "body.json"), "w", encoding="utf-8") as f:
         json.dump(pts, f)
     race, prefix = f"/races/{entry}", "/ob"
-    tab = "document.querySelector('a[href=\"#podklady\"]').click(); window.scrollTo(0, 0)"
+    tab = "document.getElementById('podklady').open = true; document.getElementById('podklady').scrollIntoView()"
     send_course = "document.querySelector('input[name=course]').form.submit()"
     jobs_say = lambda text: (f"fetch('{prefix}/jobs').then(r => r.text()).then(t => t.includes({json.dumps(text)}))")
     click_js = ("(async () => { for (const [n, u, v] of " + json.dumps(pts[:-1]) + ") {"

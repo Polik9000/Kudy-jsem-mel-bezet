@@ -138,7 +138,7 @@
   var bar = document.getElementById("ob-prubeh");
   if (bar && !bar.hidden) { document.body.classList.add("ob-pocita"); }  // room under the page for the bar
 
-  // Where the reader is, kept over that reload: the open tab and the element at the top of the window, in the
+  // Where the reader is, kept over that reload: the open sections and the element at the top of the window, in the
   // sessionStorage of this tab only (without it nothing happens). The page may come back taller or shorter above
   // that element (a note goes away, the map loads its data): the element goes back to the same place in the window.
   var PLACE = "ob-pozice";
@@ -158,8 +158,9 @@
   }
   function keepPlace() {
     try {
-      var tab = document.querySelector(".tabpanel.aktivni"), a = anchor();
-      sessionStorage.setItem(PLACE, JSON.stringify({ path: here(), y: window.scrollY, tab: tab ? tab.id : null,
+      var open = Array.prototype.map.call(document.querySelectorAll("details.ob-oddil[open]"), function (d) { return d.id; });
+      var a = anchor();
+      sessionStorage.setItem(PLACE, JSON.stringify({ path: here(), y: window.scrollY, open: open,
                                                      id: a && a.id, top: a && a.top }));
       history.scrollRestoration = "manual";
     } catch (e) { /* no storage: the page loads at the place the browser picks */ }
@@ -321,42 +322,39 @@
     });
   });
 
-  // tabs: <div data-taby><nav class="taby"><a class="tab" href="#id">…</a></nav><section class="tabpanel" id="id">…
-  Array.prototype.forEach.call(document.querySelectorAll("[data-taby]"), function (box) {
-    var tabs = box.querySelectorAll(".taby .tab"), panels = box.querySelectorAll(".tabpanel");
-    if (!tabs.length) { return; }
-    box.classList.add("js-taby");
-    function show(id) {
-      Array.prototype.forEach.call(tabs, function (t) {
-        var on = t.getAttribute("href") === "#" + id;
-        t.classList.toggle("aktivni", on);
-        if (on) { t.setAttribute("aria-current", "true"); } else { t.removeAttribute("aria-current"); }
-      });
-      Array.prototype.forEach.call(panels, function (p) { p.classList.toggle("aktivni", p.id === id); });
-      document.dispatchEvent(new CustomEvent("ob-tab", { detail: id }));
+  // Sections that open in place (<details class="ob-oddil">, the race page): a link to an element inside one (#podklady,
+  // #kategorie, #soubor) opens it and its parents first, so the jump lands on something visible. The same for the
+  // address the page opens with, and for "ob-tab-show" (map.js: the map is wanted, e.g. to draw on it).
+  function openTo(id, scroll) {
+    var el = id && document.getElementById(id);
+    if (!el) { return false; }
+    for (var p = el; p; p = p.parentElement) {
+      if (p.tagName === "DETAILS" && !p.open) { p.open = true; }
     }
-    Array.prototype.forEach.call(tabs, function (t) {
-      t.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        var id = t.getAttribute("href").slice(1);
-        show(id);
-        try { history.replaceState(null, "", "#" + id); } catch (e) { /* file: or sandboxed */ }
-      });
-    });
-    document.addEventListener("ob-tab-show", function (ev) { show(ev.detail); });
-    // <a data-tab="id"> anywhere on the page opens that tab
-    Array.prototype.forEach.call(document.querySelectorAll("a[data-tab]"), function (a) {
-      a.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        show(a.dataset.tab);
-        try { history.replaceState(null, "", "#" + a.dataset.tab); } catch (e) { /* file: or sandboxed */ }
-        box.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-    // the tab named in the address, else the one the page asks for (data-vychozi), else the first
-    var wanted = location.hash.slice(1), first = box.dataset.vychozi || tabs[0].getAttribute("href").slice(1);
-    show(wanted && box.querySelector(".tabpanel#" + CSS.escape(wanted)) ? wanted : first);
+    if (scroll) { el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    return true;
+  }
+  document.addEventListener("click", function (ev) {
+    var a = ev.target.closest && ev.target.closest("a[href^='#']");
+    if (!a || a.getAttribute("href").length < 2) { return; }
+    var id = a.getAttribute("href").slice(1), menu = a.closest("details.ob-vice");
+    if (menu) { menu.open = false; }
+    if (document.getElementById(id) && document.getElementById(id).closest(".ob-oddily, #panel")) {
+      ev.preventDefault();
+      openTo(id, true);
+      try { history.replaceState(null, "", "#" + id); } catch (e) { /* file: or sandboxed */ }
+    }
   });
+  document.addEventListener("ob-tab-show", function (ev) { openTo(ev.detail, true); });
+  // a click anywhere else closes the menu "Další možnosti"
+  document.addEventListener("click", function (ev) {
+    Array.prototype.forEach.call(document.querySelectorAll("details.ob-vice[open]"), function (m) {
+      if (!m.contains(ev.target)) { m.open = false; }
+    });
+  });
+  if (location.hash.length > 1 && location.hash.indexOf("#usek-") !== 0) {
+    try { openTo(decodeURIComponent(location.hash.slice(1)), false); } catch (e) { /* a malformed address */ }
+  }
 
   // back to the place kept before the page loaded itself again (keepPlace above)
   (function () {
@@ -366,9 +364,11 @@
       sessionStorage.removeItem(PLACE);
     } catch (e) { place = null; }
     if (!place || place.path !== here()) { return; }
-    var named = location.hash.slice(1);
-    if (place.tab && !(named && document.querySelector(".tabpanel#" + CSS.escape(named)))) {
-      document.dispatchEvent(new CustomEvent("ob-tab-show", { detail: place.tab }));
+    // the sections that were open stay open (and the ones closed by hand closed)
+    if (place.open) {
+      Array.prototype.forEach.call(document.querySelectorAll("details.ob-oddil[id]"), function (d) {
+        d.open = place.open.indexOf(d.id) >= 0;
+      });
     }
     function putBack() {
       if (!place || moved) { return; }

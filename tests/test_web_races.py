@@ -441,8 +441,8 @@ def test_run_and_both_maps_in_one_form(app, client, user):
                        " ON ev.id = c.event_id WHERE ev.oris_id = 8989").fetchone()["id"]
     page = f"/races/{mine}"
     html = client.get(page).get_data(as_text=True)
-    # nothing is there yet: the page opens on the tab where the files go and says what is missing
-    assert 'data-vychozi="podklady"' in html and html.count('data-tab="podklady"') == 3
+    # nothing is there yet: the section where the files go is open and one sentence says what is missing
+    assert '<details class="ob-oddil" id="podklady" open>' in html and 'id="chybi"' in html
     course, maponly, fit = inputs("pohora")
     files = {name: (open(path, "rb"), os.path.basename(path)) for name, path in
              (("fit", fit), ("course", course), ("maponly", maponly))}
@@ -455,7 +455,7 @@ def test_run_and_both_maps_in_one_form(app, client, user):
     assert [tuple(j) for j in queued] == [("analyse", mine)]
     html = client.get(page).get_data(as_text=True)
     assert "spárovaný s tímhle závodem" in html and "uložená pro kategorii" in html and "uložená pro všechny" in html
-    assert 'class="ob-kroky"' not in html                # nothing is missing any more
+    assert 'id="chybi"' not in html                      # nothing is missing any more
     # a file that is not a run is refused, and nothing chosen is said so
     r = client.post(page + "/files", data=dict(csrf_token=csrf(client), fit=(io.BytesIO(b"x"), "photo.fit")),
                     content_type="multipart/form-data", follow_redirects=True)

@@ -2663,3 +2663,45 @@ EN_JS.update({
     "Načíst…": "Load…",
     "Teď ne": "Not now",
 })
+
+# the race page without tabs (prompt 9): header, strip of numbers, legs beside the map, sections that open in place
+EN.update({
+    "všichni běžci kategorie z ORIS": "all runners of the class from ORIS",
+    "Zpět na závody": "Back to races",
+    "Podklady: mapy a běh": "Files: maps and run",
+    "Opravit trať / kontroly": "Fix the course / controls",
+    "Poslat závod jinému běžci": "Send the race to another runner",
+    "běh z hodinek (stopa na mapě)": "the run from the watch (the track on the map)",
+    "mapa s tratí (kontroly a jejich pořadí)": "the map with the course (the controls and their order)",
+    "mapa bez tratě (nejlepší postupy)": "the map without the course (the best routes)",
+    "Chybí %(what)s.": "Missing: %(what)s.",
+    "Souhrn závodu": "Race summary",
+    "úseků": "legs",
+    "odhad ztrát celkem": "estimated total loss",
+    "největší ztráta": "biggest loss",
+    "oficiální mezičasy": "official split times",
+    "časy na kontrolách z GPS": "control times from GPS",
+    "Mapa závodu": "Race map",
+    "Úseky · %(name)s": "Legs · %(name)s",
+    "vyber řádek": "pick a row",
+    "Šedě: bez ztráty (rozdíl do 20 s je v nepřesnosti modelu). Oranžově: ztráta. Červeně se štítkem: chyba.":
+        "Grey: no loss (up to 20 s is within the model's error). Orange: a loss. Red with a label: a mistake.",
+    "Celý závod": "Whole race",
+    "Klikni na úsek v mapě nebo v tabulce · ← / → mění úsek": "Click a leg on the map or in the table · ← / → change the leg",
+    "← / → mění úsek · Esc ukáže celou trať": "← / → change the leg · Esc shows the whole course",
+    "Opravit trať / kontrolu": "Fix the course / control",
+    "Poznámka k úseku": "Note on the leg",
+    "Úseky podrobně": "Legs in detail",
+    "volba postupu, chyba, vysvětlení, model": "route choice, mistake, explanation, model",
+    "mapy, běh, fotka, snímky": "maps, run, photo, screenshots",
+    "kategorie, zakázané čáry, občerstvení": "class, forbidden lines, refreshments",
+})
+EN_JS.update({
+    "největší ztráta · %(name)s": "biggest loss · %(name)s",
+    "největší ztráta": "biggest loss",
+    "Můj čas": "My time",
+    "volba": "route",
+    "bez chyby": "no mistake",
+    "volba postupu": "route choice",
+    "pomalejší provedení": "slower execution",
+})
