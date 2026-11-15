@@ -449,9 +449,6 @@ EN = {
         "%(filename)s: not a Garmin activity (a .fit with a run recording, or a zip with one .fit). Upload a whole Garmin export in Upload runs.",
     "Běh je nahraný a spárovaný s tímhle závodem.":
         "The run is uploaded and matched with this race.",
-    "Vítej! Zadej svoje registrační číslo ORIS, načtou se z něj tvoje závody. Jde to i později, nebo to přeskoč a přidávej závody ručně.":
-        "Welcome! Enter your ORIS registration number and your races will be loaded from it. You can also do it "
-        "later, or skip it and add races by hand.",
     "Uloženo. Závody z ORIS se načítají (%(name)s).":
         "Saved. Races are being loaded from ORIS (%(name)s).",
     " Postupy se přepočítají na pozadí.":
@@ -710,10 +707,6 @@ EN = {
         "Route analysis",
     "Přehled závodů":
         "Races",
-    "Nahrát běhy":
-        "Upload runs",
-    "Rychlostní model":
-        "Speed model",
     "Úlohy":
         "Jobs",
     "Profil":
@@ -754,8 +747,6 @@ EN = {
         "Main menu",
     "Analýza orientačního běhu":
         "Orienteering analysis",
-    "Lokální režim · data v zařízení":
-        "Local mode · data on this device",
     "Rozbor postupů počítají skripty z tvé stopy, mapy a oficiálních časů; žádná umělá inteligence.":
         "The route analysis is computed by scripts from your track, the map and the official times; no artificial intelligence.",
     "Časy a mezičasy: <a href=\"https://oris.ceskyorientak.cz/\">ORIS</a>.":
@@ -1562,60 +1553,30 @@ EN = {
         "The official time and splits are taken from the results of the class when you are in them; otherwise from the GPS.",
     "Závod v ORIS nemá žádné kategorie.":
         "The race has no classes in ORIS.",
-    "Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.":
-        "Races from ORIS and added by hand. For each you can see what is still missing for the analysis.",
-    "ORIS načten %(when)s.":
-        "ORIS loaded %(when)s.",
-    "Závody z ORIS se načtou samy, když v <a href=\"%(url)s\">Profilu</a> zadáš svoje registrační číslo ORIS. Bez něj můžeš závod přidat z ORIS nebo ručně.":
-        "Races from ORIS are loaded on their own once you enter your ORIS registration number in your <a href=\"%(url)s\">Profile</a>. Without it you can add a race from ORIS or by hand.",
     "Poslední načtení z ORIS se nepovedlo: %(error)s":
         "The last load from ORIS failed: %(error)s",
-    "Načíst závody z ORIS":
-        "Load races from ORIS",
     "Sezóna":
         "Season",
     "všechny":
         "all",
     "Hledat závod":
         "Search for a race",
-    "v sezóně %(season)s":
-        "in the season %(season)s",
-    "s hotovým rozborem":
-        "with a finished analysis",
-    "čeká na mapu nebo běh z hodinek":
-        "waiting for a map or a run from the watch",
     "Poslední rozbor":
         "Last analysis",
     "Otevřít rozbor":
         "Open the analysis",
-    "Filtr podle stavu":
-        "Filter by status",
     "Vše":
         "All",
-    "S během":
-        "With a run",
     "Chybí mapa":
         "Map missing",
-    "Chybí aktivita":
-        "Activity missing",
     "Tomuhle filtru žádný závod neodpovídá.":
         "No race matches this filter.",
-    "Zatím tu nejsou žádné závody. Tenhle účet nemá registrační číslo ORIS, takže se z něj nenačtou: přidej závod ručně.":
-        "There are no races here yet. This account has no ORIS registration number, so no races are loaded for it: add a race by hand.",
     "Zatím tu nejsou žádné závody. Načti je z ORIS tlačítkem nahoře, nebo přidej závod ručně.":
         "There are no races here yet. Load them from ORIS with the button above, or add a race by hand.",
     "<a href=\"%(url)s\">Jak na to</a>: kde vzít mapy z Livelox a běhy z Garminu.":
         "<a href=\"%(url)s\">How to</a>: where to get maps from Livelox and runs from Garmin.",
     "Kat.":
         "Class",
-    "Aktivita":
-        "Activity",
-    "Mapa bez tratě":
-        "Map without course",
-    "je":
-        "present",
-    "Doplnit podklady":
-        "Add source files",
     "Účet se zakládá registračním číslem ORIS. Jméno a tvoje závody se podle něj načtou samy.":
         "The account is created with an ORIS registration number. Your name and your races are loaded from it on their own.",
     "Tři písmena oddílu a čtyři číslice, např. BFM0000. Je to i tvoje přihlašovací jméno a později ho nejde změnit.":
@@ -2010,12 +1971,6 @@ EN = {
         'The whole map from above, in daylight and without flash, laid flat with nothing covering the controls. The photo is placed by the controls and your track at the official punch times. You can upload it any time; if the run or the ORIS split times are still missing, it waits saved until they are added.',
     'Jak začít':
         'How to start',
-    '<b>Registrační číslo ORIS</b> (nepovinné) zadej v <a href="%(profile)s">Profilu</a>: tvoje závody, kategorie a oficiální mezičasy se pak načtou samy. Bez něj přidáš závod <a href="%(oris)s">podle čísla v ORIS</a> nebo <a href="%(new)s">ručně</a>.':
-        '<b>ORIS registration number</b> (optional): enter it in <a href="%(profile)s">Profile</a> and your races, classes and official split times load by themselves. Without it you add a race <a href="%(oris)s">by its ORIS number</a> or <a href="%(new)s">by hand</a>.',
-    '<b>Běh z hodinek</b> (.fit nebo zip z Garmin Connect) nahraj v <a href="%(url)s">Nahrát běhy</a>. Se závodem se spáruje sám.':
-        '<b>Run from the watch</b> (.fit or zip from Garmin Connect): upload it in <a href="%(url)s">Upload runs</a>. It is matched to the race by itself.',
-    '<b>Mapy</b>: u závodu v Podkladech nahraj KMZ z Livelox, s tratí a bez ní. <a href="%(url)s">Jak na to</a>':
-        '<b>Maps</b>: in the race\'s Inputs upload the KMZ from Livelox, with and without the course. <a href="%(url)s">How to</a>',
     'Načte z ORIS závody, na které jsi přihlášený pod svým registračním číslem':
         'Loads from ORIS the races you entered under your registration number',
     'Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem':
@@ -2092,10 +2047,6 @@ EN.update({
     "Trvá to chvíli (podle počtu závodů i několik minut). Stránka se sama obnoví, až to doběhne.":
         "It takes a while (several minutes with many races). The page reloads itself when it is done.",
     "Načteno z ORIS. %(message)s": "Loaded from ORIS. %(message)s",
-    "<b>Registrační číslo ORIS</b> %(regno)s máš zadané: tvoje závody, kategorie a oficiální mezičasy se z ORIS"
-    " načítají samy (průběh je vidět nahoře).":
-        "Your <b>ORIS registration number</b> %(regno)s is entered: your races, classes and official split times are"
-        " loaded from ORIS by themselves (see the progress at the top).",
     "etapa etapového závodu": "a stage of a multi-stage event",
 })
 
@@ -2162,6 +2113,69 @@ EN.update({
         "%(filename)s is larger than the server takes, so it was not uploaded. The other files were.",
     "Soubory jsou dohromady větší, než server přijme (nejvýš %(mb)s MB). Nahraj je po jednom.":
         "The files together are larger than the server takes (at most %(mb)s MB). Upload them one at a time.",
+})
+
+# Přehled (prompt 11): header, the first start with the ORIS number, the strip of numbers, filters, the next step
+EN.update({
+    "Model rychlosti": "Speed model",
+    "Nápověda": "Help",
+    "Další": "More",
+    "Data zůstávají v tomto počítači": "Data stays on this computer",
+    "Tvoje závody z ORIS a ručně přidané": "Your races from ORIS and added by hand",
+    "sezóna %(season)s": "season %(season)s",
+    "všechny sezóny": "all seasons",
+    "Načíst z ORIS": "Load from ORIS",
+    "Zadej svoje <b>registrační číslo ORIS</b>: aplikace ho ověří v ORIS a načte tvoje závody, kategorie a oficiální"
+    " mezičasy. Číslo je nepovinné.":
+        "Enter your <b>ORIS registration number</b>: the app checks it in ORIS and loads your races, classes and official"
+        " split times. The number is optional.",
+    "Tři písmena oddílu a čtyři číslice, např. BFM0000": "Three letters of the club and four digits, e.g. BFM0000",
+    "Uložit a načíst závody": "Save and load races",
+    "Závody pak přidáš z ORIS podle čísla závodu nebo ručně. Číslo jde zadat i později v Profilu.":
+        "You then add races from ORIS by the race number or by hand. You can enter the number later in Profile.",
+    "Přeskočit": "Skip",
+    '<b>Běh z hodinek</b> (.fit nebo zip z Garmin Connect) nahraj v <a href="%(url)s">Nahrát</a>. Se závodem se'
+    ' spáruje sám.':
+        '<b>Run from the watch</b> (.fit or zip from Garmin Connect): upload it in <a href="%(url)s">Upload</a>.'
+        ' It is paired with the race by itself.',
+    '<b>Mapy</b>: k závodu nahraj KMZ z Livelox, s tratí a bez ní. <a href="%(url)s">Jak na to</a>':
+        '<b>Maps</b>: upload the KMZ from Livelox for the race, with and without the course. <a href="%(url)s">How to</a>',
+    "<b>Registrační číslo ORIS</b> %(regno)s máš zadané: tvoje závody, kategorie a oficiální mezičasy se z ORIS"
+    " načítají samy.":
+        "Your <b>ORIS registration number</b> %(regno)s is entered: your races, classes and official split times are"
+        " loaded from ORIS by themselves.",
+    'Závod přidáš <a href="%(oris)s">podle čísla v ORIS</a> nebo <a href="%(new)s">ručně</a>. Registrační číslo ORIS'
+    ' jde zadat i později v <a href="%(profile)s">Profilu</a>.':
+        'Add a race <a href="%(oris)s">by its number in ORIS</a> or <a href="%(new)s">by hand</a>. You can enter your'
+        ' ORIS registration number later in <a href="%(profile)s">Profile</a>.',
+    "Načtení z ORIS se nepovedlo.": "Loading from ORIS failed.",
+    "Závody z ORIS jsou načtené.": "Races from ORIS are loaded.",
+    "Poslední načtení %(when)s": "Last loaded %(when)s",
+    "na doplnění podkladů čeká %(n)s": "%(n)s waiting for files",
+    "Další registrační číslo": "Another registration number",
+    "závodů celkem": "races in total",
+    "hotových rozborů": "finished analyses",
+    "čekají na podklady": "waiting for files",
+    "běhy ke spárování": "runs to pair",
+    "Filtrovat závody": "Filter races",
+    "Chybí běh": "Run missing",
+    "Zobrazit": "Show",
+    "Hledat závod…": "Search races…",
+    "Zatím tu nejsou žádné závody. Přidej závod z ORIS podle jeho čísla, nebo ručně.":
+        "There are no races here yet. Add a race from ORIS by its number, or by hand.",
+    "Závod a místo": "Race and place",
+    "Běh": "Run",
+    "Další krok": "Next step",
+    "Nahráno": "Uploaded",
+    "Obě mapy": "Both maps",
+    "Chybí mapa bez tratě": "Map without course missing",
+    "Chybí mapa s tratí": "Map with course missing",
+    "Chybí mapy": "Maps missing",
+    "Pokračovat": "Continue",
+    "Doplnit běh": "Add the run",
+    "Doplnit mapu": "Add the map",
+    "Rychlý návrat": "Quick way back",
+    "Pokračovat v rozboru": "Continue the analysis",
 })
 
 EN_JS = {

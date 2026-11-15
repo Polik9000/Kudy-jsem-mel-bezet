@@ -23,18 +23,42 @@ def local(tmp_path, monkeypatch):
     return app
 
 
-def test_first_start_asks_for_regno_once(local):
+def test_first_start_asks_for_regno_on_the_races_page(local):
+    """The registration number is given right on Přehled ("Jak začít"), checked in ORIS, and the races start loading."""
     c = local.test_client()
     r = c.get("/")
-    assert r.status_code == 302 and r.headers["Location"].endswith("/profile")
-    assert "registrační číslo ORIS" in c.get("/profile").get_data(as_text=True)
-    assert c.get("/").status_code == 200              # skipped: never asked again
-    assert local.test_client().get("/").status_code == 200
+    assert r.status_code == 200                       # no detour through Profile any more
+    html = r.get_data(as_text=True)
+    assert 'id="jak-zacit"' in html and 'action="/uvod/oris"' in html and 'action="/uvod/preskocit"' in html
+    r = c.post("/uvod/oris", data=dict(csrf_token=csrf(c, "/"), oris_regno="XYZ9999"), follow_redirects=True)
+    assert "v ORIS není" in r.get_data(as_text=True) and 'id="jak-zacit"' in r.get_data(as_text=True)
+    r = c.post("/uvod/oris", data=dict(csrf_token=csrf(c, "/"), oris_regno="bfm 0903"))
+    assert r.status_code == 302 and r.headers["Location"].endswith("/")
+    html = c.get("/").get_data(as_text=True)
+    assert "patří v ORIS jménu" in html and 'id="jak-zacit"' not in html
+    assert "Načítám závody z ORIS" in html            # the progress of the load (prompt 2)
+    from webapp import db as dbm
+    con = dbm.connect(local.config["OB"].db_path)
+    u = con.execute("SELECT * FROM users").fetchone()
+    assert u["oris_regno"] == "BFM0903" and u["oris_user_id"] == 45118
+    assert [j["kind"] for j in con.execute("SELECT kind FROM jobs")] == ["sync_oris"]
+    # given once: not a second time here (another number is added in Profile)
+    assert c.post("/uvod/oris", data=dict(csrf_token=csrf(c, "/"), oris_regno="BFM0001")).status_code == 404
+
+
+def test_first_start_can_be_skipped(local):
+    c = local.test_client()
+    r = c.post("/uvod/preskocit", data=dict(csrf_token=csrf(c, "/")))
+    assert r.status_code == 302
+    html = c.get("/").get_data(as_text=True)
+    assert 'id="jak-zacit"' not in html and 'href="/races/oris"' in html and 'href="/races/new"' in html
+    assert 'id="jak-zacit"' not in local.test_client().get("/").get_data(as_text=True)   # remembered
+    # the number can still be given later in Profile
+    assert 'name="oris_regno"' in c.get("/profile").get_data(as_text=True)
 
 
 def test_no_login(local):
     c = local.test_client()
-    c.get("/")                                          # the first start goes to the profile
     r = c.get("/")
     assert r.status_code == 200
     html = r.get_data(as_text=True)

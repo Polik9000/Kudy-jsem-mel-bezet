@@ -51,7 +51,7 @@ def test_doplnit_opens_nahrat_with_the_race_and_the_maps_come_back(app, client, 
     con, mine = entry(app, client, user, run=False)
     race = client.get(f"/races/{mine}").get_data(as_text=True)
     assert f'href="/upload?zavod={mine}#mapa-zavodu"' in race           # „Doplnit“: the race lacks its maps
-    assert f'/upload?zavod={mine}#mapa-zavodu' in client.get("/").get_data(as_text=True)
+    assert f'/upload?zavod={mine}#beh' in client.get("/").get_data(as_text=True)  # Přehled: run missing first
     html = client.get(f"/upload?zavod={mine}").get_data(as_text=True)
     assert f'<option value="{mine}" selected' in html
     assert f'action="/races/{mine}/files"' in html and 'name="zpet" value="nahrat"' in html

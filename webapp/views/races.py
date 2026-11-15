@@ -97,6 +97,15 @@ def _mmss(s):
     return texts.mmss(s)
 
 
+@bp.app_template_filter("hmmss")
+def _hmmss(s):
+    """Seconds -> 'm:ss', or 'h:mm:ss' from an hour up (the race list on Přehled)."""
+    if s is None:
+        return ""
+    s = int(round(s))
+    return f"{s // 3600}:{s % 3600 // 60:02d}:{s % 60:02d}" if s >= 3600 else texts.mmss(s)
+
+
 @bp.app_template_filter("mmss_sign")
 def _mmss_sign(s):
     return texts.mmss(s, sign=True)
@@ -127,29 +136,44 @@ def _kdy(iso):
     return f"{i18n.date_text(d)} {d:%H:%M}"
 
 
-def _first_start():
-    """True once: the first time the races page opens in the app on one's own computer. A marker file in the
-    data folder remembers it, so a runner who skips the number is not asked again at every start."""
-    marker = os.path.join(cfg().instance, ".uvod-profil")
-    if os.path.exists(marker):
-        return False
+def _start_skipped():
+    """True when the runner of the app on one's own computer said "Přeskočit" to the registration number on Přehled
+    (a marker file in the data folder), so the box "Jak začít" with the number field is not shown again."""
+    return os.path.exists(os.path.join(cfg().instance, ".uvod-profil"))
+
+
+def save_first_regno(db, regno):
+    """The app on one's own computer: the registration number given for the first time (on Přehled or in Profile).
+    Checked in ORIS, kept with the account, and the races start loading. Returns None when saved, else the message
+    for the runner. The number is given once here; another one is added in Profile (services/regnos.py)."""
+    if not re.fullmatch(accounts.REGNO, regno):
+        return _("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000.")
     try:
-        with open(marker, "w", encoding="utf-8") as f:
-            f.write("1")
-    except OSError:
-        return False  # cannot remember it: do not ask at all rather than at every start
-    return True
+        person = oris.client(cfg()).user(regno)
+    except oris.OrisError:
+        return _("ORIS teď neodpovídá, zkus registrační číslo uložit později.")
+    if person is None:
+        return _("Registrační číslo %(regno)s v ORIS není.", regno=regno)
+    db.execute("UPDATE users SET oris_regno = ?, oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
+               (regno, person["oris_user_id"], person["name"], g.user["id"]))
+    db.execute("UPDATE user_regnos SET name = ? WHERE user_id = ? AND regno = ?",
+               (person["name"], g.user["id"], regno))
+    db.commit()
+    jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
+    flash(_("Uloženo: %(regno)s patří v ORIS jménu %(name)s. Teď se z ORIS načítají všechny tvoje závody."
+            " Trvá to chvíli (podle počtu závodů i několik minut), průběh vidíš nahoře v Přehledu závodů."
+            " Když to nejsi ty, napiš autorovi aplikace.", regno=regno, name=person['name']), "ok")
+    return None
+
+
+# what is missing for the analysis (status() key) -> the filter on Přehled that shows it (?jen=)
+FILTERS = ("hotovo", "aktivita", "mapa")
 
 
 @bp.route("/")
 @login_required
 def races():
     db = get_db()
-    if cfg().local and not g.user["oris_regno"] and _first_start():
-        # the app on one's own computer, the very first start: ask for the registration number right away
-        flash(_("Vítej! Zadej svoje registrační číslo ORIS, načtou se z něj tvoje závody. Jde to i později, "
-                "nebo to přeskoč a přidávej závody ručně."), "ok")
-        return redirect(url_for("ob.profile"))
     rows = db.execute(ENTRY_SQL + " WHERE e.user_id = ? ORDER BY ev.date DESC, e.id DESC", (g.user["id"],)).fetchall()
     lj = last_jobs(db, g.user["id"])
     sync = last_sync(db, g.user["id"])
@@ -160,22 +184,57 @@ def races():
     if "sezona" in request.args:
         session["sezona"] = request.args["sezona"]  # the chosen season stays for the next visit
     season = session.get("sezona") if session.get("sezona") in seasons else ""
-    only = request.args.get("jen") if request.args.get("jen") in ("hotovo", "mapa", "aktivita", "beh") else ""
-    listed = [(e, status(e, lj.get(e["id"]))) for e in rows if not season or e["date"].startswith(season)]
-    # beh = races with a run from the watch: the ones there is something to look at or to finish
+    # beh (races with a run) is the filter of the older list: its links still work
+    only = request.args.get("jen") if request.args.get("jen") in FILTERS + ("beh",) else ""
+    listed = [(e, status(e, lj.get(e["id"])), lj.get(e["id"]))
+              for e in rows if not season or e["date"].startswith(season)]
     counts = dict(total=len(listed), hotovo=0, mapa=0, aktivita=0, jine=0,
-                  beh=sum(bool(e["activity_id"]) for e, _st in listed))
-    for _e, st in listed:
+                  beh=sum(bool(e["activity_id"]) for e, _st, _j in listed))
+    for _e, st, _j in listed:
         counts[st[2]] += 1
-    shown = [x for x in listed if not only or (bool(x[0]["activity_id"]) if only == "beh" else x[1][2] == only)]
+    # all the races of the season are on the page, the ones outside the filter hidden: the filter then switches
+    # in place (ob.js), and without a script the links reload the page with ?jen=
+    entries = [(e, st, job, bool(only) and not (bool(e["activity_id"]) if only == "beh" else st[2] == only))
+               for e, st, job in listed]
     # the last analysed race of the runner: a quick way back to it from the list
-    analysed = [e for e, _st in listed if e["analysis_id"] and e["finished_at"]]
+    analysed = [e for e, _st, _j in listed if e["analysis_id"] and e["finished_at"]]
     last = max(analysed, key=lambda e: e["finished_at"]) if analysed else None
-    return render_template("ob/races.html", entries=shown, sync=sync, last=last, sync_done=bool(sync_done),
+    start = cfg().local and not g.user["oris_regno"] and not _start_skipped()
+    return render_template("ob/races.html", entries=entries, sync=sync, last=last, sync_done=bool(sync_done),
                            sync_active=sync is not None and sync["status"] in ("queued", "running"),
-                           numbers=regnos.of(db, g.user["id"]),
-                           conf=texts.confidence(), livelox=oris.livelox_url, oris_url=oris.event_url,
+                           numbers=regnos.of(db, g.user["id"]), start=start, visible=sum(not x[3] for x in entries),
+                           conf=texts.confidence(),
+                           unpaired=len(matching.at_races(db, g.user["id"])) if rows else 0,
+                           livelox=oris.livelox_url, oris_url=oris.event_url,
                            seasons=seasons, season=season, only=only, counts=counts)
+
+
+@bp.route("/uvod/oris", methods=["POST"])
+@login_required
+def start_regno():
+    """The registration number given right on Přehled at the first start of the app on one's own computer."""
+    if not cfg().local or g.user["oris_regno"]:
+        abort(404)
+    db = get_db()
+    error = save_first_regno(db, accounts.clean_regno(request.form.get("oris_regno")))
+    if error:
+        flash(error, "error")
+    return redirect(url_for("ob.races") + ("#jak-zacit" if error else ""))
+
+
+@bp.route("/uvod/preskocit", methods=["POST"])
+@login_required
+def start_skip():
+    """"Přeskočit" in the box "Jak začít": the app works without the number (races from ORIS by their number or by
+    hand) and the box does not come back. The number can still be given in Profile."""
+    if not cfg().local:
+        abort(404)
+    try:
+        with open(os.path.join(cfg().instance, ".uvod-profil"), "w", encoding="utf-8") as f:
+            f.write("1")
+    except OSError:
+        pass  # cannot remember it: the box stays, the app works anyway
+    return redirect(url_for("ob.races"))
 
 
 @bp.route("/zavod/oris-<int:oris_id>")
@@ -940,30 +999,12 @@ def profile():
                    (request.form.get("name", "").strip() or None, g.user["id"]))
         regno = accounts.clean_regno(request.form.get("oris_regno"))
         if cfg().local and regno and not g.user["oris_regno"]:
-            # on one's own computer the number is given once here (there is no registration form)
-            if not re.fullmatch(accounts.REGNO, regno):
-                db.commit()
-                flash(_("Registrační číslo má tvar tří písmen oddílu a čtyř číslic, např. BFM0000."), "error")
-                return redirect(url_for("ob.profile"))
-            try:
-                person = oris.client(cfg()).user(regno)
-            except oris.OrisError:
-                db.commit()
-                flash(_("ORIS teď neodpovídá, zkus registrační číslo uložit později."), "error")
-                return redirect(url_for("ob.profile"))
-            if person is None:
-                db.commit()
-                flash(_("Registrační číslo %(regno)s v ORIS není.", regno=regno), "error")
-                return redirect(url_for("ob.profile"))
-            db.execute("UPDATE users SET oris_regno = ?, oris_user_id = ?, name = COALESCE(name, ?) WHERE id = ?",
-                       (regno, person["oris_user_id"], person["name"], g.user["id"]))
-            db.execute("UPDATE user_regnos SET name = ? WHERE user_id = ? AND regno = ?",
-                       (person["name"], g.user["id"], regno))
+            # on one's own computer the number is given once (here or on Přehled; there is no registration form)
             db.commit()
-            jobs.enqueue(db, "sync_oris", user_id=g.user["id"])
-            flash(_("Uloženo: %(regno)s patří v ORIS jménu %(name)s. Teď se z ORIS načítají všechny tvoje závody."
-                    " Trvá to chvíli (podle počtu závodů i několik minut), průběh vidíš nahoře v Přehledu závodů."
-                    " Když to nejsi ty, napiš autorovi aplikace.", regno=regno, name=person['name']), "ok")
+            error = save_first_regno(db, regno)
+            if error:
+                flash(error, "error")
+                return redirect(url_for("ob.profile"))
             return redirect(url_for("ob.races"))
         db.commit()
         flash(_("Uloženo."), "ok")

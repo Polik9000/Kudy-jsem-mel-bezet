@@ -256,10 +256,8 @@ def test_button_above_the_long_table(local):
 def test_garmin_link_on_the_races_and_above_the_upload(local):
     c = local.test_client()
     races = c.get("/").get_data(as_text=True)
-    if "zdroj=garmin" not in races:      # the first start goes to the profile first
-        races = c.get("/").get_data(as_text=True)
-    controls = races[races.index('<div class="controls">'):]
-    assert 'href="/upload?zdroj=garmin#zdroj=garmin"' in controls[:controls.index("</div>")]
+    menu = races[races.index('class="ob-vice-menu'):]          # Přehled: under "Další možnosti"
+    assert 'href="/upload?zdroj=garmin#zdroj=garmin"' in menu[:menu.index("</details>")]
     # on Nahrát Garmin Connect is one of the three sources, above the form of the files
     upload = c.get("/upload").get_data(as_text=True)
     assert upload.index('data-zdroj="garmin"') < upload.index('enctype="multipart/form-data"')

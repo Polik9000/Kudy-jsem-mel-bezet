@@ -3,6 +3,7 @@ import datetime as dt
 import io
 import json
 import os
+import re
 
 import pytest
 from conftest import FakeOris, clear_jobs, csrf, post, register
@@ -43,7 +44,7 @@ def test_sync_oris(app, client, user):
     assert "(0 nových)" in sync_oris.sync_user(con, app.config["OB"], user, client=FakeOris(), pause=0,
                                                today=dt.date(2026, 10, 6))
     html = client.get("/").get_data(as_text=True)
-    assert "Mistrovství oblasti na dlouhé trati" in html and "80:18" in html
+    assert "Mistrovství oblasti na dlouhé trati" in html and "1:20:18" in html   # h:mm:ss from an hour up
     assert "https://www.livelox.com/Events/Show/182468" in html
 
 
@@ -63,7 +64,7 @@ def test_manual_race_and_fit_upload_are_matched(app, client, user):
     r = post(client, "/races/new", name="Azymut Cup 2026 - Day 5", date="2026-08-14", class_name="O3", time="76:57")
     assert r.status_code == 302
     page = r.headers["Location"]
-    assert "chybí aktivita" in client.get("/").get_data(as_text=True)
+    assert "Chybí běh" in client.get("/").get_data(as_text=True)
     with open(inputs("azymut-e5")[2], "rb") as f:
         r = client.post("/upload", data=dict(csrf_token=csrf(client), files=(io.BytesIO(f.read()), "run.fit")),
                         content_type="multipart/form-data")
@@ -471,20 +472,27 @@ def test_run_and_both_maps_in_one_form(app, client, user):
     assert tuple(ev) == ("forbid", "forbid")
 
 
+def shown_rows(html):
+    """The rows of the race table on Přehled that are not hidden by the filter (all the races of the season are on
+    the page, the filter only hides them, so it can switch in place)."""
+    return [r for r in re.findall(r"<tr data-jen=.*?</tr>", html, re.S) if not re.match(r"<tr[^>]* hidden", r)]
+
+
 def test_race_list_shows_races_with_a_run_and_keeps_the_season(app, client, user):
     con, _ = synced(app, client, user)
-    assert "Tomuhle filtru žádný závod neodpovídá" in client.get("/?jen=beh").get_data(as_text=True)
+    assert 'id="zavody-prazdno">Tomuhle filtru' in client.get("/?jen=beh").get_data(as_text=True)
     mine = con.execute("SELECT e.id FROM entries e JOIN classes c ON c.id = e.class_id JOIN events ev"
                        " ON ev.id = c.event_id WHERE ev.oris_id = 8989").fetchone()["id"]
     with open(inputs("pohora")[2], "rb") as f:
         client.post(f"/races/{mine}/files", data=dict(csrf_token=csrf(client), fit=(f, "run.fit")),
                     content_type="multipart/form-data")
     html = client.get("/?jen=beh").get_data(as_text=True)
-    assert "na krátké trati" in html and "na dlouhé trati" not in html
+    shown = shown_rows(html)
+    assert any("na krátké trati" in r for r in shown) and not any("na dlouhé trati" in r for r in shown)
     assert f'href="/upload?zavod={mine}#mapa-zavodu"' in html  # the state "map missing" leads to where it is added
     # the season chosen once is still chosen on the next visit, until another one is picked
     client.get("/?sezona=2026")
-    assert "na krátké trati" not in client.get("/").get_data(as_text=True)
+    assert "na krátké trati" not in client.get("/").get_data(as_text=True)    # the season is filtered on the server
     assert "na krátké trati" in client.get("/?sezona=").get_data(as_text=True)
 
 

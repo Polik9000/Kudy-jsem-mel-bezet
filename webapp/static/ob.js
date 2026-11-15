@@ -44,19 +44,26 @@
   }
   if (saved === null && saveUrl && copy()) { keep(copy()); }  // chosen before it was kept with the account
   else if (saved !== null && saved !== copy()) { try { localStorage.setItem(KEY, saved); } catch (e) { /* private mode */ } }
+  // the switch is in the header and, on a wide screen, at the bottom of the left panel too (with its name)
+  var buttons = Array.prototype.slice.call(document.querySelectorAll("#rezim, [data-rezim-prepinac]"));
   function show(m) {
     if (m) { root.setAttribute("data-theme", m); } else { root.removeAttribute("data-theme"); }
-    btn.innerHTML = SIGN[m] || SIGN[""];
-    btn.title = m === "svetly" ? t("Světlý režim") : m === "tmavy" ? t("Tmavý režim") : t("Režim podle zařízení");
+    var name = m === "svetly" ? t("Světlý režim") : m === "tmavy" ? t("Tmavý režim") : t("Režim podle zařízení");
+    buttons.forEach(function (b) {
+      b.innerHTML = (SIGN[m] || SIGN[""]) + (b.hasAttribute("data-rezim-prepinac") ? "<span>" + name + "</span>" : "");
+      b.title = name;
+    });
   }
-  if (btn) {
-    btn.hidden = false;
+  if (btn || buttons.length) {
     show(mode());
-    btn.addEventListener("click", function () {
-      var next = { "": "svetly", svetly: "tmavy", tmavy: "" }[mode()] || "";
-      keep(next);
-      show(next);
-      document.dispatchEvent(new CustomEvent("ob-rezim"));
+    buttons.forEach(function (b) {
+      b.hidden = false;
+      b.addEventListener("click", function () {
+        var next = { "": "svetly", svetly: "tmavy", tmavy: "" }[mode()] || "";
+        keep(next);
+        show(next);
+        document.dispatchEvent(new CustomEvent("ob-rezim"));
+      });
     });
   }
 
@@ -317,9 +324,48 @@
     inp.addEventListener("input", function () {
       var q = inp.value.trim().toLocaleLowerCase("cs");
       Array.prototype.forEach.call(table.tBodies[0].rows, function (r) {
-        r.hidden = !!q && r.textContent.toLocaleLowerCase("cs").indexOf(q) < 0;
+        r.hidden = r.hasAttribute("data-mimo") || (!!q && r.textContent.toLocaleLowerCase("cs").indexOf(q) < 0);
       });
+      table.dispatchEvent(new CustomEvent("ob-filtrovano"));
     });
+  });
+
+  // Přehled: the filters by state (links with ?jen=, they work without a script too) switch in place; a row hidden by
+  // its state gets data-mimo, the search box then keeps it hidden. A message shows when no row is left.
+  Array.prototype.forEach.call(document.querySelectorAll("[data-filtr-tabulky]"), function (bar) {
+    var table = document.querySelector(bar.getAttribute("data-filtr-tabulky"));
+    if (!table) { return; }
+    var search = bar.querySelector("input[data-filter]"), empty = document.getElementById(table.id + "-prazdno");
+    function count() {
+      if (!empty) { return; }
+      empty.hidden = Array.prototype.some.call(table.tBodies[0].rows, function (r) { return !r.hidden; });
+    }
+    table.addEventListener("ob-filtrovano", count);
+    bar.addEventListener("click", function (ev) {
+      var a = ev.target.closest("a[data-jen]");
+      if (!a || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button) { return; }
+      ev.preventDefault();
+      var key = a.getAttribute("data-jen");
+      Array.prototype.forEach.call(bar.querySelectorAll("a[data-jen]"), function (x) {
+        x.setAttribute("aria-pressed", x === a ? "true" : "false");
+      });
+      Array.prototype.forEach.call(table.tBodies[0].rows, function (r) {
+        var out = !!key && (" " + r.getAttribute("data-jen") + " ").indexOf(" " + key + " ") < 0;
+        if (out) { r.setAttribute("data-mimo", ""); } else { r.removeAttribute("data-mimo"); }
+        r.hidden = out;
+      });
+      var season = bar.querySelector("input[name=jen]");
+      if (season) { season.value = key; }
+      try { history.replaceState(null, "", a.href); } catch (e) { /* an old browser: the address stays */ }
+      if (search && search.value) { search.dispatchEvent(new Event("input")); } else { count(); }
+    });
+  });
+  // a row of a table with data-href opens its page on a click anywhere outside its own links and buttons
+  document.addEventListener("click", function (ev) {
+    var tr = ev.target.closest && ev.target.closest("tr[data-href]");
+    if (!tr || ev.target.closest("a, button, input, select, label, summary")) { return; }
+    if (window.getSelection && String(window.getSelection())) { return; }  // selecting text, not a click
+    window.location.href = tr.getAttribute("data-href");
   });
 
   // Sections that open in place (<details class="ob-oddil">, the race page): a link to an element inside one (#podklady,
