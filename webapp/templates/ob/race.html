@@ -341,7 +341,7 @@
       <label class="ob-pole">{{ _('Běh z hodinek (.fit, nebo zip z Garmin Connect)') }}
         <input type="file" name="fit" accept=".fit,.zip" data-max="{{ max_fit }}"></label>
       <p class="hint">{% trans upload=url_for('ob.upload') %}Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export
-        z Garminu: <a href="{{ upload }}">Nahrát běhy</a>.{% endtrans %}</p>
+        z Garminu: <a href="{{ upload }}">Nahrát</a>.{% endtrans %}</p>
     </div>
   </div>
   <div class="karta">
@@ -379,14 +379,14 @@
 {% if local_app %}
 <form method="post" action="{{ url_for('ob.race_file_save', entry_id=e.id) }}" class="karta" id="soubor">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h3>Poslat závod jinému běžci</h3>
-  <p>Uloží závod do souboru <b>.obzavod</b>: mapy, trať, oficiální časy, občerstvení a zakázané čáry. Druhý běžec ho
-    načte ve svých závodech (Načíst závod ze souboru) a nahraje k němu svůj běh.</p>
-  <label class="check"><input type="checkbox" name="stopa" value="1"> přidat i můj běh z hodinek a můj výsledek</label>
-  <label class="check"><input type="checkbox" name="nastaveni" value="1"> přidat i moje nastavení a poznámky k úsekům</label>
-  <p class="hint">Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu. Bez zaškrtnutí v souboru
-    není nic tvého, jen to, co mají všichni běžci závodu.</p>
-  <button type="submit" class="btn">Uložit závod do souboru</button>
+  <h3>{{ _('Poslat závod jinému běžci') }}</h3>
+  <p>{% trans %}Uloží závod do souboru <b>.obzavod</b>: mapy, trať, oficiální časy, občerstvení a zakázané čáry. Druhý běžec ho
+    načte ve svých závodech (Načíst závod ze souboru) a nahraje k němu svůj běh.{% endtrans %}</p>
+  <label class="check"><input type="checkbox" name="stopa" value="1"> {{ _('přidat i můj běh z hodinek a můj výsledek') }}</label>
+  <label class="check"><input type="checkbox" name="nastaveni" value="1"> {{ _('přidat i moje nastavení a poznámky k úsekům') }}</label>
+  <p class="hint">{% trans %}Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu. Bez zaškrtnutí v souboru
+    není nic tvého, jen to, co mají všichni běžci závodu.{% endtrans %}</p>
+  <button type="submit" class="btn">{{ _('Uložit závod do souboru') }}</button>
 </form>
 {% endif %}
 </details>

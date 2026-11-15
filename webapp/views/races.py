@@ -361,9 +361,9 @@ def race_file_load():
         f = request.files.get("soubor")
         data = f.read(MAX_RACE_FILE + 1) if f and f.filename else b""
         if not data:
-            flash("Vyber soubor se závodem (.obzavod).", "error")
+            flash(_("Vyber soubor se závodem (.obzavod)."), "error")
         elif len(data) > MAX_RACE_FILE:
-            flash("Soubor je na uložený závod příliš velký.", "error")
+            flash(_("Soubor je na uložený závod příliš velký."), "error")
         else:
             try:
                 entry_id, msg = race_file.load(get_db(), cfg(), g.user, data)
@@ -843,7 +843,7 @@ def race_files(entry_id):
             aid = storage.save_activity(db, cfg(), g.user["id"], data, name, "fit")[0]
         if aid is None:
             flash(_("%(filename)s: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit). Celý "
-                      "export z Garminu nahraj v Nahrát běhy.", filename=sent['fit'].filename), "error")
+                      "export z Garminu nahraj v Nahrát.", filename=sent['fit'].filename), "error")
         else:
             db.execute("UPDATE entries SET activity_id = ?, match_confidence = 'manual', match_note = NULL WHERE id = ?",
                        (aid, entry_id))

@@ -615,6 +615,16 @@
       tr.addEventListener("click", function () { select(Number(tr.dataset.n)); });
       tr.addEventListener("keydown", function (ev) {
         if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(Number(tr.dataset.n)); }
+        // ↑ and ↓ in the list of legs: the previous or the next leg, the focus goes with it
+        if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+          var sib = ev.key === "ArrowDown" ? tr.nextElementSibling : tr.previousElementSibling;
+          if (!sib) { return; }
+          ev.preventDefault();
+          var n = Number(sib.dataset.n);
+          select(n);
+          var row = box.querySelector("tr[data-n='" + n + "']");
+          if (row) { row.focus(); }
+        }
       });
     });
   }

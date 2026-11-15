@@ -610,3 +610,16 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | Tabulka: Datum, Závod a místo, Kat., Čas (m:ss, od hodiny h:mm:ss), Běh, Mapa, Další krok. Stavy jsou štítky s textem. Další krok je jeden odkaz: Otevřít rozbor, Doplnit běh (`/upload?zavod=<id>#beh`), Doplnit mapu (`#mapa-zavodu`), Pokračovat s průběhem úlohy, jinak Otevřít závod. Když chybí běh i mapa, nabídne se běh. Klik na řádek otevře závod. Umístění je v řádku pod názvem. | Podle makety. Nahrát má obě části na jedné stránce, na pořadí nezáleží. |
 | První spuštění lokální aplikace už nepřesměruje do Profilu. Na Přehledu je rámeček Jak začít s polem pro registrační číslo (`POST /uvod/oris`) a tlačítkem Přeskočit (`POST /uvod/preskocit`, značka `.uvod-profil` v datové složce). Ověření v ORIS a spuštění načítání je jedna funkce `save_first_regno` pro Přehled i Profil. Číslo jde zadat jednou, další v Profilu. | Zadání promptu 11. Rámeček zůstane, dokud uživatel číslo nezadá nebo nepřeskočí. |
 | Levé menu: Závody, Nahrát, pak Další (Model rychlosti, Úlohy, Profil, Nápověda, O aplikaci). Dole „Data zůstávají v tomto počítači“, přepínač režimu s názvem a jazyk. Přepínač režimu v hlavičce je na širokém displeji schovaný (je v panelu). | Podle makety, jen skutečné odkazy. |
+
+## 15. 11. 2026: Dodělání nového vzhledu (prompt 12)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Prompt 12 je ve stejné větvi a PR jako prompt 11 (#58). | Tobias chce jednu větev se všemi změnami vzhledu 9 až 12, ze které se postaví instalátor. |
+| Tlačítko 34 px, malé 30 px, roh 5 px. Záhlaví tabulek, štítky, menu a popisky nejméně 12 px. | Zadání: jednotné prvky, tabulky a štítky nejméně 12 px. |
+| Kontrast měří `tools/kontrast.py` nad tokeny v `les.css`, hlídá ho `tests/test_kontrast.py`. Tlumený text ve světlém režimu ztmavl na `#55695B` (byl 4,4 : 1). Čísla jsou v `docs/vzhled.md`. | Aby se kontrast nerozbil další změnou barev. |
+| ↑ ↓ v seznamu úseků přejde na předchozí nebo další úsek, Esc a klik mimo zavře nabídku Další možnosti. | Ovládání klávesnicí. |
+| Smazáno CSS, které už žádná stránka nepoužívá (záložky, starý přehled, malá tabulka úseků). `base.css` se nemění, používá ho i klubový web. | Dvě verze téhož nedělají zmatek. |
+| Stránka O aplikaci měla třídu `.ob-zdroje` stejnou jako přepínač zdrojů na Nahrát (prompt 10), rozbila se. Teď `.ob-o-zdroje`. | Chyba nalezená při kontrole. |
+| Soubor závodu (.obzavod), druhy aktivit na Nahrát a jejich hlášky byly jen česky, teď i anglicky. Nápověda mluví o „Nahrát“ a zdrojích Garmin Connect a Hodinky / složka. | Zadání: EN a nápověda podle nového rozvržení. |
+| Okno appky zůstává 960 × 600 s pozadím `#10251E`. Skutečné okno Windows a macOS jsem neviděl, otázka 64 v `docs/co-zbyva.md`. | V cloudu jde jen prohlížeč. |

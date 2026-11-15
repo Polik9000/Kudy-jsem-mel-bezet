@@ -445,8 +445,6 @@ EN = {
         "The map with course is saved for the class %(class_name)s.",
     "%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).":
         "%(filename)s: the screenshot must be an image (png or jpg).",
-    "%(filename)s: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit). Celý export z Garminu nahraj v Nahrát běhy.":
-        "%(filename)s: not a Garmin activity (a .fit with a run recording, or a zip with one .fit). Upload a whole Garmin export in Upload runs.",
     "Běh je nahraný a spárovaný s tímhle závodem.":
         "The run is uploaded and matched with this race.",
     "Uloženo. Závody z ORIS se načítají (%(name)s).":
@@ -793,10 +791,6 @@ EN = {
         "Open the activity and click the cogwheel.",
     "Vyber <b>Exportovat soubor</b> (ne „originál“). Stáhne se zip, uvnitř je soubor .fit.":
         "Choose <b>Export File</b> (not “original”). A zip is downloaded with a .fit file inside.",
-    "Zip nahraj v <a href=\"%(url)s\">Nahrát běhy</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.":
-        "Upload the zip in <a href=\"%(url)s\">Upload runs</a>, or in the source files of the race. You do not have to unpack it.",
-    "Zip nahraj v Nahrát běhy, nebo v Podkladech závodu. Rozbalovat ho nemusíš.":
-        "Upload the zip in Upload runs, or in the source files of the race. You do not have to unpack it.",
     "Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.":
         "Do not use the other export options (TCX, GPX, Google Earth, CSV): the app reads only .fit.",
     "<b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):":
@@ -1429,8 +1423,6 @@ EN = {
         "No run from %(date)s is matched with the race.",
     "Běh z hodinek (.fit, nebo zip z Garmin Connect)":
         "Run from the watch (.fit, or a zip from Garmin Connect)",
-    "Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export z Garminu: <a href=\"%(upload)s\">Nahrát běhy</a>.":
-        "A run uploaded here is matched straight away with this race. Several runs at once or a whole Garmin export: <a href=\"%(upload)s\">Upload runs</a>.",
     "<b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b>. Když ho Livelox stáhnout nedovolí, <b>2. dva snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>. <a href=\"%(help)s#livelox\">Jak na to</a>":
         "<b>Map:</b> the best is <b>1. a KMZ from Livelox</b>. When Livelox does not allow the download, <b>2. two screenshots from Livelox</b>, otherwise <b>3. a photo of the paper map</b>. <a href=\"%(help)s#livelox\">How to</a>",
     "1. Mapa s tratí (KMZ) <span class=\"badge badge-tichy\">kategorie %(name)s</span>":
@@ -1782,10 +1774,6 @@ EN = {
         'The Garmin account is connected with a key stored on this computer only.',
     'Odpojit účet Garmin':
         'Disconnect Garmin account',
-    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V <a href="%(url)s">Nahrát běhy, Načíst přímo z Garmin Connect</a> vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
-        '<b>Easiest: straight from Garmin Connect.</b> In <a href="%(url)s">Upload runs, Load straight from Garmin Connect</a> you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
-    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V Nahrát běhy, Načíst přímo z Garmin Connect vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
-        '<b>Easiest: straight from Garmin Connect.</b> In Upload runs, Load straight from Garmin Connect you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
     'Načíst přímo z Garmin Connect':
         'Load straight from Garmin Connect',
     'Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.':
@@ -1899,12 +1887,6 @@ EN = {
         'Two Livelox screenshots',
     '<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code> jako soubory .fit.':
         '<b>Straight from the watch</b>: connect the watch to the computer with the cable, the runs are in the folder <code>GARMIN/Activity</code> as .fit files.',
-    'V aplikaci v <a href="%(url)s">Nahrát běhy</a> klikni na <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne na Přehledu závodů a v Nahrát běhy.':
-        'In the app, in <a href="%(url)s">Upload runs</a>, click <b>Load from the watch over USB or from a folder</b>: only runs that are not here yet are offered. A watch connected over MTP does not show up as a disk: on a fēnix 5X Plus and similar, switch it on the watch in Settings → System → USB Mode → Garmin; otherwise load the runs from Garmin Connect as described above. When a watch with new runs is connected, the app offers them by itself on Races and in Upload runs.',
-    'Celý zip nahraj v <a href="%(url)s">Nahrát běhy</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
-        'Upload the whole zip in <a href="%(url)s">Upload runs</a>. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
-    'Celý zip nahraj v Nahrát běhy. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
-        'Upload the whole zip in Upload runs. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
     'Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy.':
         'From the map with the course the app reads the controls, from the map without the course the terrain for the best routes.',
     'Mapy zůstávají jen v tomhle počítači. Jsou dílem pořadatele: používej je jen pro vlastní rozbor.':
@@ -2176,6 +2158,103 @@ EN.update({
     "Doplnit mapu": "Add the map",
     "Rychlý návrat": "Quick way back",
     "Pokračovat v rozboru": "Continue the analysis",
+})
+
+# help texts after the new Nahrát (one page, three sources; prompt 12)
+EN.update({
+    '%(filename)s: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit). Celý export z Garminu nahraj v Nahrát.':
+        '%(filename)s: not a Garmin activity (a .fit with a run recording, or a zip with one .fit). Upload a whole Garmin export in Upload.',
+    'Zip nahraj v <a href="%(url)s">Nahrát</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.':
+        'Upload the zip in <a href="%(url)s">Upload</a>, or in the source files of the race. You do not have to unpack it.',
+    'Zip nahraj v Nahrát, nebo v Podkladech závodu. Rozbalovat ho nemusíš.':
+        'Upload the zip in Upload, or in the source files of the race. You do not have to unpack it.',
+    'Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export z Garminu: <a href="%(upload)s">Nahrát</a>.':
+        'A run uploaded here is matched straight away with this race. Several runs at once or a whole Garmin export: <a href="%(upload)s">Upload</a>.',
+    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V <a href="%(url)s">Nahrát, zdroj Garmin Connect</a> vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
+        '<b>Easiest: straight from Garmin Connect.</b> In <a href="%(url)s">Upload, source Garmin Connect</a> you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
+    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V Nahrát, zdroj Garmin Connect vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
+        '<b>Easiest: straight from Garmin Connect.</b> In Upload, source Garmin Connect you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
+    'V aplikaci v <a href="%(url)s">Nahrát</a> vyber zdroj <b>Hodinky / složka</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne na Přehledu závodů a v Nahrát.':
+        'In the app, in <a href="%(url)s">Upload</a>, pick the source <b>Watch / folder</b>: only runs that are not here yet are offered. A watch connected over MTP does not show up as a disk: on a fēnix 5X Plus and similar, switch it on the watch in Settings → System → USB Mode → Garmin; otherwise load the runs from Garmin Connect as described above. When a watch with new runs is connected, the app offers them by itself on Races and in Upload.',
+    'Celý zip nahraj v <a href="%(url)s">Nahrát</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
+        'Upload the whole zip in <a href="%(url)s">Upload</a>. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
+    'Celý zip nahraj v Nahrát. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
+        'Upload the whole zip in Upload. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
+})
+
+# the race file (.obzavod), until now only in Czech (prompt 12)
+EN.update({
+    'Soubor není závod uložený z aplikace (.obzavod): chybí v něm popis závodu.':
+        'The file is not a race saved from the app (.obzavod): the description of the race is missing.',
+    'V souboru je něco, co do uloženého závodu nepatří. Nenačetl jsem ho.':
+        'The file holds something that does not belong in a saved race. It was not loaded.',
+    'Soubor není závod uložený z aplikace (.obzavod).':
+        'The file is not a race saved from the app (.obzavod).',
+    'Závod je uložený novější verzí aplikace. Nainstaluj si novou verzi a načti ho znovu.':
+        'The race was saved by a newer version of the app. Install the new version and load it again.',
+    'Soubor je poškozený: chybí v něm název závodu nebo kategorie.':
+        'The file is damaged: the name of the race or the class is missing.',
+    'Závod je načtený.':
+        'The race is loaded.',
+    'Závod už máš (kategorie %(name)s), doplnil jsem, co chybělo.':
+        'You already have the race (class %(name)s); what was missing has been added.',
+    'Mapy: %(maps)s.':
+        'Maps: %(maps)s.',
+    'Běh ze souboru je spárovaný se závodem.':
+        'The run from the file is paired with the race.',
+    'Analýza se spustila.':
+        'The analysis has started.',
+    'Soubor je poškozený, závod z něj načíst nejde.':
+        'The file is damaged, the race cannot be loaded from it.',
+    'Soubor je poškozený: datum závodu nejde přečíst.':
+        'The file is damaged: the date of the race cannot be read.',
+    'Nahraj k němu svůj běh z hodinek (.fit).':
+        'Upload your run from the watch (.fit) for it.',
+    ' a ':
+        ' and ',
+    'Mapa bez tratě v souboru nejde přečíst.':
+        'The map without course in the file cannot be read.',
+    'Mapa s tratí v souboru nejde přečíst.':
+        'The map with course in the file cannot be read.',
+    'bez tratě':
+        'without course',
+    's tratí':
+        'with course',
+    'Vyber soubor se závodem (.obzavod).':
+        'Choose the file with the race (.obzavod).',
+    'Soubor je na uložený závod příliš velký.':
+        'The file is too big for a saved race.',
+    'Poslat závod kamarádovi':
+        'Send a race to a friend',
+    'Na stránce závodu v Podkladech je <b>Uložit závod do souboru</b>. Vznikne soubor <b>.obzavod</b> s mapami, tratí, oficiálními časy, občerstvením a zakázanými čárami. Kamarád ho na Přehledu závodů otevře přes <b>Načíst závod ze souboru</b> a nahraje k němu svůj běh z hodinek; rozbor se mu spočítá podle něj. Tvůj běh a tvoje poznámky v souboru jsou, jen když je zaškrtneš (třeba při přenosu na jiný počítač).':
+        'On the race page, under Source files, there is <b>Save the race to a file</b>. It makes a <b>.obzavod</b> file with the maps, the course, the official times, refreshments and forbidden lines. Your friend opens it on Races with <b>Load a race from a file</b> and uploads their run from the watch; the analysis is computed for them. Your run and your notes are in the file only when you tick them (for example when moving to another computer).',
+    'Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu.':
+        'The map belongs to the organiser and the mapper: send it only to other participants of the race.',
+    'Uloží závod do souboru <b>.obzavod</b>: mapy, trať, oficiální časy, občerstvení a zakázané čáry. Druhý běžec ho načte ve svých závodech (Načíst závod ze souboru) a nahraje k němu svůj běh.':
+        'Saves the race to a <b>.obzavod</b> file: maps, course, official times, refreshments and forbidden lines. The other runner loads it among their races (Load a race from a file) and uploads their run.',
+    'přidat i můj běh z hodinek a můj výsledek':
+        'add my run from the watch and my result too',
+    'přidat i moje nastavení a poznámky k úsekům':
+        'add my settings and notes on the legs too',
+    'Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu. Bez zaškrtnutí v souboru není nic tvého, jen to, co mají všichni běžci závodu.':
+        'The map belongs to the organiser and the mapper: send it only to other participants of the race. Without the ticks the file holds nothing of yours, only what all runners of the race have.',
+    'Uložit závod do souboru':
+        'Save the race to a file',
+    'Závod, který ti poslal jiný běžec z téhle aplikace (soubor <b>.obzavod</b>). Přidá se k tvým závodům i s mapami, tratí a oficiálními časy. Pak k němu nahraj svůj běh z hodinek a rozbor se spočítá podle tebe.':
+        'A race another runner of this app sent you (a <b>.obzavod</b> file). It is added to your races with its maps, course and official times. Then upload your run from the watch and the analysis is computed for you.',
+    'Soubor se závodem (.obzavod)':
+        'File with the race (.obzavod)',
+    'Co už v aplikaci máš, zůstane, jak je; doplní se jen to, co chybí. Mapa patří pořadateli a mapaři: sdílej ji jen s ostatními účastníky závodu.':
+        'What you already have in the app stays as it is; only what is missing is added. The map belongs to the organiser and the mapper: share it only with other participants of the race.',
+    'Načíst závod':
+        'Load the race',
+    'běh': 'run',
+    'chůze': 'walk',
+    'turistika': 'hike',
+    'kolo': 'bike',
+    'trénink': 'training',
+    'jiná aktivita': 'other activity',
+    'běh v terénu': 'trail run',
 })
 
 EN_JS = {

@@ -86,7 +86,7 @@ def test_race_page_takes_the_zip_of_one_activity(app, client, user):
                 z.writestr(f"{folder}.fit", f.read())
     r = client.post(f"/races/{e}/files", data=dict(csrf_token=csrf(client), fit=(io.BytesIO(two.getvalue()), "y.zip")),
                     content_type="multipart/form-data", follow_redirects=True)
-    assert "Celý export z Garminu nahraj v Nahrát běhy." in r.get_data(as_text=True)
+    assert "Celý export z Garminu nahraj v Nahrát." in r.get_data(as_text=True)
 
 
 def test_help_default_system_follows_the_computer_only_in_the_local_app(app, client, monkeypatch):

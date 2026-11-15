@@ -360,6 +360,16 @@
       if (search && search.value) { search.dispatchEvent(new Event("input")); } else { count(); }
     });
   });
+  // the menu "Další možnosti" (<details class="ob-vice">): Esc and a click outside close it
+  function closeMenus(except, focus) {
+    Array.prototype.forEach.call(document.querySelectorAll("details.ob-vice[open]"), function (d) {
+      if (d === except) { return; }
+      d.open = false;
+      if (focus) { d.querySelector("summary").focus(); }
+    });
+  }
+  document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { closeMenus(null, true); } });
+  document.addEventListener("click", function (ev) { closeMenus(ev.target.closest && ev.target.closest("details.ob-vice"), false); });
   // a row of a table with data-href opens its page on a click anywhere outside its own links and buttons
   document.addEventListener("click", function (ev) {
     var tr = ev.target.closest && ev.target.closest("tr[data-href]");
