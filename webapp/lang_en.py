@@ -1482,8 +1482,6 @@ EN = {
         "KMZ from Livelox: Map only",
     "KMZ bez tratě nahradí mapu ze snímku a nejlepší postupy se přepočítají.":
         "A KMZ without course replaces the map from a screenshot and the best routes are recomputed.",
-    "2. Dva snímky z Livelox <span class=\"badge badge-tichy\">když KMZ stáhnout nejde</span>":
-        "2. Two screenshots from Livelox <span class=\"badge badge-tichy\">when the KMZ cannot be downloaded</span>",
     "Snímek obrazovky mapy s tratí a druhý ze stejného pohledu s vypnutou tratí. Z prvního se čtou kontroly, z druhého terén pro nejlepší postupy (jako z KMZ bez tratě).":
         "A screenshot of the map with the course and a second one from the same view with the course switched off. The controls are read from the first, the terrain for the best routes from the second (as from a KMZ without course).",
     "<span class=\"stav ob-ok\">snímek s tratí uložený</span> %(w)s × %(h)s px; snímek bez tratě ze stejného pohledu můžeš nahrát i sám.":
@@ -1494,8 +1492,6 @@ EN = {
         "Livelox screenshot without course (the same view)",
     "Jak snímky udělat v Chromu (6 kroků): <a href=\"%(help)s#snimky\">Jak na to</a>. Jen pro vlastní rozbor, nesdílej je dál.":
         "How to take the screenshots in Chrome (6 steps): <a href=\"%(help)s#snimky\">How to</a>. For your own analysis only, do not share them.",
-    "3. Fotka papírové mapy <span class=\"badge badge-tichy\">když nejde nic z toho</span>":
-        "3. Photo of the paper map <span class=\"badge badge-tichy\">when nothing else works</span>",
     "Z fotky se čtou jen kontroly; nejlepší postupy z ní nebudou (terén se z ní spolehlivě přečíst nedá).":
         "Only the controls are read from a photo; there will be no best routes from it (the terrain cannot be read reliably from it).",
     "Fotka nebo obrázek mapy s tratí (jpg, png)":
@@ -1652,8 +1648,6 @@ EN = {
         "The screenshots are placed again with this crop and the map without course is saved again; the analysis then starts on its own.",
     "Snímky se usadí znovu s tímhle oříznutím; analýza se pak spustí sama.":
         "The screenshots are placed again with this crop; the analysis then starts on its own.",
-    "Soubory .fit nebo .zip (jde vybrat víc najednou)":
-        "Files .fit or .zip (several can be chosen at once)",
     "Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect, Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu. Z celého exportu se navíc spočítá tvůj model kopců; nahraný zip se potom smaže a zůstanou jen běhy spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže). Před párováním se z ORIS načtou tvoje závody. Smazané běhy se vrátí jen opětovným nahráním exportu. Velký export se nahrává i několik minut.":
         "Single <b>.fit</b> files from the watch, or a whole <b>Garmin account export</b> (a zip from Garmin Connect, Data Management, Export Your Data). Runs are matched with races on their own by the date, the start time and the distance from the centre of the race. From the whole export your hill model is also computed; the uploaded zip is then deleted and only the runs matched with races and the runs from the day and place of a race that were not matched stay (you assign or delete those below). Before the matching your races are loaded from ORIS. Deleted runs come back only by uploading the export again. A large export takes several minutes to upload.",
     "Nahrané aktivity (%(total)s)":
@@ -2512,8 +2506,6 @@ EN_JS = {
         "The photo is saved. It will be placed automatically once you add the watch run and ORIS split times.",
     "Fotka je uložená a usazuje se na pozadí; výsledek uvidíš v úlohách.":
         "The photo is saved and is being placed in the background; see the result in Jobs.",
-    "1. KMZ z Livelox <span class=\"badge badge-tichy\">nejpřesnější podklady</span>":
-        "1. KMZ from Livelox <span class=\"badge badge-tichy\">most accurate source</span>",
     "Mapa s tratí · kategorie %(name)s":
         "Map with course · class %(name)s",
     "Mapa bez tratě · sdílená pro celý závod":
@@ -2626,7 +2618,6 @@ EN.update({
 })
 
 EN.update({
-    "Načíst z hodinek": "Load from the watch",
     "Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty, které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.":
         "Connect your Garmin watch with the cable. When it shows up as a disk, I find the runs on it by myself. I offer only"
         " the ones that are not in the app yet. Nothing on the watch is changed or deleted.",
@@ -2704,4 +2695,50 @@ EN_JS.update({
     "bez chyby": "no mistake",
     "volba postupu": "route choice",
     "pomalejší provedení": "slower execution",
+})
+# Nahrát: the run from three sources and the maps of a race on one page (prompt 10)
+EN.update({
+    "Stažení z Garmin Connect": "Download from Garmin Connect",
+    "Nemám KMZ z Livelox: další možnosti": "I have no KMZ from Livelox: other ways",
+    'Dva snímky z Livelox <span class="badge badge-tichy">když KMZ stáhnout nejde</span>':
+        'Two Livelox screenshots <span class="badge badge-tichy">when the KMZ cannot be downloaded</span>',
+    'Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span>':
+        'Photo of the paper map <span class="badge badge-tichy">when none of that works</span>',
+    "Hodinky se neukázaly jako disk": "The watch did not show up as a disk",
+    "Mapy": "Maps",
+    "Nahrát běh nebo mapu": "Upload a run or a map",
+    "Všechno potřebné k rozboru doplníš na jednom místě.": "Add everything the analysis needs in one place.",
+    "1. Běh z hodinek": "1. Run from the watch",
+    "Vyber jeden zdroj. Běhy se samy spárují se závody z ORIS podle data, času a místa.":
+        "Pick one source. The runs are paired with the races from ORIS by date, time and place.",
+    "Počítač": "Computer",
+    ".fit nebo zip z Garminu": ".fit or zip from Garmin",
+    "Garmin Connect": "Garmin Connect",
+    "přímo z účtu": "straight from the account",
+    "Hodinky / složka": "Watch / folder",
+    "USB nebo složka": "USB or a folder",
+    "Zdroj běhu": "Source of the run",
+    "Přetáhni sem soubory nebo je vyber": "Drop the files here or choose them",
+    "Jeden nebo víc souborů .fit, nebo celý export účtu Garmin (.zip)":
+        "One or more .fit files, or the whole Garmin account export (.zip)",
+    "Co se se soubory stane": "What happens to the files",
+    "Po nahrání se běhy spárují se závody z ORIS. Stav uvidíš tady i v přehledu závodů.":
+        "After the upload the runs are paired with the races from ORIS. You will see the state here and in the race list.",
+    "2. Mapa závodu": "2. Map of the race",
+    "Mapy patří ke konkrétnímu závodu. Mapa bez tratě je společná pro celý závod, stačí ji nahrát jednou.":
+        "The maps belong to one race. The map without the course is shared by the whole race, one upload is enough.",
+    "Vybrat": "Choose",
+    "Otevřít závod": "Open the race",
+    "Uložit mapy a spustit rozbor": "Save the maps and start the analysis",
+    "Jakmile jsou podklady kompletní, rozbor se spustí sám. Stránka závodu zůstane dostupná.":
+        "Once everything is in, the analysis starts by itself. The race page stays available.",
+    'Zatím tu není žádný závod. Načti je z ORIS nebo přidej ručně v <a href="%(races)s">Přehledu závodů</a>.':
+        'There is no race yet. Load them from ORIS or add one by hand in the <a href="%(races)s">race list</a>.',
+    "chybí mapa": "map missing",
+})
+EN_JS.update({
+    "Načíst vybrané a model kopců": "Load selected and hill model",
+    "Načíst vybrané": "Load selected",
+    "Zaškrtnuto": "Selected",
+    "Načtení se nepovedlo. Zkus to znovu.": "Loading failed. Try again.",
 })

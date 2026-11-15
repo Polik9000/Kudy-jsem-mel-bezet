@@ -50,7 +50,7 @@
   {% else %}
   <a class="btn btn-hlavni" href="{{ url_for('ob.upload') }}">{{ ikona('kompas') }}{{ _('Nahrát běhy') }}</a>
   {% endif %}
-  {% if local_app %}<a class="btn" href="{{ url_for('ob.garmin_page') }}" title="{{ _('Běhy přímo z tvého účtu Garmin, bez ručního exportu') }}">{{ _('Načíst z Garmin Connect') }}</a>{% endif %}
+  {% if local_app %}<a class="btn" href="{{ url_for('ob.upload', zdroj='garmin') }}#zdroj=garmin" title="{{ _('Běhy přímo z tvého účtu Garmin, bez ručního exportu') }}">{{ _('Načíst z Garmin Connect') }}</a>{% endif %}
   <a class="btn" href="{{ url_for('ob.race_oris') }}" title="{{ _('Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem') }}">{{ _('Přidat závod z ORIS') }}</a>
   <a class="btn" href="{{ url_for('ob.race_new') }}">{{ _('Přidat závod ručně') }}</a>
   {% if local_app %}<a class="btn" href="{{ url_for('ob.race_file_load') }}" title="{{ _('Závod uložený jiným běžcem (.obzavod)') }}">{{ _('Načíst závod ze souboru') }}</a>{% endif %}
@@ -125,7 +125,7 @@
     <td class="ob-siroky">{% if e.course_file %}<span class="stav ob-ok">{{ _('je') }}</span>{% else %}<span class="muted">{{ _('chybí') }}</span>{% endif %}</td>
     <td class="ob-siroky">{% if e.maponly_file %}<span class="stav ob-ok">{{ _('je') }}</span>{% else %}<span class="muted">{{ _('chybí') }}</span>
         {% if livelox(e.livelox_id) %}<a href="{{ livelox(e.livelox_id) }}" target="_blank" rel="noopener">Livelox</a>{% endif %}{% endif %}</td>
-    <td>{% if st[2] in ('mapa', 'aktivita') %}<a class="stav {{ st[1] }}" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady"
+    <td>{% if st[2] in ('mapa', 'aktivita') %}<a class="stav {{ st[1] }}" href="{{ url_for('ob.upload', zavod=e.id) }}#mapa-zavodu"
            title="{{ _('Doplnit podklady') }}">{{ st[0] }}</a>
         {% else %}<span class="stav {{ st[1] }}">{{ st[0] }}</span>{% endif %}</td>
   </tr>

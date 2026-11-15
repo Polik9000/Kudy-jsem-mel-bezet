@@ -454,6 +454,55 @@ form[data-pretahni] label.ob-pretahuje { border-color: var(--zelena); background
 .ob-kroky li.je > b { border-color: var(--status-model-green); color: var(--status-model-green); }
 .ob-kroky li.neni { border-color: var(--status-loss-amber); }
 
+/* ---------- Nahrát: běh (tři zdroje na místě) a mapa závodu vedle sebe (maketa docs/vzhled-navrh/nahrat.html) ---------- */
+.ob-nahrat-hlava { display: flex; align-items: flex-end; justify-content: space-between; gap: .5rem 1rem; flex-wrap: wrap; margin: 0 0 .8rem; }
+.ob-nahrat-hlava h2 { margin: 0; }
+.ob-nahrat-hlava .evhead { margin: .25rem 0 0; }
+.ob-nahrat { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .8rem; align-items: start; margin: 0 0 1.2rem; }
+.ob-nahrat-cast { background: var(--bg-panel-primary); border: 1px solid var(--border-subtle); border-radius: 8px; padding: .9rem 1rem 0;
+  min-width: 0; display: flex; flex-direction: column; }
+.ob-nahrat-cast > h3 { margin: 0; font-size: 16px; }
+.ob-zdroj-popis { margin: .25rem 0 .7rem; color: var(--text-secondary); font-size: 14px; }
+.ob-zdroje { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border-strong); border-radius: 6px;
+  overflow: hidden; margin: 0 0 .8rem; }
+.ob-zdroj { display: block; padding: .55rem .4rem; text-align: center; font-weight: 700; font-size: 14px; color: var(--text-primary);
+  background: var(--bg-panel-primary); border-right: 1px solid var(--border-strong); text-decoration: none; cursor: pointer; }
+.ob-zdroj:last-child { border-right: 0; }
+.ob-zdroj:hover { background: var(--bg-panel-secondary); text-decoration: none; }
+.ob-zdroj small { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: .1rem; }
+.ob-zdroj[aria-pressed="true"] { background: color-mix(in srgb, var(--zelena) 20%, var(--bg-panel-primary)); box-shadow: inset 0 -3px var(--zelena); }
+.ob-zdroj:focus-visible { outline: 2px solid var(--zelena); outline-offset: -3px; }
+[data-zdroj-panel][hidden] { display: none; }
+[data-zdroj-panel][aria-busy="true"] { color: var(--text-secondary); padding: .6rem 0; }
+label.ob-pustit { text-align: center; padding: 1.2rem .8rem; }
+label.ob-pustit small { display: block; font-weight: 400; font-size: 12px; color: var(--text-secondary); margin: .2rem 0 .5rem; }
+label.ob-pustit input { max-width: 22rem; margin: 0 auto; }
+.ob-zdroj-kroky { margin: 0 0 .8rem; padding-left: 1.3rem; }
+.ob-bezpecne { font-size: 12px; color: var(--text-secondary); padding: .45rem .6rem; border-left: 2px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg-app) 50%, transparent); margin: .7rem 0; }
+.ob-bezpecne .btn { margin-left: .4rem; }
+.ob-zavod-vyber { display: flex; align-items: flex-end; gap: .5rem; flex-wrap: wrap; }
+.ob-zavod-vyber .ob-pole { flex: 1 1 16rem; margin-bottom: .6rem; }
+.ob-zavod-vyber .btn { margin-bottom: .6rem; }
+.ob-mapy-pole { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .6rem; margin: .4rem 0 .5rem; }
+.ob-mapa-soubor { border: 1px solid var(--border-subtle); border-radius: 6px; padding: .6rem .7rem; min-width: 0; }
+.ob-mapa-soubor h4 { margin: 0 0 .25rem; font-size: 14px; }
+.ob-mapa-soubor > p { font-size: 13px; margin: 0 0 .5rem; }
+.ob-mapa-soubor .ob-pole { margin-bottom: .4rem; }
+details.ob-bez-kmz { border-top: 1px solid var(--border-subtle); margin: .6rem 0; padding-top: .5rem; }
+details.ob-bez-kmz > summary { cursor: pointer; font-weight: 700; font-size: 13px; color: var(--text-secondary); }
+details.ob-bez-kmz[open] > summary { margin-bottom: .6rem; }
+.ob-jobline { margin: auto -1rem 0; padding: .5rem 1rem; background: var(--bg-panel-secondary); border-top: 1px solid var(--border-subtle);
+  border-radius: 0 0 8px 8px; font-size: 13px; color: var(--text-secondary); }
+.ob-nahrat-cast > .controls, .ob-nahrat-cast form > .controls { margin-bottom: .8rem; }
+.ob-jobline p { margin: .1rem 0; display: flex; align-items: baseline; gap: .4rem; }
+.ob-jobline b { color: var(--text-primary); }
+.ob-jobtecka { flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--status-model-green); align-self: center; }
+.ob-jobtecka.ob-bezi { background: var(--status-loss-amber); }
+@media (prefers-reduced-motion: no-preference) { .ob-jobtecka.ob-bezi { animation: ob-blik 1.4s ease-in-out infinite; } }
+@keyframes ob-blik { 50% { opacity: .35; } }
+@media (max-width: 69.99rem) { .ob-nahrat { grid-template-columns: minmax(0, 1fr); } }
+
 /* ---------- grafy ---------- */
 .ob-graf { background: var(--bg-panel-primary); border-color: var(--border-subtle); box-shadow: none; }
 .ob-graf text { fill: var(--text-secondary); font-family: var(--les-mono); }

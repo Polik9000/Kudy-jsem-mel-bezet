@@ -486,6 +486,134 @@
     ask();
   }
 
+  // A list that sends its form when changed (<select data-odeslat>): through requestSubmit, so the script of the form
+  // (a panel of Nahrát loaded in place, below) still gets it.
+  document.addEventListener("change", function (ev) {
+    var el = ev.target;
+    if (!el.matches || !el.matches("select[data-odeslat]") || !el.form) { return; }
+    if (el.form.requestSubmit) { el.form.requestSubmit(); } else { el.form.submit(); }
+  });
+
+  // Garmin Connect on Nahrát (templates/ob/_zdroj_garmin.html): the filter by kind of activity, tick all shown or none,
+  // the count of the ticked ones and the text of the button (with or without the hill model). Called again for a panel
+  // put in place by the script.
+  function garminPanel(root) {
+    var form = root.querySelector("form[data-garmin]");
+    if (!form) { return; }
+    var model = form.querySelector("[data-garmin-model]"), sel = form.querySelector("[data-garmin-druh]");
+    var info = form.querySelector("[data-garmin-pocet]");
+    var rows = Array.prototype.slice.call(form.querySelectorAll("tbody tr[data-druh]"));
+    function label() {
+      Array.prototype.forEach.call(form.querySelectorAll("[data-garmin-odeslat]"), function (b) {
+        b.textContent = model && model.checked ? t("Načíst vybrané a model kopců") : t("Načíst vybrané");
+      });
+    }
+    function count() {
+      if (!info) { return; }
+      var n = rows.filter(function (r) { return r.querySelector("input").checked; }).length;
+      info.textContent = t("Zaškrtnuto") + ": " + n + " / " + rows.length;
+    }
+    if (model) { model.addEventListener("change", label); label(); }
+    if (!sel) { return; }
+    sel.addEventListener("change", function () {
+      rows.forEach(function (r) { r.style.display = !sel.value || r.getAttribute("data-druh") === sel.value ? "" : "none"; });
+    });
+    form.querySelector("[data-garmin-vse]").addEventListener("click", function () {
+      rows.filter(function (r) { return r.style.display !== "none"; })
+        .forEach(function (r) { r.querySelector("input").checked = true; });
+      count();
+    });
+    form.querySelector("[data-garmin-nic]").addEventListener("click", function () {
+      rows.forEach(function (r) { r.querySelector("input").checked = false; });
+      count();
+    });
+    form.addEventListener("change", count);
+    count();
+  }
+  garminPanel(document);
+
+  // Nahrát: the three sources of the run switch in place (no new page). The choice is kept with the account
+  // (POST to data-zdroje), and #zdroj=… picks one too (the old addresses /upload/garmin and /upload/hodinky send
+  // there). The panels of Garmin Connect and of the watch are asked for when first shown (they ask Garmin or the
+  // disk); a period or a folder chosen in them loads the panel again, in place.
+  var zdroje = document.querySelector("[data-zdroje]");
+  if (zdroje && window.fetch) {
+    var buttons = zdroje.querySelectorAll("[data-zdroj]");
+    var loadPanel = function (panel, url) {
+      panel.setAttribute("aria-busy", "true");
+      panel.textContent = t("Načítám…");
+      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.text(); })
+        .then(function (html) {
+          panel.innerHTML = html;
+          panel.setAttribute("data-nacteno", "");
+          panel.removeAttribute("aria-busy");
+          wirePanel(panel, url);
+        })
+        .catch(function () {
+          panel.removeAttribute("aria-busy");
+          panel.textContent = t("Načtení se nepovedlo. Zkus to znovu.");
+        });
+    };
+    var wirePanel = function (panel, url) {
+      garminPanel(panel);
+      Array.prototype.forEach.call(panel.querySelectorAll("form[data-panel-form]"), function (form) {
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var q = new URLSearchParams(new FormData(form));
+          q.delete("zdroj");
+          loadPanel(panel, url.split("?")[0] + "?" + q.toString());
+        });
+      });
+      Array.prototype.forEach.call(panel.querySelectorAll("a[data-panel-odkaz]"), function (a) {
+        a.addEventListener("click", function (ev) { ev.preventDefault(); loadPanel(panel, a.getAttribute("data-panel-odkaz")); });
+      });
+    };
+    var show = function (src, keep) {
+      var found = false;
+      Array.prototype.forEach.call(buttons, function (b) {
+        var on = b.getAttribute("data-zdroj") === src;
+        found = found || on;
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      if (!found) { return; }
+      Array.prototype.forEach.call(document.querySelectorAll("[data-zdroj-panel]"), function (p) {
+        p.hidden = p.getAttribute("data-zdroj-panel") !== src;
+        var b = zdroje.querySelector('[data-zdroj="' + src + '"]');
+        if (!p.hidden && !p.hasAttribute("data-nacteno") && b && b.getAttribute("data-panel")) {
+          loadPanel(p, b.getAttribute("data-panel"));
+        }
+      });
+      if (keep) {
+        fetch(zdroje.getAttribute("data-zdroje"), {
+          method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": window.OBAPP.csrf },
+          body: JSON.stringify({ zdroj: src })
+        }).catch(function () { /* not kept: the page still shows it */ });
+      }
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-zdroj-panel][data-nacteno]"), function (p) {
+      var b = zdroje.querySelector('[data-zdroj="' + p.getAttribute("data-zdroj-panel") + '"]');
+      if (b && b.getAttribute("data-panel")) { wirePanel(p, b.getAttribute("data-panel")); }
+    });
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        show(b.getAttribute("data-zdroj"), true);
+        if (history.replaceState && window.URL) {   // ?zdroj= of the address would win over the switch on a reload
+          var u = new URL(location.href);
+          u.searchParams.delete("zdroj");
+          u.hash = "zdroj=" + b.getAttribute("data-zdroj");
+          history.replaceState(null, "", u.href);
+        }
+      });
+      b.addEventListener("keydown", function (ev) {
+        if (ev.key === " ") { ev.preventDefault(); b.click(); }
+      });
+    });
+    var hash = /^#zdroj=(\w+)$/.exec(location.hash);
+    if (hash) { show(hash[1], false); }
+  }
+
   window.addEventListener("error", function (e) { (window.__errors = window.__errors || []).push(String(e.message)); });
 
   // the app window (desktop app): a link to another site opens in the system browser, the window stays on the app

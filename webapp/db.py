@@ -46,6 +46,7 @@ ADDED_COLUMNS = [
     ("events", "stage_parent", "INTEGER"),
     ("events", "stage_n", "INTEGER"),
     ("events", "stage_count", "INTEGER"),
+    ("users", "upload_source", "TEXT"),
 ]
 
 

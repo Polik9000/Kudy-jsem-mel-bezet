@@ -20,7 +20,7 @@
 {% macro menu() %}
 <ul class="menuseznam">
   {% if user %}
-  {% for endpoint, icon, label in [('ob.races', 'archiv', _('Přehled závodů')), ('ob.upload', 'kompas', _('Nahrát běhy')),
+  {% for endpoint, icon, label in [('ob.races', 'archiv', _('Přehled závodů')), ('ob.upload', 'kompas', _('Nahrát')),
                                    ('ob.model', 'graf', _('Rychlostní model')), ('ob.jobs_page', 'stav', _('Úlohy')),
                                    ('ob.profile', 'lide', _('Profil'))] %}
   <li><a href="{{ url_for(endpoint) }}"{% if request.endpoint == endpoint or (endpoint == 'ob.races' and aktivni == 'races') %} aria-current="page"{% endif %}>

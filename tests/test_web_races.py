@@ -481,7 +481,7 @@ def test_race_list_shows_races_with_a_run_and_keeps_the_season(app, client, user
                     content_type="multipart/form-data")
     html = client.get("/?jen=beh").get_data(as_text=True)
     assert "na krátké trati" in html and "na dlouhé trati" not in html
-    assert f'href="/races/{mine}#podklady"' in html      # the state "map missing" leads to where it is added
+    assert f'href="/upload?zavod={mine}#mapa-zavodu"' in html  # the state "map missing" leads to where it is added
     # the season chosen once is still chosen on the next visit, until another one is picked
     client.get("/?sezona=2026")
     assert "na krátké trati" not in client.get("/").get_data(as_text=True)

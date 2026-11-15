@@ -12,7 +12,7 @@ KINDS = {"sync_oris": N_("Načtení závodů z ORIS"), "import_upload": N_("Zpra
          "analyse": N_("Analýza závodu"), "refit_model": N_("Přepočet osobního modelu"),
          "georef_map": N_("Usazení obrázku nebo fotky mapy"), "price_plans": N_("Ocenění plánovaného postupu"),
          "relocate": N_("Záchytné body u kontrol"), "recompute_all": N_("Přepočítat všechno"),
-         "lost_scene": N_("Nápověda „Ztratil jsem se“")}
+         "lost_scene": N_("Nápověda „Ztratil jsem se“"), "garmin_api": N_("Stažení z Garmin Connect")}
 STATES = {"queued": (N_("čeká"), ""), "running": (N_("běží"), "ob-warn"), "done": (N_("hotovo"), "ob-ok"),
           "failed": (N_("chyba"), "ob-bad"), "stopped": (N_("zastaveno"), "")}
 # kinds that can simply be queued again (an upload is gone by then)

@@ -372,18 +372,12 @@ def race(entry_id):
     official = summary.get("official")
     model = db.execute("SELECT id FROM speed_models WHERE user_id = ? ORDER BY id DESC LIMIT 1",
                        (g.user["id"],)).fetchone()
-    src = storage.course_source(cfg(), e)
     return render_template(
-        "ob/race.html", e=e, day=day, job=job, course_src=src, course_acc=course_accuracy(e, src),
-        moved=mapfix.shifted(cfg(), e["event_id"]),
+        "ob/race.html", e=e, day=day, job=job, **map_files(db, e),
         classes=oris_class.event_classes(db, e["event_id"]) if e["event_oris_id"] else [],
-        screen=screens.row(db, cfg(), e["class_id"], g.user["id"]),
-        screen_pending=screens.pending_row(db, e["class_id"], g.user["id"]),
-        maponly_acc=int(e["maponly_acc_m"] + 0.5) if e["maponly_source"] == "snimek" and e["maponly_acc_m"] else None,
-        has_photo=bool(db.execute("SELECT 1 FROM photos WHERE entry_id = ?", (entry_id,)).fetchone()),
         status=status(e, job), analysis=analysis, summary=summary, lost_early=too_early(e),
         official=official, official_reason=texts.official_reason((official or {}).get("reason")), aktivni="races",
-        conf=texts.confidence(), match_note=texts.match_note(e["match_note"]), livelox=oris.livelox_url(e["livelox_id"]),
+        conf=texts.confidence(), match_note=texts.match_note(e["match_note"]),
         oris_url=oris.event_url(e["event_oris_id"]), oris_results=oris.results_url(e["event_oris_id"]),
         oresults=oris.oresults_url(loads(e["links"], [])), club_url=club.event(e["event_oris_id"]),
         barriers=barriers.manual(db, e["event_id"], g.user["id"]), osm_info=_osm_info(e["event_id"]),
@@ -398,8 +392,21 @@ def race(entry_id):
         relocate_stale=bool(analysis and analysis["has_routes"] and summary.get("relocate") != results.RELOCATE),
         # ... and the best routes from an older bestroute.py (a new analysis finds both again)
         routes_stale=bool(analysis and analysis["has_routes"] and summary.get("routes", 1) != results.ROUTES),
-        course_check=course_check(summary), course_failed=course_failed(job), max_fit=MAX_FIT,
-        course_by_hand=bool(e["course_file"]) and storage.course_by_hand(cfg(), e["course_file"]))
+        course_check=course_check(summary), course_failed=course_failed(job), max_fit=MAX_FIT)
+
+
+def map_files(db, e):
+    """What the maps of the race part (templates/ob/_podklady.html) shows about the maps there are: on the race page
+    and on Nahrát, where the race is picked."""
+    src = storage.course_source(cfg(), e)
+    return dict(
+        course_src=src, course_acc=course_accuracy(e, src), moved=mapfix.shifted(cfg(), e["event_id"]),
+        screen=screens.row(db, cfg(), e["class_id"], g.user["id"]),
+        screen_pending=screens.pending_row(db, e["class_id"], g.user["id"]),
+        maponly_acc=int(e["maponly_acc_m"] + 0.5) if e["maponly_source"] == "snimek" and e["maponly_acc_m"] else None,
+        has_photo=bool(db.execute("SELECT 1 FROM photos WHERE entry_id = ?", (e["id"],)).fetchone()),
+        course_by_hand=bool(e["course_file"]) and storage.course_by_hand(cfg(), e["course_file"]),
+        livelox=oris.livelox_url(e["livelox_id"]))
 
 
 def course_check(summary):
@@ -795,6 +802,8 @@ def race_files(entry_id):
     matching.queue_waiting_screens(db, g.user["id"])
     for i in sorted(again):
         matching.queue_analysis(db, i)
+    if request.form.get("zpet") == "nahrat":   # sent from Nahrát: the state is shown there, under the form
+        return go(url_for("ob.upload", zavod=entry_id) + "#mapa-zavodu")
     return go(url_for("ob.race", entry_id=entry_id) + ("" if again else "#podklady"))
 
 

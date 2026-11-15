@@ -53,7 +53,7 @@ def test_three_runs_two_new_after_one_is_there(local, card):
     base, rows = watch.offer(con, uid, str(card))
     assert sorted(r["new"] for r in rows) == [False, True, True]
     # the page offers the two, ticked, and says which one is there already
-    html = c.get("/upload/hodinky", query_string=dict(slozka=str(card))).get_data(as_text=True)
+    html = c.get("/upload/panel/hodinky", query_string=dict(slozka=str(card))).get_data(as_text=True)
     assert html.count('name="soubor"') == 2 and "už v aplikaci" in html and "nových 2" in html
     names = [r["name"] for r in rows if r["new"]]
     r = c.post("/upload/hodinky", data=dict(csrf_token=csrf(c, "/"), slozka=str(card), soubor=names))
@@ -62,7 +62,7 @@ def test_three_runs_two_new_after_one_is_there(local, card):
     assert "Načteno běhů: 2" in c.get("/upload").get_data(as_text=True)
     # nothing new left
     assert not any(r["new"] for r in watch.offer(con, uid, str(card))[1])
-    assert re.search(r"nových 0", c.get("/upload/hodinky", query_string=dict(slozka=str(card))).get_data(as_text=True))
+    assert re.search(r"nových 0", c.get("/upload/panel/hodinky", query_string=dict(slozka=str(card))).get_data(as_text=True))
 
 
 def test_only_names_the_folder_offered_are_loaded(local, card, tmp_path):
@@ -78,12 +78,17 @@ def test_only_names_the_folder_offered_are_loaded(local, card, tmp_path):
 
 def test_missing_folder(local, tmp_path):
     c = local.test_client()
-    assert "neexistuje" in c.get("/upload/hodinky", query_string=dict(slozka=str(tmp_path / "none")),
+    assert "neexistuje" in c.get("/upload/panel/hodinky", query_string=dict(slozka=str(tmp_path / "none")),
                                  follow_redirects=True).get_data(as_text=True)
+    # the old address of the page sends to Nahrát, which opens on the watch with that folder
+    r = c.get("/upload/hodinky", query_string=dict(slozka=str(tmp_path / "none")))
+    assert r.status_code == 302 and "zdroj=hodinky" in r.headers["Location"]
+    assert "neexistuje" in c.get(r.headers["Location"]).get_data(as_text=True)
 
 
 def test_not_on_the_server(app, client, user):
     assert client.get("/upload/hodinky").status_code == 404
+    assert client.get("/upload/panel/hodinky").status_code == 404
 
 
 def test_watch_disks_are_found_by_their_folder(monkeypatch, tmp_path):
@@ -140,7 +145,7 @@ def test_not_now_hides_the_runs_until_a_new_one_comes(local, plugged):
     watch.forget()
     assert c.get("/upload/hodinky/nove.json").get_json()["n"] == 1
     # the watch page still lists all four as new: "Teď ne" only quiets the note
-    html = c.get("/upload/hodinky", query_string=dict(slozka=str(plugged))).get_data(as_text=True)
+    html = c.get("/upload/panel/hodinky", query_string=dict(slozka=str(plugged))).get_data(as_text=True)
     assert html.count('name="soubor"') == 4
 
 

@@ -585,3 +585,17 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | V tabulce vedle mapy je ztráta šedě do 20 s, oranžově nad 20 s a červeně se štítkem jen u chyby, kterou rozpoznal `oroute/mistakes.py` (`leg.mistake`). Mapa a čipy dál barví podle velikosti ztráty. | Červená jen pro skutečnou chybu, barva nestačí sama, proto štítek. Barvy mapy se v tomhle PR nemění. |
 | Šipky ← → a klávesy vrstev fungují, jen když je mapa aspoň zčásti v okně. | Dřív hlídala otevřená záložka; při čtení oddílů pod mapou by šipky jinak přepínaly úseky místo posunu stránky. |
 | Mapa a tabulka jsou vedle sebe od 960 px, užší okno je dá pod sebe. Písmo tabulky 13 px, štítky a hlavičky 12 px, číslice JetBrains Mono. | Zadání: okno od 960 px, nic pod 12 px. |
+
+
+## 15. 11. 2026: Nahrát běh nebo mapu na jedné stránce (prompt 10, maketa `docs/vzhled-navrh/nahrat.html`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Nahrát má dvě části vedle sebe: 1. Běh z hodinek (tři zdroje: Počítač, Garmin Connect, Hodinky / složka) a 2. Mapa závodu. Pod 1120 px jsou pod sebou. | Všechno k rozboru na jednom místě, jak chce maketa. |
+| Zdroje se přepínají na místě. Panely Garmin Connect a hodinek se načtou, až když je uživatel otevře (`/upload/panel/<zdroj>`); období a složka v nich panel načtou znovu, stránka zůstane. Bez skriptu jdou tytéž formuláře jako obyčejné odkazy (`/upload?zdroj=…`). | Panel Garmin se ptá Garminu a panel hodinek čte disk. Nemá to zdržovat každé otevření stránky. |
+| Poslední zdroj si aplikace pamatuje u účtu (`users.upload_source`), ne v `localStorage`. | Stejný důvod jako u barevného režimu: lokální aplikace startuje na jiném portu. |
+| Staré adresy `/upload/garmin` a `/upload/hodinky` přesměrují na Nahrát s předvoleným zdrojem. Formuláře Garmin a hodinek dál posílají na ně, odpověď vede zpět na Nahrát. Šablony `garmin.html` a `watch.html` nahradily `_zdroj_garmin.html` a `_zdroj_hodinky.html`. | Odkazy z nápovědy, testů a z oznámení o hodinkách fungují dál. Co se se soubory děje, se nemění. |
+| Pole map jsou v `_podklady.html` (makra `mapy()` a `vratit()`), stejná na stránce závodu i na Nahrát: dvě pole KMZ vedle sebe a sbalené „Nemám KMZ z Livelox“ se snímky a fotkou. Sbalené je otevřené, když závod už snímek nebo fotku má. | Žádný zdvojený kód. Formulář „Vrátit původní usazení“ je mimo formulář souborů (dřív byl formulář ve formuláři). |
+| Mapy z Nahrát jdou na `race_files` vybraného závodu s `zpet=nahrat` a vrátí se na Nahrát s tímtéž závodem. Odkaz „Doplnit“ na stránce závodu a stav „chybí“ v přehledu vedou na `/upload?zavod=<id>#mapa-zavodu`. Bez `?zavod` se vybere nejnovější závod, kterému chybí mapa. | Zadání promptu 10. |
+| Stav úloh je pod každou částí (řádek `ob-jobline`): úlohy bez závodu pod během, úlohy vybraného závodu pod mapou. Stránka je sleduje a po dokončení se sama obnoví. Nahrání souborů a Garmin Connect už nepřesměrují na Úlohy. | Stav na místě, ne jinde. |
+| Nápověda pořád mluví o „Nahrát běhy, Načíst přímo z Garmin Connect“. | Texty nápovědy přepíše prompt 12 (dodělání vzhledu a nápovědy). |
