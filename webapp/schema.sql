@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     -- port each time and the browser keeps its storage per address with the port (docs/rozhodnuti.md, 8. 11. 2026)
     theme         TEXT,              -- light / dark: 'svetly', 'tmavy', '' = as the device, NULL = not chosen yet
     lang          TEXT,              -- 'cs' / 'en', NULL = the cookie or the default
+    upload_source TEXT,              -- the last source of runs on Nahrát: 'pocitac', 'garmin', 'hodinky' (NULL = pocitac)
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

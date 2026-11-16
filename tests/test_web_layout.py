@@ -110,13 +110,13 @@ def test_race_list_filters(app, client, user):
     con = dbm.connect(app.config["OB"].db_path)
     sync_oris.sync_user(con, app.config["OB"], user, client=FakeOris(), today=dt.date(2026, 10, 6), pause=0)
     html = client.get("/").get_data(as_text=True)
-    assert html.count("chybí aktivita") == 2 and 'name="sezona"' in html
+    assert html.count('<tr data-jen="aktivita') == 2 and html.count("Doplnit běh") == 2 and 'name="sezona"' in html
     only = client.get("/?sezona=2025").get_data(as_text=True)
     assert "na krátké trati" in only and "na dlouhé trati" not in only
-    assert "Tomuhle filtru žádný závod neodpovídá" in client.get("/?jen=hotovo").get_data(as_text=True)
+    assert 'id="zavody-prazdno">Tomuhle filtru' in client.get("/?jen=hotovo").get_data(as_text=True)   # shown
 
 
-def test_local_first_start_opens_profile_once_for_oris_setup(tmp_path, monkeypatch):
+def test_local_first_start_asks_on_the_races_page(tmp_path, monkeypatch):
     from webapp import create_app
 
     monkeypatch.setenv("OB_LOCAL", "1")
@@ -126,11 +126,10 @@ def test_local_first_start_opens_profile_once_for_oris_setup(tmp_path, monkeypat
     client = app.test_client()
 
     first = client.get("/")
-    assert first.status_code == 302 and first.headers["Location"].endswith("/profile")
-    profile = client.get("/profile").get_data(as_text=True)
-    assert "Registrační číslo ORIS" in profile
-    assert "bfm" in profile.lower() or "BFM0000" in profile
-    assert client.get("/").status_code == 200
+    assert first.status_code == 200
+    html = first.get_data(as_text=True)
+    assert "Registrační číslo ORIS" in html and "BFM0000" in html and "Přeskočit" in html
+    assert 'id="jak-zacit"' in client.get("/").get_data(as_text=True)   # until given or skipped
 
 
 def test_app_is_mounted_under_ob(tmp_path, monkeypatch):

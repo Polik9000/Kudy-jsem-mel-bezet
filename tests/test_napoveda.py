@@ -70,8 +70,8 @@ def test_race_page_takes_the_zip_of_one_activity(app, client, user):
                     " WHERE ev.oris_id = 8989").fetchone()["id"]
     html = client.get(f"/races/{e}").get_data(as_text=True)
     assert 'accept=".fit,.zip"' in html
-    # the three ways to the map, best first
-    heads = ["1. KMZ z Livelox", "2. Dva snímky z Livelox", "3. Fotka papírové mapy"]
+    # the three ways to the map, best first: the KMZ fields, then folded the screenshots and the photo
+    heads = ["KMZ z Livelox: Mapa s tratí", "Nemám KMZ z Livelox", "Dva snímky z Livelox", "Fotka papírové mapy"]
     assert [html.index(h) for h in heads] == sorted(html.index(h) for h in heads)
     one = (io.BytesIO(_one_run_zip("pohora")), "x.zip")
     r = client.post(f"/races/{e}/files", data=dict(csrf_token=csrf(client), fit=one),
@@ -86,7 +86,7 @@ def test_race_page_takes_the_zip_of_one_activity(app, client, user):
                 z.writestr(f"{folder}.fit", f.read())
     r = client.post(f"/races/{e}/files", data=dict(csrf_token=csrf(client), fit=(io.BytesIO(two.getvalue()), "y.zip")),
                     content_type="multipart/form-data", follow_redirects=True)
-    assert "Celý export z Garminu nahraj v Nahrát běhy." in r.get_data(as_text=True)
+    assert "Celý export z Garminu nahraj v Nahrát." in r.get_data(as_text=True)
 
 
 def test_help_default_system_follows_the_computer_only_in_the_local_app(app, client, monkeypatch):

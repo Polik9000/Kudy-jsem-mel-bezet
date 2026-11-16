@@ -445,13 +445,8 @@ EN = {
         "The map with course is saved for the class %(class_name)s.",
     "%(filename)s: snímek obrazovky má být obrázek (png nebo jpg).":
         "%(filename)s: the screenshot must be an image (png or jpg).",
-    "%(filename)s: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit). Celý export z Garminu nahraj v Nahrát běhy.":
-        "%(filename)s: not a Garmin activity (a .fit with a run recording, or a zip with one .fit). Upload a whole Garmin export in Upload runs.",
     "Běh je nahraný a spárovaný s tímhle závodem.":
         "The run is uploaded and matched with this race.",
-    "Vítej! Zadej svoje registrační číslo ORIS, načtou se z něj tvoje závody. Jde to i později, nebo to přeskoč a přidávej závody ručně.":
-        "Welcome! Enter your ORIS registration number and your races will be loaded from it. You can also do it "
-        "later, or skip it and add races by hand.",
     "Uloženo. Závody z ORIS se načítají (%(name)s).":
         "Saved. Races are being loaded from ORIS (%(name)s).",
     " Postupy se přepočítají na pozadí.":
@@ -710,10 +705,6 @@ EN = {
         "Route analysis",
     "Přehled závodů":
         "Races",
-    "Nahrát běhy":
-        "Upload runs",
-    "Rychlostní model":
-        "Speed model",
     "Úlohy":
         "Jobs",
     "Profil":
@@ -754,8 +745,6 @@ EN = {
         "Main menu",
     "Analýza orientačního běhu":
         "Orienteering analysis",
-    "Lokální režim · data v zařízení":
-        "Local mode · data on this device",
     "Rozbor postupů počítají skripty z tvé stopy, mapy a oficiálních časů; žádná umělá inteligence.":
         "The route analysis is computed by scripts from your track, the map and the official times; no artificial intelligence.",
     "Časy a mezičasy: <a href=\"https://oris.ceskyorientak.cz/\">ORIS</a>.":
@@ -802,10 +791,6 @@ EN = {
         "Open the activity and click the cogwheel.",
     "Vyber <b>Exportovat soubor</b> (ne „originál“). Stáhne se zip, uvnitř je soubor .fit.":
         "Choose <b>Export File</b> (not “original”). A zip is downloaded with a .fit file inside.",
-    "Zip nahraj v <a href=\"%(url)s\">Nahrát běhy</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.":
-        "Upload the zip in <a href=\"%(url)s\">Upload runs</a>, or in the source files of the race. You do not have to unpack it.",
-    "Zip nahraj v Nahrát běhy, nebo v Podkladech závodu. Rozbalovat ho nemusíš.":
-        "Upload the zip in Upload runs, or in the source files of the race. You do not have to unpack it.",
     "Ostatní možnosti exportu (TCX, GPX, Google Earth, CSV) nepoužívej: appka čte jen .fit.":
         "Do not use the other export options (TCX, GPX, Google Earth, CSV): the app reads only .fit.",
     "<b>Celý export</b> (všechny běhy najednou, appka z nich spočítá i tvůj model kopců):":
@@ -1438,8 +1423,6 @@ EN = {
         "No run from %(date)s is matched with the race.",
     "Běh z hodinek (.fit, nebo zip z Garmin Connect)":
         "Run from the watch (.fit, or a zip from Garmin Connect)",
-    "Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export z Garminu: <a href=\"%(upload)s\">Nahrát běhy</a>.":
-        "A run uploaded here is matched straight away with this race. Several runs at once or a whole Garmin export: <a href=\"%(upload)s\">Upload runs</a>.",
     "<b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b>. Když ho Livelox stáhnout nedovolí, <b>2. dva snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>. <a href=\"%(help)s#livelox\">Jak na to</a>":
         "<b>Map:</b> the best is <b>1. a KMZ from Livelox</b>. When Livelox does not allow the download, <b>2. two screenshots from Livelox</b>, otherwise <b>3. a photo of the paper map</b>. <a href=\"%(help)s#livelox\">How to</a>",
     "1. Mapa s tratí (KMZ) <span class=\"badge badge-tichy\">kategorie %(name)s</span>":
@@ -1482,8 +1465,6 @@ EN = {
         "KMZ from Livelox: Map only",
     "KMZ bez tratě nahradí mapu ze snímku a nejlepší postupy se přepočítají.":
         "A KMZ without course replaces the map from a screenshot and the best routes are recomputed.",
-    "2. Dva snímky z Livelox <span class=\"badge badge-tichy\">když KMZ stáhnout nejde</span>":
-        "2. Two screenshots from Livelox <span class=\"badge badge-tichy\">when the KMZ cannot be downloaded</span>",
     "Snímek obrazovky mapy s tratí a druhý ze stejného pohledu s vypnutou tratí. Z prvního se čtou kontroly, z druhého terén pro nejlepší postupy (jako z KMZ bez tratě).":
         "A screenshot of the map with the course and a second one from the same view with the course switched off. The controls are read from the first, the terrain for the best routes from the second (as from a KMZ without course).",
     "<span class=\"stav ob-ok\">snímek s tratí uložený</span> %(w)s × %(h)s px; snímek bez tratě ze stejného pohledu můžeš nahrát i sám.":
@@ -1494,8 +1475,6 @@ EN = {
         "Livelox screenshot without course (the same view)",
     "Jak snímky udělat v Chromu (6 kroků): <a href=\"%(help)s#snimky\">Jak na to</a>. Jen pro vlastní rozbor, nesdílej je dál.":
         "How to take the screenshots in Chrome (6 steps): <a href=\"%(help)s#snimky\">How to</a>. For your own analysis only, do not share them.",
-    "3. Fotka papírové mapy <span class=\"badge badge-tichy\">když nejde nic z toho</span>":
-        "3. Photo of the paper map <span class=\"badge badge-tichy\">when nothing else works</span>",
     "Z fotky se čtou jen kontroly; nejlepší postupy z ní nebudou (terén se z ní spolehlivě přečíst nedá).":
         "Only the controls are read from a photo; there will be no best routes from it (the terrain cannot be read reliably from it).",
     "Fotka nebo obrázek mapy s tratí (jpg, png)":
@@ -1566,60 +1545,30 @@ EN = {
         "The official time and splits are taken from the results of the class when you are in them; otherwise from the GPS.",
     "Závod v ORIS nemá žádné kategorie.":
         "The race has no classes in ORIS.",
-    "Závody z ORIS a ručně přidané. U každého je vidět, co ještě chybí k rozboru.":
-        "Races from ORIS and added by hand. For each you can see what is still missing for the analysis.",
-    "ORIS načten %(when)s.":
-        "ORIS loaded %(when)s.",
-    "Závody z ORIS se načtou samy, když v <a href=\"%(url)s\">Profilu</a> zadáš svoje registrační číslo ORIS. Bez něj můžeš závod přidat z ORIS nebo ručně.":
-        "Races from ORIS are loaded on their own once you enter your ORIS registration number in your <a href=\"%(url)s\">Profile</a>. Without it you can add a race from ORIS or by hand.",
     "Poslední načtení z ORIS se nepovedlo: %(error)s":
         "The last load from ORIS failed: %(error)s",
-    "Načíst závody z ORIS":
-        "Load races from ORIS",
     "Sezóna":
         "Season",
     "všechny":
         "all",
     "Hledat závod":
         "Search for a race",
-    "v sezóně %(season)s":
-        "in the season %(season)s",
-    "s hotovým rozborem":
-        "with a finished analysis",
-    "čeká na mapu nebo běh z hodinek":
-        "waiting for a map or a run from the watch",
     "Poslední rozbor":
         "Last analysis",
     "Otevřít rozbor":
         "Open the analysis",
-    "Filtr podle stavu":
-        "Filter by status",
     "Vše":
         "All",
-    "S během":
-        "With a run",
     "Chybí mapa":
         "Map missing",
-    "Chybí aktivita":
-        "Activity missing",
     "Tomuhle filtru žádný závod neodpovídá.":
         "No race matches this filter.",
-    "Zatím tu nejsou žádné závody. Tenhle účet nemá registrační číslo ORIS, takže se z něj nenačtou: přidej závod ručně.":
-        "There are no races here yet. This account has no ORIS registration number, so no races are loaded for it: add a race by hand.",
     "Zatím tu nejsou žádné závody. Načti je z ORIS tlačítkem nahoře, nebo přidej závod ručně.":
         "There are no races here yet. Load them from ORIS with the button above, or add a race by hand.",
     "<a href=\"%(url)s\">Jak na to</a>: kde vzít mapy z Livelox a běhy z Garminu.":
         "<a href=\"%(url)s\">How to</a>: where to get maps from Livelox and runs from Garmin.",
     "Kat.":
         "Class",
-    "Aktivita":
-        "Activity",
-    "Mapa bez tratě":
-        "Map without course",
-    "je":
-        "present",
-    "Doplnit podklady":
-        "Add source files",
     "Účet se zakládá registračním číslem ORIS. Jméno a tvoje závody se podle něj načtou samy.":
         "The account is created with an ORIS registration number. Your name and your races are loaded from it on their own.",
     "Tři písmena oddílu a čtyři číslice, např. BFM0000. Je to i tvoje přihlašovací jméno a později ho nejde změnit.":
@@ -1652,8 +1601,6 @@ EN = {
         "The screenshots are placed again with this crop and the map without course is saved again; the analysis then starts on its own.",
     "Snímky se usadí znovu s tímhle oříznutím; analýza se pak spustí sama.":
         "The screenshots are placed again with this crop; the analysis then starts on its own.",
-    "Soubory .fit nebo .zip (jde vybrat víc najednou)":
-        "Files .fit or .zip (several can be chosen at once)",
     "Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect, Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu. Z celého exportu se navíc spočítá tvůj model kopců; nahraný zip se potom smaže a zůstanou jen běhy spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže). Před párováním se z ORIS načtou tvoje závody. Smazané běhy se vrátí jen opětovným nahráním exportu. Velký export se nahrává i několik minut.":
         "Single <b>.fit</b> files from the watch, or a whole <b>Garmin account export</b> (a zip from Garmin Connect, Data Management, Export Your Data). Runs are matched with races on their own by the date, the start time and the distance from the centre of the race. From the whole export your hill model is also computed; the uploaded zip is then deleted and only the runs matched with races and the runs from the day and place of a race that were not matched stay (you assign or delete those below). Before the matching your races are loaded from ORIS. Deleted runs come back only by uploading the export again. A large export takes several minutes to upload.",
     "Nahrané aktivity (%(total)s)":
@@ -1827,10 +1774,6 @@ EN = {
         'The Garmin account is connected with a key stored on this computer only.',
     'Odpojit účet Garmin':
         'Disconnect Garmin account',
-    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V <a href="%(url)s">Nahrát běhy, Načíst přímo z Garmin Connect</a> vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
-        '<b>Easiest: straight from Garmin Connect.</b> In <a href="%(url)s">Upload runs, Load straight from Garmin Connect</a> you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
-    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V Nahrát běhy, Načíst přímo z Garmin Connect vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
-        '<b>Easiest: straight from Garmin Connect.</b> In Upload runs, Load straight from Garmin Connect you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
     'Načíst přímo z Garmin Connect':
         'Load straight from Garmin Connect',
     'Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.':
@@ -1944,12 +1887,6 @@ EN = {
         'Two Livelox screenshots',
     '<b>Rovnou z hodinek</b>: připoj hodinky kabelem k počítači, běhy jsou ve složce <code>GARMIN/Activity</code> jako soubory .fit.':
         '<b>Straight from the watch</b>: connect the watch to the computer with the cable, the runs are in the folder <code>GARMIN/Activity</code> as .fit files.',
-    'V aplikaci v <a href="%(url)s">Nahrát běhy</a> klikni na <b>Načíst z hodinek přes USB nebo ze složky</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne na Přehledu závodů a v Nahrát běhy.':
-        'In the app, in <a href="%(url)s">Upload runs</a>, click <b>Load from the watch over USB or from a folder</b>: only runs that are not here yet are offered. A watch connected over MTP does not show up as a disk: on a fēnix 5X Plus and similar, switch it on the watch in Settings → System → USB Mode → Garmin; otherwise load the runs from Garmin Connect as described above. When a watch with new runs is connected, the app offers them by itself on Races and in Upload runs.',
-    'Celý zip nahraj v <a href="%(url)s">Nahrát běhy</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
-        'Upload the whole zip in <a href="%(url)s">Upload runs</a>. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
-    'Celý zip nahraj v Nahrát běhy. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
-        'Upload the whole zip in Upload runs. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
     'Z mapy s tratí appka čte kontroly, z mapy bez tratě terén pro nejlepší postupy.':
         'From the map with the course the app reads the controls, from the map without the course the terrain for the best routes.',
     'Mapy zůstávají jen v tomhle počítači. Jsou dílem pořadatele: používej je jen pro vlastní rozbor.':
@@ -2016,12 +1953,6 @@ EN = {
         'The whole map from above, in daylight and without flash, laid flat with nothing covering the controls. The photo is placed by the controls and your track at the official punch times. You can upload it any time; if the run or the ORIS split times are still missing, it waits saved until they are added.',
     'Jak začít':
         'How to start',
-    '<b>Registrační číslo ORIS</b> (nepovinné) zadej v <a href="%(profile)s">Profilu</a>: tvoje závody, kategorie a oficiální mezičasy se pak načtou samy. Bez něj přidáš závod <a href="%(oris)s">podle čísla v ORIS</a> nebo <a href="%(new)s">ručně</a>.':
-        '<b>ORIS registration number</b> (optional): enter it in <a href="%(profile)s">Profile</a> and your races, classes and official split times load by themselves. Without it you add a race <a href="%(oris)s">by its ORIS number</a> or <a href="%(new)s">by hand</a>.',
-    '<b>Běh z hodinek</b> (.fit nebo zip z Garmin Connect) nahraj v <a href="%(url)s">Nahrát běhy</a>. Se závodem se spáruje sám.':
-        '<b>Run from the watch</b> (.fit or zip from Garmin Connect): upload it in <a href="%(url)s">Upload runs</a>. It is matched to the race by itself.',
-    '<b>Mapy</b>: u závodu v Podkladech nahraj KMZ z Livelox, s tratí a bez ní. <a href="%(url)s">Jak na to</a>':
-        '<b>Maps</b>: in the race\'s Inputs upload the KMZ from Livelox, with and without the course. <a href="%(url)s">How to</a>',
     'Načte z ORIS závody, na které jsi přihlášený pod svým registračním číslem':
         'Loads from ORIS the races you entered under your registration number',
     'Jeden závod podle jeho čísla v ORIS, třeba když jsi běžel pod jiným číslem':
@@ -2098,10 +2029,6 @@ EN.update({
     "Trvá to chvíli (podle počtu závodů i několik minut). Stránka se sama obnoví, až to doběhne.":
         "It takes a while (several minutes with many races). The page reloads itself when it is done.",
     "Načteno z ORIS. %(message)s": "Loaded from ORIS. %(message)s",
-    "<b>Registrační číslo ORIS</b> %(regno)s máš zadané: tvoje závody, kategorie a oficiální mezičasy se z ORIS"
-    " načítají samy (průběh je vidět nahoře).":
-        "Your <b>ORIS registration number</b> %(regno)s is entered: your races, classes and official split times are"
-        " loaded from ORIS by themselves (see the progress at the top).",
     "etapa etapového závodu": "a stage of a multi-stage event",
 })
 
@@ -2168,6 +2095,166 @@ EN.update({
         "%(filename)s is larger than the server takes, so it was not uploaded. The other files were.",
     "Soubory jsou dohromady větší, než server přijme (nejvýš %(mb)s MB). Nahraj je po jednom.":
         "The files together are larger than the server takes (at most %(mb)s MB). Upload them one at a time.",
+})
+
+# Přehled (prompt 11): header, the first start with the ORIS number, the strip of numbers, filters, the next step
+EN.update({
+    "Model rychlosti": "Speed model",
+    "Nápověda": "Help",
+    "Další": "More",
+    "Data zůstávají v tomto počítači": "Data stays on this computer",
+    "Tvoje závody z ORIS a ručně přidané": "Your races from ORIS and added by hand",
+    "sezóna %(season)s": "season %(season)s",
+    "všechny sezóny": "all seasons",
+    "Načíst z ORIS": "Load from ORIS",
+    "Zadej svoje <b>registrační číslo ORIS</b>: aplikace ho ověří v ORIS a načte tvoje závody, kategorie a oficiální"
+    " mezičasy. Číslo je nepovinné.":
+        "Enter your <b>ORIS registration number</b>: the app checks it in ORIS and loads your races, classes and official"
+        " split times. The number is optional.",
+    "Tři písmena oddílu a čtyři číslice, např. BFM0000": "Three letters of the club and four digits, e.g. BFM0000",
+    "Uložit a načíst závody": "Save and load races",
+    "Závody pak přidáš z ORIS podle čísla závodu nebo ručně. Číslo jde zadat i později v Profilu.":
+        "You then add races from ORIS by the race number or by hand. You can enter the number later in Profile.",
+    "Přeskočit": "Skip",
+    '<b>Běh z hodinek</b> (.fit nebo zip z Garmin Connect) nahraj v <a href="%(url)s">Nahrát</a>. Se závodem se'
+    ' spáruje sám.':
+        '<b>Run from the watch</b> (.fit or zip from Garmin Connect): upload it in <a href="%(url)s">Upload</a>.'
+        ' It is paired with the race by itself.',
+    '<b>Mapy</b>: k závodu nahraj KMZ z Livelox, s tratí a bez ní. <a href="%(url)s">Jak na to</a>':
+        '<b>Maps</b>: upload the KMZ from Livelox for the race, with and without the course. <a href="%(url)s">How to</a>',
+    "<b>Registrační číslo ORIS</b> %(regno)s máš zadané: tvoje závody, kategorie a oficiální mezičasy se z ORIS"
+    " načítají samy.":
+        "Your <b>ORIS registration number</b> %(regno)s is entered: your races, classes and official split times are"
+        " loaded from ORIS by themselves.",
+    'Závod přidáš <a href="%(oris)s">podle čísla v ORIS</a> nebo <a href="%(new)s">ručně</a>. Registrační číslo ORIS'
+    ' jde zadat i později v <a href="%(profile)s">Profilu</a>.':
+        'Add a race <a href="%(oris)s">by its number in ORIS</a> or <a href="%(new)s">by hand</a>. You can enter your'
+        ' ORIS registration number later in <a href="%(profile)s">Profile</a>.',
+    "Načtení z ORIS se nepovedlo.": "Loading from ORIS failed.",
+    "Závody z ORIS jsou načtené.": "Races from ORIS are loaded.",
+    "Poslední načtení %(when)s": "Last loaded %(when)s",
+    "na doplnění podkladů čeká %(n)s": "%(n)s waiting for files",
+    "Další registrační číslo": "Another registration number",
+    "závodů celkem": "races in total",
+    "hotových rozborů": "finished analyses",
+    "čekají na podklady": "waiting for files",
+    "běhy ke spárování": "runs to pair",
+    "Filtrovat závody": "Filter races",
+    "Chybí běh": "Run missing",
+    "Zobrazit": "Show",
+    "Hledat závod…": "Search races…",
+    "Zatím tu nejsou žádné závody. Přidej závod z ORIS podle jeho čísla, nebo ručně.":
+        "There are no races here yet. Add a race from ORIS by its number, or by hand.",
+    "Závod a místo": "Race and place",
+    "Běh": "Run",
+    "Další krok": "Next step",
+    "Nahráno": "Uploaded",
+    "Obě mapy": "Both maps",
+    "Chybí mapa bez tratě": "Map without course missing",
+    "Chybí mapa s tratí": "Map with course missing",
+    "Chybí mapy": "Maps missing",
+    "Pokračovat": "Continue",
+    "Doplnit běh": "Add the run",
+    "Doplnit mapu": "Add the map",
+    "Rychlý návrat": "Quick way back",
+    "Pokračovat v rozboru": "Continue the analysis",
+})
+
+# help texts after the new Nahrát (one page, three sources; prompt 12)
+EN.update({
+    '%(filename)s: není aktivita Garmin (.fit se záznamem běhu, nebo zip s jedním .fit). Celý export z Garminu nahraj v Nahrát.':
+        '%(filename)s: not a Garmin activity (a .fit with a run recording, or a zip with one .fit). Upload a whole Garmin export in Upload.',
+    'Zip nahraj v <a href="%(url)s">Nahrát</a>, nebo v Podkladech závodu. Rozbalovat ho nemusíš.':
+        'Upload the zip in <a href="%(url)s">Upload</a>, or in the source files of the race. You do not have to unpack it.',
+    'Zip nahraj v Nahrát, nebo v Podkladech závodu. Rozbalovat ho nemusíš.':
+        'Upload the zip in Upload, or in the source files of the race. You do not have to unpack it.',
+    'Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export z Garminu: <a href="%(upload)s">Nahrát</a>.':
+        'A run uploaded here is matched straight away with this race. Several runs at once or a whole Garmin export: <a href="%(upload)s">Upload</a>.',
+    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V <a href="%(url)s">Nahrát, zdroj Garmin Connect</a> vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
+        '<b>Easiest: straight from Garmin Connect.</b> In <a href="%(url)s">Upload, source Garmin Connect</a> you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
+    '<b>Nejjednodušší: přímo z Garmin Connect.</b> V Nahrát, zdroj Garmin Connect vložíš klíč Personal API, který si vytvoříš v <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">nastavení Garmin Connect</a> (Create Key). Appka pak sama ukáže tvoje běhy, stáhne vybrané a spočítá i model kopců. Klíč zůstane jen v tomhle počítači. Ruční export níže už nepotřebuješ.':
+        '<b>Easiest: straight from Garmin Connect.</b> In Upload, source Garmin Connect you paste a Personal API key, which you create in the <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noopener">Garmin Connect settings</a> (Create Key). The app then lists your runs, downloads the ones you pick and fits your hill model too. The key stays on this computer only. You no longer need the manual export below.',
+    'V aplikaci v <a href="%(url)s">Nahrát</a> vyber zdroj <b>Hodinky / složka</b>: nabídnu jen běhy, které tu ještě nemáš. Hodinky připojené přes MTP se jako disk neukážou: fēnix 5X Plus a podobné přepneš na hodinkách v Nastavení → Systém → Režim USB → Garmin, jinak běhy načti z Garmin Connect, jak je popsáno výše. Když jsou hodinky připojené a mají nové běhy, appka je sama nabídne na Přehledu závodů a v Nahrát.':
+        'In the app, in <a href="%(url)s">Upload</a>, pick the source <b>Watch / folder</b>: only runs that are not here yet are offered. A watch connected over MTP does not show up as a disk: on a fēnix 5X Plus and similar, switch it on the watch in Settings → System → USB Mode → Garmin; otherwise load the runs from Garmin Connect as described above. When a watch with new runs is connected, the app offers them by itself on Races and in Upload.',
+    'Celý zip nahraj v <a href="%(url)s">Nahrát</a>. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
+        'Upload the whole zip in <a href="%(url)s">Upload</a>. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
+    'Celý zip nahraj v Nahrát. Appka smaže svou dočasnou nahranou kopii ZIPu; soubor v počítači ti zůstane. V aplikaci si nechá jen běhy ze závodů.':
+        'Upload the whole zip in Upload. The app deletes its temporary uploaded copy of the ZIP; the file on your computer stays. The app keeps only the runs from races.',
+})
+
+# the race file (.obzavod), until now only in Czech (prompt 12)
+EN.update({
+    'Soubor není závod uložený z aplikace (.obzavod): chybí v něm popis závodu.':
+        'The file is not a race saved from the app (.obzavod): the description of the race is missing.',
+    'V souboru je něco, co do uloženého závodu nepatří. Nenačetl jsem ho.':
+        'The file holds something that does not belong in a saved race. It was not loaded.',
+    'Soubor není závod uložený z aplikace (.obzavod).':
+        'The file is not a race saved from the app (.obzavod).',
+    'Závod je uložený novější verzí aplikace. Nainstaluj si novou verzi a načti ho znovu.':
+        'The race was saved by a newer version of the app. Install the new version and load it again.',
+    'Soubor je poškozený: chybí v něm název závodu nebo kategorie.':
+        'The file is damaged: the name of the race or the class is missing.',
+    'Závod je načtený.':
+        'The race is loaded.',
+    'Závod už máš (kategorie %(name)s), doplnil jsem, co chybělo.':
+        'You already have the race (class %(name)s); what was missing has been added.',
+    'Mapy: %(maps)s.':
+        'Maps: %(maps)s.',
+    'Běh ze souboru je spárovaný se závodem.':
+        'The run from the file is paired with the race.',
+    'Analýza se spustila.':
+        'The analysis has started.',
+    'Soubor je poškozený, závod z něj načíst nejde.':
+        'The file is damaged, the race cannot be loaded from it.',
+    'Soubor je poškozený: datum závodu nejde přečíst.':
+        'The file is damaged: the date of the race cannot be read.',
+    'Nahraj k němu svůj běh z hodinek (.fit).':
+        'Upload your run from the watch (.fit) for it.',
+    ' a ':
+        ' and ',
+    'Mapa bez tratě v souboru nejde přečíst.':
+        'The map without course in the file cannot be read.',
+    'Mapa s tratí v souboru nejde přečíst.':
+        'The map with course in the file cannot be read.',
+    'bez tratě':
+        'without course',
+    's tratí':
+        'with course',
+    'Vyber soubor se závodem (.obzavod).':
+        'Choose the file with the race (.obzavod).',
+    'Soubor je na uložený závod příliš velký.':
+        'The file is too big for a saved race.',
+    'Poslat závod kamarádovi':
+        'Send a race to a friend',
+    'Na stránce závodu v Podkladech je <b>Uložit závod do souboru</b>. Vznikne soubor <b>.obzavod</b> s mapami, tratí, oficiálními časy, občerstvením a zakázanými čárami. Kamarád ho na Přehledu závodů otevře přes <b>Načíst závod ze souboru</b> a nahraje k němu svůj běh z hodinek; rozbor se mu spočítá podle něj. Tvůj běh a tvoje poznámky v souboru jsou, jen když je zaškrtneš (třeba při přenosu na jiný počítač).':
+        'On the race page, under Source files, there is <b>Save the race to a file</b>. It makes a <b>.obzavod</b> file with the maps, the course, the official times, refreshments and forbidden lines. Your friend opens it on Races with <b>Load a race from a file</b> and uploads their run from the watch; the analysis is computed for them. Your run and your notes are in the file only when you tick them (for example when moving to another computer).',
+    'Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu.':
+        'The map belongs to the organiser and the mapper: send it only to other participants of the race.',
+    'Uloží závod do souboru <b>.obzavod</b>: mapy, trať, oficiální časy, občerstvení a zakázané čáry. Druhý běžec ho načte ve svých závodech (Načíst závod ze souboru) a nahraje k němu svůj běh.':
+        'Saves the race to a <b>.obzavod</b> file: maps, course, official times, refreshments and forbidden lines. The other runner loads it among their races (Load a race from a file) and uploads their run.',
+    'přidat i můj běh z hodinek a můj výsledek':
+        'add my run from the watch and my result too',
+    'přidat i moje nastavení a poznámky k úsekům':
+        'add my settings and notes on the legs too',
+    'Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu. Bez zaškrtnutí v souboru není nic tvého, jen to, co mají všichni běžci závodu.':
+        'The map belongs to the organiser and the mapper: send it only to other participants of the race. Without the ticks the file holds nothing of yours, only what all runners of the race have.',
+    'Uložit závod do souboru':
+        'Save the race to a file',
+    'Závod, který ti poslal jiný běžec z téhle aplikace (soubor <b>.obzavod</b>). Přidá se k tvým závodům i s mapami, tratí a oficiálními časy. Pak k němu nahraj svůj běh z hodinek a rozbor se spočítá podle tebe.':
+        'A race another runner of this app sent you (a <b>.obzavod</b> file). It is added to your races with its maps, course and official times. Then upload your run from the watch and the analysis is computed for you.',
+    'Soubor se závodem (.obzavod)':
+        'File with the race (.obzavod)',
+    'Co už v aplikaci máš, zůstane, jak je; doplní se jen to, co chybí. Mapa patří pořadateli a mapaři: sdílej ji jen s ostatními účastníky závodu.':
+        'What you already have in the app stays as it is; only what is missing is added. The map belongs to the organiser and the mapper: share it only with other participants of the race.',
+    'Načíst závod':
+        'Load the race',
+    'běh': 'run',
+    'chůze': 'walk',
+    'turistika': 'hike',
+    'kolo': 'bike',
+    'trénink': 'training',
+    'jiná aktivita': 'other activity',
+    'běh v terénu': 'trail run',
 })
 
 EN_JS = {
@@ -2512,8 +2599,6 @@ EN_JS = {
         "The photo is saved. It will be placed automatically once you add the watch run and ORIS split times.",
     "Fotka je uložená a usazuje se na pozadí; výsledek uvidíš v úlohách.":
         "The photo is saved and is being placed in the background; see the result in Jobs.",
-    "1. KMZ z Livelox <span class=\"badge badge-tichy\">nejpřesnější podklady</span>":
-        "1. KMZ from Livelox <span class=\"badge badge-tichy\">most accurate source</span>",
     "Mapa s tratí · kategorie %(name)s":
         "Map with course · class %(name)s",
     "Mapa bez tratě · sdílená pro celý závod":
@@ -2626,7 +2711,6 @@ EN.update({
 })
 
 EN.update({
-    "Načíst z hodinek": "Load from the watch",
     "Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty, které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.":
         "Connect your Garmin watch with the cable. When it shows up as a disk, I find the runs on it by myself. I offer only"
         " the ones that are not in the app yet. Nothing on the watch is changed or deleted.",
@@ -2662,4 +2746,92 @@ EN_JS.update({
     "Našly se nové aktivity z hodinek (%(n)s).": "New activities found on the watch (%(n)s).",
     "Načíst…": "Load…",
     "Teď ne": "Not now",
+})
+
+# the race page without tabs (prompt 9): header, strip of numbers, legs beside the map, sections that open in place
+EN.update({
+    "všichni běžci kategorie z ORIS": "all runners of the class from ORIS",
+    "Zpět na závody": "Back to races",
+    "Podklady: mapy a běh": "Files: maps and run",
+    "Opravit trať / kontroly": "Fix the course / controls",
+    "Poslat závod jinému běžci": "Send the race to another runner",
+    "běh z hodinek (stopa na mapě)": "the run from the watch (the track on the map)",
+    "mapa s tratí (kontroly a jejich pořadí)": "the map with the course (the controls and their order)",
+    "mapa bez tratě (nejlepší postupy)": "the map without the course (the best routes)",
+    "Chybí %(what)s.": "Missing: %(what)s.",
+    "Souhrn závodu": "Race summary",
+    "úseků": "legs",
+    "odhad ztrát celkem": "estimated total loss",
+    "největší ztráta": "biggest loss",
+    "oficiální mezičasy": "official split times",
+    "časy na kontrolách z GPS": "control times from GPS",
+    "Mapa závodu": "Race map",
+    "Úseky · %(name)s": "Legs · %(name)s",
+    "vyber řádek": "pick a row",
+    "Šedě: bez ztráty (rozdíl do 20 s je v nepřesnosti modelu). Oranžově: ztráta. Červeně se štítkem: chyba.":
+        "Grey: no loss (up to 20 s is within the model's error). Orange: a loss. Red with a label: a mistake.",
+    "Celý závod": "Whole race",
+    "Klikni na úsek v mapě nebo v tabulce · ← / → mění úsek": "Click a leg on the map or in the table · ← / → change the leg",
+    "← / → mění úsek · Esc ukáže celou trať": "← / → change the leg · Esc shows the whole course",
+    "Opravit trať / kontrolu": "Fix the course / control",
+    "Poznámka k úseku": "Note on the leg",
+    "Úseky podrobně": "Legs in detail",
+    "volba postupu, chyba, vysvětlení, model": "route choice, mistake, explanation, model",
+    "mapy, běh, fotka, snímky": "maps, run, photo, screenshots",
+    "kategorie, zakázané čáry, občerstvení": "class, forbidden lines, refreshments",
+})
+EN_JS.update({
+    "největší ztráta · %(name)s": "biggest loss · %(name)s",
+    "největší ztráta": "biggest loss",
+    "Můj čas": "My time",
+    "volba": "route",
+    "bez chyby": "no mistake",
+    "volba postupu": "route choice",
+    "pomalejší provedení": "slower execution",
+})
+# Nahrát: the run from three sources and the maps of a race on one page (prompt 10)
+EN.update({
+    "Stažení z Garmin Connect": "Download from Garmin Connect",
+    "Nemám KMZ z Livelox: další možnosti": "I have no KMZ from Livelox: other ways",
+    'Dva snímky z Livelox <span class="badge badge-tichy">když KMZ stáhnout nejde</span>':
+        'Two Livelox screenshots <span class="badge badge-tichy">when the KMZ cannot be downloaded</span>',
+    'Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span>':
+        'Photo of the paper map <span class="badge badge-tichy">when none of that works</span>',
+    "Hodinky se neukázaly jako disk": "The watch did not show up as a disk",
+    "Mapy": "Maps",
+    "Nahrát běh nebo mapu": "Upload a run or a map",
+    "Všechno potřebné k rozboru doplníš na jednom místě.": "Add everything the analysis needs in one place.",
+    "1. Běh z hodinek": "1. Run from the watch",
+    "Vyber jeden zdroj. Běhy se samy spárují se závody z ORIS podle data, času a místa.":
+        "Pick one source. The runs are paired with the races from ORIS by date, time and place.",
+    "Počítač": "Computer",
+    ".fit nebo zip z Garminu": ".fit or zip from Garmin",
+    "Garmin Connect": "Garmin Connect",
+    "přímo z účtu": "straight from the account",
+    "Hodinky / složka": "Watch / folder",
+    "USB nebo složka": "USB or a folder",
+    "Zdroj běhu": "Source of the run",
+    "Přetáhni sem soubory nebo je vyber": "Drop the files here or choose them",
+    "Jeden nebo víc souborů .fit, nebo celý export účtu Garmin (.zip)":
+        "One or more .fit files, or the whole Garmin account export (.zip)",
+    "Co se se soubory stane": "What happens to the files",
+    "Po nahrání se běhy spárují se závody z ORIS. Stav uvidíš tady i v přehledu závodů.":
+        "After the upload the runs are paired with the races from ORIS. You will see the state here and in the race list.",
+    "2. Mapa závodu": "2. Map of the race",
+    "Mapy patří ke konkrétnímu závodu. Mapa bez tratě je společná pro celý závod, stačí ji nahrát jednou.":
+        "The maps belong to one race. The map without the course is shared by the whole race, one upload is enough.",
+    "Vybrat": "Choose",
+    "Otevřít závod": "Open the race",
+    "Uložit mapy a spustit rozbor": "Save the maps and start the analysis",
+    "Jakmile jsou podklady kompletní, rozbor se spustí sám. Stránka závodu zůstane dostupná.":
+        "Once everything is in, the analysis starts by itself. The race page stays available.",
+    'Zatím tu není žádný závod. Načti je z ORIS nebo přidej ručně v <a href="%(races)s">Přehledu závodů</a>.':
+        'There is no race yet. Load them from ORIS or add one by hand in the <a href="%(races)s">race list</a>.',
+    "chybí mapa": "map missing",
+})
+EN_JS.update({
+    "Načíst vybrané a model kopců": "Load selected and hill model",
+    "Načíst vybrané": "Load selected",
+    "Zaškrtnuto": "Selected",
+    "Načtení se nepovedlo. Zkus to znovu.": "Loading failed. Try again.",
 })

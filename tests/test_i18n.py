@@ -90,7 +90,7 @@ def test_pages_of_a_runner_in_english(app, client):
     client.get("/language/en")
     register(client)
     html = client.get("/").get_data(as_text=True)
-    assert "Races" in html and "Load races from ORIS" in html and "Přehled" not in html
+    assert "Races" in html and "Load from ORIS" in html and "Přehled" not in html
     assert "Background jobs" in client.get("/jobs").get_data(as_text=True)
     assert "speed model" in html.lower()
     assert "Add a race by hand" in client.get("/races/new").get_data(as_text=True)

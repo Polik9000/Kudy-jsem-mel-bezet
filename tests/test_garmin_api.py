@@ -92,13 +92,14 @@ def _connect(app, c, fake):
 def test_not_on_the_server(app, user):
     c = app.test_client()
     assert c.get("/upload/garmin").status_code in (302, 404)
+    assert c.get("/upload/panel/garmin").status_code in (302, 404)
     assert "Garmin Connect</a>" not in c.get("/upload").get_data(as_text=True)
 
 
 def test_key_only_in_the_data_folder(local):
     c = local.test_client()
     c.get("/")
-    html = c.get("/upload/garmin").get_data(as_text=True)
+    html = c.get("/upload/panel/garmin").get_data(as_text=True)
     assert "Personal API" in html and garmin_api.KEY_PAGE in html
     fake = FakeGarmin({})
     _connect(local, c, fake)
@@ -110,7 +111,7 @@ def test_key_only_in_the_data_folder(local):
     if os.name == "posix":
         assert os.stat(conf.path("garmin", key_file)).st_mode & 0o077 == 0
     # the key is in no page and in no database row
-    assert KEY not in c.get("/upload/garmin").get_data(as_text=True)
+    assert KEY not in c.get("/upload/panel/garmin").get_data(as_text=True)
     with open(conf.db_path, "rb") as f:
         assert KEY.encode() not in f.read()
     # disconnect deletes it
@@ -123,15 +124,15 @@ def test_token_cached_and_renewed(local):
     c.get("/")
     fake = FakeGarmin({1: (_now(3), "running")})
     _connect(local, c, fake)
-    c.get("/upload/garmin")
-    c.get("/upload/garmin?dni=14")
+    c.get("/upload/panel/garmin")
+    c.get("/upload/panel/garmin?dni=14")
     assert fake.tokens == 1                         # one token for both lists
     # a token about to expire is replaced
     conf = local.config["OB"]
     tf = [f for f in os.listdir(conf.path("garmin")) if f.endswith(".token.json")][0]
     with open(conf.path("garmin", tf), "w") as f:
         json.dump({"token": _jwt(time.time() + 60), "exp": time.time() + 60}, f)
-    c.get("/upload/garmin")
+    c.get("/upload/panel/garmin")
     assert fake.tokens == 2
 
 
@@ -141,7 +142,7 @@ def test_rejected_key(local):
     fake = FakeGarmin({})
     fake.reject_token = True
     _connect(local, c, fake)
-    html = c.get("/upload/garmin").get_data(as_text=True)
+    html = c.get("/upload/panel/garmin").get_data(as_text=True)
     assert "nepřijal" in html and "nový" in html
 
 
@@ -152,7 +153,7 @@ def test_offer_download_and_pair(local):
     fake = FakeGarmin({111: (_now(2), "running"), 112: (_now(5), "orienteering"), 113: (_now(6), "cycling"),
                        115: (_now(1), "walking"), 114: (_now(300), "running")})
     _connect(local, c, fake)
-    html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
+    html = c.get("/upload/panel/garmin?dni=60").get_data(as_text=True)
     assert all(f'value="{i}"' in html for i in (111, 112, 113, 115)) and 'value="114"' not in html
     checked = set(re.findall(r'value="(\d+)" aria-label="[^"]*"\s*checked', html))
     assert checked == {"111", "112"}                 # a ride is not pre-selected
@@ -167,7 +168,7 @@ def test_offer_download_and_pair(local):
     job = con.execute("SELECT status, message FROM jobs WHERE kind = 'garmin_api'").fetchone()
     assert job["status"] == "done" and "Staženo z Garmin Connect 2" in job["message"]
     # now they show as already in the app, and are no longer pre-selected
-    html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
+    html = c.get("/upload/panel/garmin?dni=60").get_data(as_text=True)
     assert html.count(">ano</td>") == 2
     # downloading them again adds nothing
     c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", aktivita=["111"]))
@@ -204,8 +205,8 @@ def test_chosen_runs_and_hill_model_in_one_go(local):
     fake = FakeGarmin({131: (_now(2), "running"), 132: (_now(4), "trail_running"), 133: (_now(5), "walking"),
                        134: (_now(6), "running")})
     _connect(local, c, fake)
-    html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
-    assert 'id="garmin-druh"' in html and 'value="walking"' in html and 'value="trail_running"' in html
+    html = c.get("/upload/panel/garmin?dni=60").get_data(as_text=True)
+    assert 'data-garmin-druh' in html and 'value="walking"' in html and 'value="trail_running"' in html
     assert "Zaškrtnout vše" in html and 'name="model"' in html
     # the walk is chosen by hand, together with the model
     c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", aktivita=["133"],
@@ -226,10 +227,12 @@ def test_chosen_runs_and_hill_model_in_one_go(local):
 def test_page_in_english(local):
     c = local.test_client()
     c.get("/")
-    html = c.get("/upload/garmin?lang=en").get_data(as_text=True)
+    c.get("/language/en")
+    html = c.get("/upload/panel/garmin").get_data(as_text=True)
     assert "Personal API key" in html and "Connect Garmin account" in html
-    page = html[html.index("Runs from Garmin Connect</h2>"):html.index("<script")]
-    assert not re.search("[ěščřžťďňůĚŠČŘŽŤĎŇŮ]", re.sub(r"<[^>]+>", " ", page))
+    assert not re.search("[ěščřžťďňůĚŠČŘŽŤĎŇŮ]", re.sub(r"<[^>]+>", " ", html))
+    page = c.get("/upload?zdroj=garmin").get_data(as_text=True)
+    assert "Upload a run or a map" in page and "Personal API key" in page
 
 
 def test_button_above_the_long_table(local):
@@ -238,13 +241,13 @@ def test_button_above_the_long_table(local):
     c = local.test_client()
     c.get("/")
     _connect(local, c, FakeGarmin({i: (_now(i), "running") for i in range(1, 41)}))
-    html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
-    form = html[html.index('<form method="post" id="garmin-vyber">'):html.index("</form>", html.index('id="garmin-vyber"'))]
+    html = c.get("/upload/panel/garmin?dni=60").get_data(as_text=True)
+    form = html[html.index('id="garmin-vyber"'):html.index("</form>", html.index('id="garmin-vyber"'))]
     bar = form.index('class="karta ob-garmin-lista"')
     first_submit, table = form.index('type="submit"'), form.index("<table")
     assert bar < first_submit < table
     assert bar < form.index('name="model"') < table and bar < form.index('name="dni_model"') < table
-    assert bar < form.index('id="garmin-pocet"') < table
+    assert bar < form.index('data-garmin-pocet') < table
     assert form.count('type="submit"') == 2 and form.count('name="model"') == 1
     css = c.get("/ob-static/ob.css").get_data(as_text=True)
     assert ".ob-garmin-lista { position: sticky;" in css and ".ob-garmin-akce { position: sticky;" in css   # phone too
@@ -253,13 +256,14 @@ def test_button_above_the_long_table(local):
 def test_garmin_link_on_the_races_and_above_the_upload(local):
     c = local.test_client()
     races = c.get("/").get_data(as_text=True)
-    if "/upload/garmin" not in races:      # the first start goes to the profile first
-        races = c.get("/").get_data(as_text=True)
-    controls = races[races.index('<div class="controls">'):]
-    assert 'href="/upload/garmin"' in controls[:controls.index("</div>")]
+    menu = races[races.index('class="ob-vice-menu'):]          # Přehled: under "Další možnosti"
+    assert 'href="/upload?zdroj=garmin#zdroj=garmin"' in menu[:menu.index("</details>")]
+    # on Nahrát Garmin Connect is one of the three sources, above the form of the files
     upload = c.get("/upload").get_data(as_text=True)
-    assert upload.index('href="/upload/garmin"') < upload.index('enctype="multipart/form-data"')
+    assert upload.index('data-zdroj="garmin"') < upload.index('enctype="multipart/form-data"')
+    assert 'data-panel="/upload/panel/garmin"' in upload
 
 
 def test_no_garmin_link_on_the_server(app, user, client):
-    assert "/upload/garmin" not in client.get("/").get_data(as_text=True)
+    assert "zdroj=garmin" not in client.get("/").get_data(as_text=True)
+    assert 'data-zdroj="garmin"' not in client.get("/upload").get_data(as_text=True)

@@ -602,6 +602,9 @@ Co hotové není nebo nesedí:
     USB → Garmin), pak v režimu MTP. Otevři v appce Přehled závodů. Ukázal se řádek „Našly se nové aktivity z hodinek“?
     Jak rychle? Co ukázal Průzkumník u MTP (písmeno disku, nebo jen zařízení)? Napiš mi to, podle toho rozhodnu o čtení
     MTP (`docs/hodinky-mtp.md`). Stejně na Macu, jestli ho máš po ruce.
+64. Nový vzhled v okně appky (prompty 9 až 12): na Windows a na Macu otevři Přehled, Nahrát a stránku závodu, okno
+    zmenši na nejmenší velikost (960 × 600) a přepni světlý režim. Nic nepřetéká a nic se neschová pod okraj? Okno
+    při startu nebliká bíle? (V cloudu jsem ověřil jen prohlížeč Chromium, skutečné okno Windows a macOS ne.)
 
 ## Otázky na tátu (ze seznamu „Co potvrdit s tátou“)
 

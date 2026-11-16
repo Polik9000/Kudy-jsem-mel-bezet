@@ -145,3 +145,40 @@ def test_without_oris_the_number_of_controls_is_given(app, client, user):
     names = json.loads(re.search(r"names: (\[.*?\]\]),", html).group(1))
     assert [m for m, _ok in names] == ["S", "1", "2", "3", "4", "5", "C"] and 'name="n"' in html
     assert client.get(f"/races/{entry}/kontroly?n=500").status_code == 200
+
+
+def test_race_page_has_no_tabs_but_sections_that_open_in_place(app, client, user):
+    """Prompt 9: the map and the legs side by side, the selected leg under them, the rest in <details> sections.
+    The ids the scripts use stay; Podklady is open, with one sentence over the page, while something is missing."""
+    con, conf, entry, e = _setup(app, user)
+    _ground, at, gm, k = _on_map(app, conf, e)
+    _analysed(con, conf, entry, gm, k, at, ["1", "2"])
+    html = client.get(f"/races/{entry}").get_data(as_text=True)
+    assert 'class="tab"' not in html and "tabpanel" not in html and "data-taby" not in html
+    for part in ("podklady", "nastaveni", "useky-vse"):
+        assert re.search(rf'<details class="ob-oddil" id="{part}"', html), part
+    assert '<details class="ob-oddil" id="podklady">' in html            # nothing is missing: closed
+    assert 'id="chybi"' not in html
+    for id_ in ("map", "mapa", "useky", "panel", "panel-leg", "panel-empty", "legs", "pas", "b-prev", "b-next",
+                "b-zpet", "b-draw", "b-oprava", "b-gps", "n-text", "c-map", "c-prekazky", "cisla", "ci-useky",
+                "kategorie", "ob-prubeh", "b-poznamka", "poznamka", "vice"):
+        assert f'id="{id_}"' in html, id_
+    # the class is chosen in the settings section, the menu "Další možnosti" points there
+    assert html.index('id="nastaveni"') < html.index('id="kategorie"') and 'href="#kategorie"' in html
+    # the map of the race without the course gone: the sentence and the open section
+    con.execute("UPDATE events SET maponly_file = NULL WHERE id = ?", (e["event_id"],))
+    con.commit()
+    html = client.get(f"/races/{entry}").get_data(as_text=True)
+    assert 'id="chybi"' in html and "Chybí mapa bez tratě" in html and 'href="#podklady"' in html
+    assert '<details class="ob-oddil" id="podklady" open>' in html
+
+
+def test_race_page_scripts_open_sections_instead_of_tabs():
+    from test_web_layout import read
+    js = read("webapp", "static", "ob.js").decode("utf-8")
+    assert "function openTo(id, scroll)" in js and "data-taby" not in js and '"ob-tab-show"' in js
+    mapjs = read("webapp", "static", "map.js").decode("utf-8")
+    assert 'classList.contains("aktivni")' not in mapjs and "function useky()" in mapjs
+    # red only for a recognised mistake, grey up to 20 s (the noise of the model)
+    kind = mapjs[mapjs.index("function lossKind(l)"):mapjs.index("function useky()")]
+    assert 'if (l.mistake) { return "chyba"; }' in kind and "v < 20" in kind

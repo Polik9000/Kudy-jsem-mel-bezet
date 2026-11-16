@@ -1,6 +1,6 @@
 {# Official split times of the whole class (ORIS getSplits), the WinSplits method. Needs no .fit and no map. #}
-<section class="tabpanel" id="mezicasy">
-<h3 class="tabnadpis">{{ _('Mezičasy kategorie') }}</h3>
+<details class="ob-oddil" id="mezicasy">
+<summary>{{ _('Mezičasy kategorie') }} <span class="hint">{{ _('všichni běžci kategorie z ORIS') }}</span></summary>
 <p class="evhead">{% trans n=sp.n_runners, cls=e.class_name, ok=sp.n_ok %}Oficiální mezičasy {{ n }} běžců kategorie {{ cls }} z ORIS
   ({{ ok }} klasifikovaných). Počítá se jen z časů, bez mapy a bez stopy z hodinek.{% endtrans %}</p>
 <div class="ob-radek">
@@ -94,4 +94,4 @@
 <p class="hint">{% trans %}Sloupce Normál, Chyb a Ztraceno chybami se počítají pro každého běžce stejnou metodou z veřejných
   mezičasů ORIS (proto je mají i ostatní). <b>Normál</b> je tvoje obvyklé tempo proti referenci, 100 % = jako reference.
   Výsledky a mezičasy jsou veřejné údaje z ORIS. Stopy z hodinek ostatních běžců aplikace neukazuje.{% endtrans %}</p>
-</section>
+</details>

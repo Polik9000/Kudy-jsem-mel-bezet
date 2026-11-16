@@ -20,6 +20,7 @@ import zipfile
 
 from .. import oris
 from ..db import dumps, loads
+from ..i18n import _
 from . import barriers, matching, regnos, storage
 from . import splits as class_splits
 
@@ -114,28 +115,28 @@ def _read(data):
         z = zipfile.ZipFile(io.BytesIO(data))
         infos = z.infolist()
     except (zipfile.BadZipFile, OSError, ValueError) as err:
-        raise BadFile("Soubor není závod uložený z aplikace (.obzavod).") from err
+        raise BadFile(_("Soubor není závod uložený z aplikace (.obzavod).")) from err
     names = {i.filename for i in infos}
     if "obzavod.json" not in names:
-        raise BadFile("Soubor není závod uložený z aplikace (.obzavod): chybí v něm popis závodu.")
+        raise BadFile(_("Soubor není závod uložený z aplikace (.obzavod): chybí v něm popis závodu."))
     if any(i.filename not in NAMES or i.file_size > MAX_MEMBER for i in infos):
-        raise BadFile("V souboru je něco, co do uloženého závodu nepatří. Nenačetl jsem ho.")
+        raise BadFile(_("V souboru je něco, co do uloženého závodu nepatří. Nenačetl jsem ho."))
     try:
         doc = json.loads(z.read("obzavod.json").decode("utf-8"))
         files = {n: z.read(n) for n in names if n != "obzavod.json"}
     except (ValueError, UnicodeDecodeError, zipfile.BadZipFile, OSError) as err:
-        raise BadFile("Soubor je poškozený, závod z něj načíst nejde.") from err
+        raise BadFile(_("Soubor je poškozený, závod z něj načíst nejde.")) from err
     if not isinstance(doc, dict) or doc.get("format") != FORMAT:
-        raise BadFile("Soubor není závod uložený z aplikace (.obzavod).")
+        raise BadFile(_("Soubor není závod uložený z aplikace (.obzavod)."))
     if not isinstance(doc.get("version"), int) or doc["version"] > VERSION:
-        raise BadFile("Závod je uložený novější verzí aplikace. Nainstaluj si novou verzi a načti ho znovu.")
+        raise BadFile(_("Závod je uložený novější verzí aplikace. Nainstaluj si novou verzi a načti ho znovu."))
     ev, cls = doc.get("event"), doc.get("class")
     if not isinstance(ev, dict) or not isinstance(cls, dict) or not ev.get("name") or not cls.get("name"):
-        raise BadFile("Soubor je poškozený: chybí v něm název závodu nebo kategorie.")
+        raise BadFile(_("Soubor je poškozený: chybí v něm název závodu nebo kategorie."))
     try:
         dt.date.fromisoformat(str(ev.get("date")))
     except ValueError as err:
-        raise BadFile("Soubor je poškozený: datum závodu nejde přečíst.") from err
+        raise BadFile(_("Soubor je poškozený: datum závodu nejde přečíst.")) from err
     return doc, files
 
 
@@ -209,8 +210,8 @@ def _maps(con, conf, files, doc, event_id, class_id, user_id):
             storage.check_kmz(tmp)
         except ValueError as err:
             os.remove(tmp)
-            raise BadFile(("Mapa bez tratě" if kind == "maponly" else "Mapa s tratí")
-                          + " v souboru nejde přečíst. " + str(err)) from err
+            raise BadFile((_("Mapa bez tratě v souboru nejde přečíst.") if kind == "maponly" else
+                           _("Mapa s tratí v souboru nejde přečíst.")) + " " + str(err)) from err
         if kind == "maponly":
             path = storage.save_map(conf, tmp, event_id)
             src = ev.get("maponly_source") if ev.get("maponly_source") in ("kmz", "snimek") else "kmz"
@@ -269,11 +270,11 @@ def _my_times(con, class_id, regnos):
 
 
 def load(con, conf, user, data):
-    """Add the race of a .obzavod (bytes) to the runner's races. Returns (entry id, Czech message)."""
+    """Add the race of a .obzavod (bytes) to the runner's races. Returns (entry id, message in the language of the page)."""
     doc, files = _read(data)
     uid = user["id"]
     try:
-        event_id, _ = _event(con, doc["event"], uid)
+        event_id, _new = _event(con, doc["event"], uid)
         class_id = _class(con, event_id, doc["class"])
         added = _maps(con, conf, files, doc, event_id, class_id, uid)
         _extras(con, doc, event_id, class_id, uid)
@@ -337,14 +338,16 @@ def load(con, conf, user, data):
     if "course" in added:
         again.update(r["id"] for r in con.execute("SELECT id FROM entries WHERE class_id = ?", (class_id,)))
     queued = [i for i in sorted(again) if matching.queue_analysis(con, i) is not None]
-    parts = ["Závod je načtený." if new_entry else f"Závod už máš (kategorie {have['name']}), doplnil jsem, co chybělo."]
+    parts = [_("Závod je načtený.") if new_entry else
+             _("Závod už máš (kategorie %(name)s), doplnil jsem, co chybělo.", name=have["name"])]
     if added:
-        parts.append("Mapy: " + " a ".join({"maponly": "bez tratě", "course": "s tratí"}[k] for k in added) + ".")
+        names = {"maponly": _("bez tratě"), "course": _("s tratí")}
+        parts.append(_("Mapy: %(maps)s.", maps=_(" a ").join(names[k] for k in added)))
     if run is not None:
-        parts.append("Běh ze souboru je spárovaný se závodem.")
+        parts.append(_("Běh ze souboru je spárovaný se závodem."))
     if entry_id in queued:
-        parts.append("Analýza se spustila.")
+        parts.append(_("Analýza se spustila."))
     elif not con.execute("SELECT activity_id FROM entries WHERE id = ?", (entry_id,)).fetchone()["activity_id"]:
-        parts.append("Nahraj k němu svůj běh z hodinek (.fit).")
+        parts.append(_("Nahraj k němu svůj běh z hodinek (.fit)."))
     return entry_id, " ".join(parts)
 

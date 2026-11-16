@@ -73,7 +73,7 @@ def main():
     shutil.copyfile(os.path.join(ROOT, "data", "pohora", "maponly.kmz"), os.path.join(out, "maponly.kmz"))
 
     race, prefix = f"/races/{entry}", "/ob"
-    tab = "document.querySelector('a[href=\"#podklady\"]').click(); window.scrollTo(0, 0)"
+    tab = "document.getElementById('podklady').open = true; document.getElementById('podklady').scrollIntoView()"
     card = ("document.querySelector('a[href=\"#podklady\"]').click();"
             " document.querySelector('input[name=screen_course]').closest('.karta').scrollIntoView();"
             " document.querySelector('input[name=screen_course]').closest('.karta').querySelector('details').open = true")

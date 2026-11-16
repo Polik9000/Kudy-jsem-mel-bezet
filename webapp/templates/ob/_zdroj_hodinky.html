@@ -1,17 +1,19 @@
-{% extends "ob/base.html" %}
-{% block title %}{{ _('Načíst z hodinek') }}{% endblock %}
-{% block content %}
-<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Načíst z hodinek') }}</h2>
-<p class="evhead">{% trans %}Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty,
+{# Nahrát, source Hodinky / složka: the watches found as a disk, a folder and its runs. Put in place by static/ob.js
+   (views.upload_panel), or in the page when it opens on this source. The runs are loaded by views.watch_page. #}
+<p class="ob-zdroj-popis">{% trans %}Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty,
   které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.{% endtrans %}</p>
-<form method="get" class="karta ob-form">
+{% if watch_error %}<p class="stalewarn" role="alert">{{ watch_error }}</p>{% endif %}
+<form method="get" action="{{ url_for('ob.upload') }}" class="ob-form" data-panel-form>
+  <input type="hidden" name="zdroj" value="hodinky">
   {% if found %}
   <p>{{ _('Nalezené hodinky:') }}
-    {% for f in found %}<a class="btn btn-maly" href="{{ url_for('ob.watch_page', slozka=f) }}">{{ f }}</a> {% endfor %}</p>
+    {% for f in found %}<a class="btn btn-maly" href="{{ url_for('ob.upload', zdroj='hodinky', slozka=f) }}#zdroj=hodinky" data-panel-odkaz="{{ url_for('ob.upload_panel', src='hodinky', slozka=f) }}">{{ f }}</a> {% endfor %}</p>
   {% else %}
   <p class="hint">{% trans %}Žádné hodinky jako disk nevidím. Buď ještě nejsou připojené, nebo jsou v režimu MTP: ten appka
     neumí.{% endtrans %}</p>
-  <ul class="hint" id="mtp">
+  <details class="hint" id="mtp">
+    <summary>{{ _('Hodinky se neukázaly jako disk') }}</summary>
+  <ul>
     <li>{% trans %}<b>Přepni hodinky na režim Garmin</b> (disk), pokud ho mají. Fēnix 5X Plus a podobné: na hodinkách
       Nastavení → Systém → Režim USB → Garmin (anglicky Settings → System → USB Mode → Garmin). Pak kabel odpoj a znovu
       připoj.{% endtrans %}</li>
@@ -22,23 +24,22 @@
     <li>{% trans %}Programy Garmin Express a Android File Transfer si hodinky po připojení zaberou. Zavři je, ať se hodinky
       ukážou jako disk.{% endtrans %}</li>
   </ul>
-  <p class="hint">{% trans garmin=url_for('ob.garmin_page'), help=url_for('ob.help_page') %}Jinak: <a href="{{ garmin }}">Načíst
-    přímo z Garmin Connect</a>, nebo běhy exportuj a nahraj (<a href="{{ help }}#garmin">Jak na to</a>).{% endtrans %}</p>
+  </details>
   {% endif %}
-  <label>{{ _('Nebo složka se soubory .fit') }}
+  <label class="ob-pole">{{ _('Nebo složka se soubory .fit') }}
     <input name="slozka" value="{{ folder }}" placeholder="{{ sample }}" autocomplete="off"></label>
   <button type="submit" class="btn">{{ _('Zobrazit běhy') }}</button>
 </form>
-{% if rows is not none %}
-{% if rows %}
-<form method="post" class="karta">
+{% if watch_rows is not none %}
+{% if watch_rows %}
+<form method="post" action="{{ url_for('ob.watch_page') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="slozka" value="{{ folder }}">
-  <p>{% trans base=base, n=rows | length, new=rows | selectattr('new') | list | length %}Ve složce <code>{{ base }}</code> je běhů: {{ n }}, nových {{ new }}.{% endtrans %}</p>
+  <p>{% trans base=base, n=watch_rows | length, new=watch_rows | selectattr('new') | list | length %}Ve složce <code>{{ base }}</code> je běhů: {{ n }}, nových {{ new }}.{% endtrans %}</p>
   <div class="tablewrap"><table>
     <thead><tr><th></th><th>{{ _('Start') }}</th><th>{{ _('Sport') }}</th><th class="num">{{ _('Čas') }}</th><th class="num">km</th><th>GPS</th><th></th></tr></thead>
     <tbody>
-    {% for r in rows %}
+    {% for r in watch_rows %}
     <tr><td>{% if r.new %}<input type="checkbox" name="soubor" value="{{ r.name }}" checked aria-label="{{ _('Načíst %(name)s', name=r.name) }}">{% endif %}</td>
       <td>{{ r.start.strftime('%-d. %-m. %Y %H:%M') }}</td><td>{{ r.sport }}</td>
       <td class="num">{{ r.timer_s | mmss }}</td><td class="num">{{ '%.2f' | format((r.dist_m or 0) / 1000) }}</td>
@@ -53,4 +54,3 @@
 <p class="prazdno empty">{{ _('Ve složce nejsou žádné běhy (.fit se záznamem aktivity).') }}</p>
 {% endif %}
 {% endif %}
-{% endblock %}

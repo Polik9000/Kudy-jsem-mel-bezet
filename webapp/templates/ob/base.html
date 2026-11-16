@@ -17,23 +17,34 @@
 {# data-obnovit: the page shows the state of the background jobs and loads itself again when they finish (ob.js) #}
 <body{% if wide %} class="ob-siroka"{% endif %}{% block body_attrs %}{% endblock %}>
 {{ sprite }}
-{% macro menu() %}
+{% macro jazyk() %}
+<div class="ob-jazyk" role="group" aria-label="{{ _('Jazyk') }}">
+  {% for code, name in languages.items() %}<a href="{{ url_for('ob.set_language', code=code, next=(request.script_root ~ request.full_path).rstrip('?')) }}" lang="{{ code }}"{% if code == lang %} aria-current="true"{% endif %}>{{ code | upper }}</a>{% endfor %}
+</div>
+{% endmacro %}
+{# the menu: Závody and Nahrát, then the rest under "Další" (maketa docs/vzhled-navrh/prehled.html). side: the left
+   panel, which has the language and the mode at its bottom; the menu of the narrow screen has the language in it #}
+{% macro menu(side=False) %}
 <ul class="menuseznam">
   {% if user %}
-  {% for endpoint, icon, label in [('ob.races', 'archiv', _('Přehled závodů')), ('ob.upload', 'kompas', _('Nahrát běhy')),
-                                   ('ob.model', 'graf', _('Rychlostní model')), ('ob.jobs_page', 'stav', _('Úlohy')),
-                                   ('ob.profile', 'lide', _('Profil'))] %}
+  {% for endpoint, icon, label in [('ob.races', 'archiv', _('Závody')), ('ob.upload', 'kompas', _('Nahrát')), ('', '', ''),
+                                   ('ob.model', 'graf', _('Model rychlosti')), ('ob.jobs_page', 'stav', _('Úlohy')),
+                                   ('ob.profile', 'lide', _('Profil')), ('ob.help_page', 'plan', _('Nápověda')),
+                                   ('ob.about_page', 'chyba', _('O aplikaci'))] %}
+  {% if loop.index == 3 %}<li class="mn-nadpis" aria-hidden="true">{{ _('Další') }}</li>
+  {% else %}
   <li><a href="{{ url_for(endpoint) }}"{% if request.endpoint == endpoint or (endpoint == 'ob.races' and aktivni == 'races') %} aria-current="page"{% endif %}>
       {{ ikona(icon) }}{{ label }}{% if endpoint == 'ob.jobs_page' %} <span class="badge ob-ulohy" hidden></span>{% endif %}</a></li>
+  {% endif %}
   {% endfor %}
   {% else %}
   <li><a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>{{ ikona('start') }}{{ _('Přihlášení') }}</a></li>
   {% if registration_open %}
   <li><a href="{{ url_for('auth.register') }}"{% if request.endpoint == 'auth.register' %} aria-current="page"{% endif %}>{{ ikona('lide') }}{{ _('Nový účet') }}</a></li>
   {% endif %}
-  {% endif %}
-  <li><a href="{{ url_for('ob.help_page') }}"{% if request.endpoint == 'ob.help_page' %} aria-current="page"{% endif %}>{{ ikona('plan') }}{{ _('Jak na to') }}</a></li>
+  <li><a href="{{ url_for('ob.help_page') }}"{% if request.endpoint == 'ob.help_page' %} aria-current="page"{% endif %}>{{ ikona('plan') }}{{ _('Nápověda') }}</a></li>
   <li><a href="{{ url_for('ob.about_page') }}"{% if request.endpoint == 'ob.about_page' %} aria-current="page"{% endif %}>{{ ikona('chyba') }}{{ _('O aplikaci') }}</a></li>
+  {% endif %}
   {% if club.ENABLED %}
   <li class="mn-sep" aria-hidden="true">{{ ikona('kontrola') }}<span class="mn-sep-cara"></span>{{ ikona('kontrola') }}</li>
   <li><a href="{{ club.home() }}">{{ ikona('live') }}{{ _('Závodní centrum') }}<span class="mn-pozn">{{ _('klubový web') }}</span></a></li>
@@ -51,9 +62,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="ob-menu-tlacitko">{{ ikona('cil') }}{{ _('Odhlásit') }}</button></form></li>
   {% endif %}
-  <li class="ob-jazyk" role="group" aria-label="{{ _('Jazyk') }}">
-    {% for code, name in languages.items() %}<a href="{{ url_for('ob.set_language', code=code, next=(request.script_root ~ request.full_path).rstrip('?')) }}" lang="{{ code }}"{% if code == lang %} aria-current="true"{% endif %}>{{ code | upper }}</a>{% endfor %}
-  </li>
+  {% if not side %}<li>{{ jazyk() }}</li>{% endif %}
 </ul>
 {% endmacro %}
 <div class="sitehead">
@@ -84,8 +93,14 @@
     <a class="side-brand" href="{{ url_for('ob.races') }}">
       <img src="{{ url_for('ob.static', filename='ob-logo.svg') }}" alt="" width="40" height="40">
       <span><b>{{ _('Kudy jsem měl běžet') }}</b><small>{{ _('Analýza orientačního běhu') }}</small></span></a>
-    {{ menu() }}
-    <p class="side-stav">{% if local_app %}<span class="tecka"></span>{{ _('Lokální režim · data v zařízení') }}{% else %}<span class="tecka"></span>{{ _('Webový režim') }}{% endif %}</p>
+    {{ menu(side=True) }}
+    <div class="side-dole">
+      <p class="side-stav"><span class="tecka"></span>{% if local_app %}{{ _('Data zůstávají v tomto počítači') }}{% else %}{{ _('Webový režim') }}{% endif %}</p>
+      <div class="side-volby">
+        <button type="button" class="rezim-prepinac ob-rezim-text" data-rezim-prepinac hidden aria-label="{{ _('Světlý nebo tmavý režim') }}"></button>
+        {{ jazyk() }}
+      </div>
+    </div>
   </nav>
   <div class="obsah">
     <main>

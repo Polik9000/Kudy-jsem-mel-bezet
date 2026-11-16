@@ -92,14 +92,12 @@ legend { font-weight: 600; padding: 0 var(--s1); }
 @media (max-width: 40rem) { input, select, textarea { min-height: 2.6rem; } }
 
 /* --- stránka závodu --- */
-.ob-mapa-obal { display: flex; gap: var(--s3); align-items: stretch; margin: 0 0 var(--s3); }
 .ob-mapa-ram { flex: 1; min-width: 0; position: relative; }
 #map { height: 74vh; min-height: 26rem; background: var(--bg-elev); border: 1px solid var(--line);
   border-radius: var(--r2); box-shadow: var(--stin1); z-index: 0; }
 #panel { width: 23rem; flex: none; margin: 0; max-height: 74vh; overflow-y: auto; }
 #panel h3 { margin-top: 0; }
 @media (max-width: 63.99rem) {
-  .ob-mapa-obal { flex-direction: column; }
   .ob-mapa-ram { flex: none; }
   #panel { width: auto; max-height: none; }
   #map { height: 62vh; }
@@ -209,7 +207,6 @@ tr.ob-ja td { font-weight: 650; background: color-mix(in srgb, var(--brand-2) 22
 .ob-graf .ostatni.zvyrazneno { stroke: var(--ink); stroke-width: 2.5; opacity: 1; }
 .ob-graf .ja.zvyrazneno { stroke-width: 4; }
 .ob-graf-obal { position: relative; overflow-x: auto; }
-.ob-poradi { margin: var(--s3) 0 var(--s2); }
 .ob-graf-obal .ob-graf { min-width: 640px; }   /* on a phone: readable, scrolled sideways */
 .ob-graf-tip { position: absolute; z-index: 2; max-width: 22rem; padding: var(--s1) var(--s2); pointer-events: none;
   background: var(--bg-elev); color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r1, 4px);
@@ -242,7 +239,7 @@ tr.ob-ja td { font-weight: 650; background: color-mix(in srgb, var(--brand-2) 22
 :root[data-theme="tmavy"] .ob-cip[aria-pressed="true"] { background: color-mix(in srgb, var(--brand-svetla) 25%, var(--bg-elev)); }
 .ob-usek-souhrn { display: none; margin: 0; padding: var(--s2) var(--s3); background: var(--bg-elev);
   border: 1px solid var(--line); border-radius: var(--r2); }
-@media (max-width: 63.99rem) { .ob-usek-souhrn:not([hidden]) { display: block; } }
+@media (max-width: 59.99rem) { .ob-usek-souhrn:not([hidden]) { display: block; } }
 .ob-alt-cislo { display: inline-grid; place-items: center; width: 1.15rem; height: 1.15rem; border-radius: 50%;
   background: var(--ob-nejlepsi); color: #fff; border: 1px solid #fff; font: 700 11px/1 system-ui, sans-serif; font-style: normal; }
 #p-alts tr[data-alt] { cursor: pointer; }
@@ -353,18 +350,10 @@ path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fi
 .ob-jak p { max-width: 72ch; }
 .ob-hlavni-cislo { font-size: 1.05em; }
 .ob-nesouhlas { color: var(--oranz-cit, var(--bronz)); font-weight: 600; }
-.ob-nejhorsi { list-style: none; padding: 0; margin: 0 0 var(--s2); }
-.ob-nejhorsi li { margin: 0 0 var(--s1, 4px); }
 .ob-uvod ol { margin: 0; padding-left: 1.3rem; }
 .ob-uvod li { margin-bottom: var(--s2); }
 .hint, .evhead, .karta > p { max-width: 80ch; }
 .ob-pas-useky { scroll-padding-inline: 2rem; }
-/* na telefonu: přetáhnout myší nedává smysl; záložky v jednom řádku, posunují se do strany */
-@media (hover: none) { .ob-mys { display: none; } }
-@media (max-width: 47.99rem) {
-  .taby { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
-  .taby .tab { white-space: nowrap; flex: none; }
-}
 footer.site a { display: inline-block; padding-block: .3rem; }
 
 /* What is being computed for the race: a bar fixed at the bottom, out of the flow of the page, so nothing under it

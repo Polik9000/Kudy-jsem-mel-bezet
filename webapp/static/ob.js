@@ -44,19 +44,26 @@
   }
   if (saved === null && saveUrl && copy()) { keep(copy()); }  // chosen before it was kept with the account
   else if (saved !== null && saved !== copy()) { try { localStorage.setItem(KEY, saved); } catch (e) { /* private mode */ } }
+  // the switch is in the header and, on a wide screen, at the bottom of the left panel too (with its name)
+  var buttons = Array.prototype.slice.call(document.querySelectorAll("#rezim, [data-rezim-prepinac]"));
   function show(m) {
     if (m) { root.setAttribute("data-theme", m); } else { root.removeAttribute("data-theme"); }
-    btn.innerHTML = SIGN[m] || SIGN[""];
-    btn.title = m === "svetly" ? t("Světlý režim") : m === "tmavy" ? t("Tmavý režim") : t("Režim podle zařízení");
+    var name = m === "svetly" ? t("Světlý režim") : m === "tmavy" ? t("Tmavý režim") : t("Režim podle zařízení");
+    buttons.forEach(function (b) {
+      b.innerHTML = (SIGN[m] || SIGN[""]) + (b.hasAttribute("data-rezim-prepinac") ? "<span>" + name + "</span>" : "");
+      b.title = name;
+    });
   }
-  if (btn) {
-    btn.hidden = false;
+  if (btn || buttons.length) {
     show(mode());
-    btn.addEventListener("click", function () {
-      var next = { "": "svetly", svetly: "tmavy", tmavy: "" }[mode()] || "";
-      keep(next);
-      show(next);
-      document.dispatchEvent(new CustomEvent("ob-rezim"));
+    buttons.forEach(function (b) {
+      b.hidden = false;
+      b.addEventListener("click", function () {
+        var next = { "": "svetly", svetly: "tmavy", tmavy: "" }[mode()] || "";
+        keep(next);
+        show(next);
+        document.dispatchEvent(new CustomEvent("ob-rezim"));
+      });
     });
   }
 
@@ -138,7 +145,7 @@
   var bar = document.getElementById("ob-prubeh");
   if (bar && !bar.hidden) { document.body.classList.add("ob-pocita"); }  // room under the page for the bar
 
-  // Where the reader is, kept over that reload: the open tab and the element at the top of the window, in the
+  // Where the reader is, kept over that reload: the open sections and the element at the top of the window, in the
   // sessionStorage of this tab only (without it nothing happens). The page may come back taller or shorter above
   // that element (a note goes away, the map loads its data): the element goes back to the same place in the window.
   var PLACE = "ob-pozice";
@@ -158,8 +165,9 @@
   }
   function keepPlace() {
     try {
-      var tab = document.querySelector(".tabpanel.aktivni"), a = anchor();
-      sessionStorage.setItem(PLACE, JSON.stringify({ path: here(), y: window.scrollY, tab: tab ? tab.id : null,
+      var open = Array.prototype.map.call(document.querySelectorAll("details.ob-oddil[open]"), function (d) { return d.id; });
+      var a = anchor();
+      sessionStorage.setItem(PLACE, JSON.stringify({ path: here(), y: window.scrollY, open: open,
                                                      id: a && a.id, top: a && a.top }));
       history.scrollRestoration = "manual";
     } catch (e) { /* no storage: the page loads at the place the browser picks */ }
@@ -316,47 +324,93 @@
     inp.addEventListener("input", function () {
       var q = inp.value.trim().toLocaleLowerCase("cs");
       Array.prototype.forEach.call(table.tBodies[0].rows, function (r) {
-        r.hidden = !!q && r.textContent.toLocaleLowerCase("cs").indexOf(q) < 0;
+        r.hidden = r.hasAttribute("data-mimo") || (!!q && r.textContent.toLocaleLowerCase("cs").indexOf(q) < 0);
       });
+      table.dispatchEvent(new CustomEvent("ob-filtrovano"));
     });
   });
 
-  // tabs: <div data-taby><nav class="taby"><a class="tab" href="#id">…</a></nav><section class="tabpanel" id="id">…
-  Array.prototype.forEach.call(document.querySelectorAll("[data-taby]"), function (box) {
-    var tabs = box.querySelectorAll(".taby .tab"), panels = box.querySelectorAll(".tabpanel");
-    if (!tabs.length) { return; }
-    box.classList.add("js-taby");
-    function show(id) {
-      Array.prototype.forEach.call(tabs, function (t) {
-        var on = t.getAttribute("href") === "#" + id;
-        t.classList.toggle("aktivni", on);
-        if (on) { t.setAttribute("aria-current", "true"); } else { t.removeAttribute("aria-current"); }
-      });
-      Array.prototype.forEach.call(panels, function (p) { p.classList.toggle("aktivni", p.id === id); });
-      document.dispatchEvent(new CustomEvent("ob-tab", { detail: id }));
+  // Přehled: the filters by state (links with ?jen=, they work without a script too) switch in place; a row hidden by
+  // its state gets data-mimo, the search box then keeps it hidden. A message shows when no row is left.
+  Array.prototype.forEach.call(document.querySelectorAll("[data-filtr-tabulky]"), function (bar) {
+    var table = document.querySelector(bar.getAttribute("data-filtr-tabulky"));
+    if (!table) { return; }
+    var search = bar.querySelector("input[data-filter]"), empty = document.getElementById(table.id + "-prazdno");
+    function count() {
+      if (!empty) { return; }
+      empty.hidden = Array.prototype.some.call(table.tBodies[0].rows, function (r) { return !r.hidden; });
     }
-    Array.prototype.forEach.call(tabs, function (t) {
-      t.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        var id = t.getAttribute("href").slice(1);
-        show(id);
-        try { history.replaceState(null, "", "#" + id); } catch (e) { /* file: or sandboxed */ }
+    table.addEventListener("ob-filtrovano", count);
+    bar.addEventListener("click", function (ev) {
+      var a = ev.target.closest("a[data-jen]");
+      if (!a || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button) { return; }
+      ev.preventDefault();
+      var key = a.getAttribute("data-jen");
+      Array.prototype.forEach.call(bar.querySelectorAll("a[data-jen]"), function (x) {
+        x.setAttribute("aria-pressed", x === a ? "true" : "false");
       });
-    });
-    document.addEventListener("ob-tab-show", function (ev) { show(ev.detail); });
-    // <a data-tab="id"> anywhere on the page opens that tab
-    Array.prototype.forEach.call(document.querySelectorAll("a[data-tab]"), function (a) {
-      a.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        show(a.dataset.tab);
-        try { history.replaceState(null, "", "#" + a.dataset.tab); } catch (e) { /* file: or sandboxed */ }
-        box.scrollIntoView({ behavior: "smooth", block: "start" });
+      Array.prototype.forEach.call(table.tBodies[0].rows, function (r) {
+        var out = !!key && (" " + r.getAttribute("data-jen") + " ").indexOf(" " + key + " ") < 0;
+        if (out) { r.setAttribute("data-mimo", ""); } else { r.removeAttribute("data-mimo"); }
+        r.hidden = out;
       });
+      var season = bar.querySelector("input[name=jen]");
+      if (season) { season.value = key; }
+      try { history.replaceState(null, "", a.href); } catch (e) { /* an old browser: the address stays */ }
+      if (search && search.value) { search.dispatchEvent(new Event("input")); } else { count(); }
     });
-    // the tab named in the address, else the one the page asks for (data-vychozi), else the first
-    var wanted = location.hash.slice(1), first = box.dataset.vychozi || tabs[0].getAttribute("href").slice(1);
-    show(wanted && box.querySelector(".tabpanel#" + CSS.escape(wanted)) ? wanted : first);
   });
+  // the menu "Další možnosti" (<details class="ob-vice">): Esc and a click outside close it
+  function closeMenus(except, focus) {
+    Array.prototype.forEach.call(document.querySelectorAll("details.ob-vice[open]"), function (d) {
+      if (d === except) { return; }
+      d.open = false;
+      if (focus) { d.querySelector("summary").focus(); }
+    });
+  }
+  document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { closeMenus(null, true); } });
+  document.addEventListener("click", function (ev) { closeMenus(ev.target.closest && ev.target.closest("details.ob-vice"), false); });
+  // a row of a table with data-href opens its page on a click anywhere outside its own links and buttons
+  document.addEventListener("click", function (ev) {
+    var tr = ev.target.closest && ev.target.closest("tr[data-href]");
+    if (!tr || ev.target.closest("a, button, input, select, label, summary")) { return; }
+    if (window.getSelection && String(window.getSelection())) { return; }  // selecting text, not a click
+    window.location.href = tr.getAttribute("data-href");
+  });
+
+  // Sections that open in place (<details class="ob-oddil">, the race page): a link to an element inside one (#podklady,
+  // #kategorie, #soubor) opens it and its parents first, so the jump lands on something visible. The same for the
+  // address the page opens with, and for "ob-tab-show" (map.js: the map is wanted, e.g. to draw on it).
+  function openTo(id, scroll) {
+    var el = id && document.getElementById(id);
+    if (!el) { return false; }
+    for (var p = el; p; p = p.parentElement) {
+      if (p.tagName === "DETAILS" && !p.open) { p.open = true; }
+    }
+    if (scroll) { el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    return true;
+  }
+  document.addEventListener("click", function (ev) {
+    var a = ev.target.closest && ev.target.closest("a[href^='#']");
+    if (!a || a.getAttribute("href").length < 2) { return; }
+    var id = a.getAttribute("href").slice(1), menu = a.closest("details.ob-vice");
+    if (menu) { menu.open = false; }
+    if (document.getElementById(id) && document.getElementById(id).closest(".ob-oddily, #panel")) {
+      ev.preventDefault();
+      openTo(id, true);
+      try { history.replaceState(null, "", "#" + id); } catch (e) { /* file: or sandboxed */ }
+    }
+  });
+  document.addEventListener("ob-tab-show", function (ev) { openTo(ev.detail, true); });
+  // a click anywhere else closes the menu "Další možnosti"
+  document.addEventListener("click", function (ev) {
+    Array.prototype.forEach.call(document.querySelectorAll("details.ob-vice[open]"), function (m) {
+      if (!m.contains(ev.target)) { m.open = false; }
+    });
+  });
+  if (location.hash.length > 1 && location.hash.indexOf("#usek-") !== 0) {
+    try { openTo(decodeURIComponent(location.hash.slice(1)), false); } catch (e) { /* a malformed address */ }
+  }
 
   // back to the place kept before the page loaded itself again (keepPlace above)
   (function () {
@@ -366,9 +420,11 @@
       sessionStorage.removeItem(PLACE);
     } catch (e) { place = null; }
     if (!place || place.path !== here()) { return; }
-    var named = location.hash.slice(1);
-    if (place.tab && !(named && document.querySelector(".tabpanel#" + CSS.escape(named)))) {
-      document.dispatchEvent(new CustomEvent("ob-tab-show", { detail: place.tab }));
+    // the sections that were open stay open (and the ones closed by hand closed)
+    if (place.open) {
+      Array.prototype.forEach.call(document.querySelectorAll("details.ob-oddil[id]"), function (d) {
+        d.open = place.open.indexOf(d.id) >= 0;
+      });
     }
     function putBack() {
       if (!place || moved) { return; }
@@ -484,6 +540,134 @@
         .catch(function () { /* no watch, no note */ });
     };
     ask();
+  }
+
+  // A list that sends its form when changed (<select data-odeslat>): through requestSubmit, so the script of the form
+  // (a panel of Nahrát loaded in place, below) still gets it.
+  document.addEventListener("change", function (ev) {
+    var el = ev.target;
+    if (!el.matches || !el.matches("select[data-odeslat]") || !el.form) { return; }
+    if (el.form.requestSubmit) { el.form.requestSubmit(); } else { el.form.submit(); }
+  });
+
+  // Garmin Connect on Nahrát (templates/ob/_zdroj_garmin.html): the filter by kind of activity, tick all shown or none,
+  // the count of the ticked ones and the text of the button (with or without the hill model). Called again for a panel
+  // put in place by the script.
+  function garminPanel(root) {
+    var form = root.querySelector("form[data-garmin]");
+    if (!form) { return; }
+    var model = form.querySelector("[data-garmin-model]"), sel = form.querySelector("[data-garmin-druh]");
+    var info = form.querySelector("[data-garmin-pocet]");
+    var rows = Array.prototype.slice.call(form.querySelectorAll("tbody tr[data-druh]"));
+    function label() {
+      Array.prototype.forEach.call(form.querySelectorAll("[data-garmin-odeslat]"), function (b) {
+        b.textContent = model && model.checked ? t("Načíst vybrané a model kopců") : t("Načíst vybrané");
+      });
+    }
+    function count() {
+      if (!info) { return; }
+      var n = rows.filter(function (r) { return r.querySelector("input").checked; }).length;
+      info.textContent = t("Zaškrtnuto") + ": " + n + " / " + rows.length;
+    }
+    if (model) { model.addEventListener("change", label); label(); }
+    if (!sel) { return; }
+    sel.addEventListener("change", function () {
+      rows.forEach(function (r) { r.style.display = !sel.value || r.getAttribute("data-druh") === sel.value ? "" : "none"; });
+    });
+    form.querySelector("[data-garmin-vse]").addEventListener("click", function () {
+      rows.filter(function (r) { return r.style.display !== "none"; })
+        .forEach(function (r) { r.querySelector("input").checked = true; });
+      count();
+    });
+    form.querySelector("[data-garmin-nic]").addEventListener("click", function () {
+      rows.forEach(function (r) { r.querySelector("input").checked = false; });
+      count();
+    });
+    form.addEventListener("change", count);
+    count();
+  }
+  garminPanel(document);
+
+  // Nahrát: the three sources of the run switch in place (no new page). The choice is kept with the account
+  // (POST to data-zdroje), and #zdroj=… picks one too (the old addresses /upload/garmin and /upload/hodinky send
+  // there). The panels of Garmin Connect and of the watch are asked for when first shown (they ask Garmin or the
+  // disk); a period or a folder chosen in them loads the panel again, in place.
+  var zdroje = document.querySelector("[data-zdroje]");
+  if (zdroje && window.fetch) {
+    var buttons = zdroje.querySelectorAll("[data-zdroj]");
+    var loadPanel = function (panel, url) {
+      panel.setAttribute("aria-busy", "true");
+      panel.textContent = t("Načítám…");
+      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.text(); })
+        .then(function (html) {
+          panel.innerHTML = html;
+          panel.setAttribute("data-nacteno", "");
+          panel.removeAttribute("aria-busy");
+          wirePanel(panel, url);
+        })
+        .catch(function () {
+          panel.removeAttribute("aria-busy");
+          panel.textContent = t("Načtení se nepovedlo. Zkus to znovu.");
+        });
+    };
+    var wirePanel = function (panel, url) {
+      garminPanel(panel);
+      Array.prototype.forEach.call(panel.querySelectorAll("form[data-panel-form]"), function (form) {
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var q = new URLSearchParams(new FormData(form));
+          q.delete("zdroj");
+          loadPanel(panel, url.split("?")[0] + "?" + q.toString());
+        });
+      });
+      Array.prototype.forEach.call(panel.querySelectorAll("a[data-panel-odkaz]"), function (a) {
+        a.addEventListener("click", function (ev) { ev.preventDefault(); loadPanel(panel, a.getAttribute("data-panel-odkaz")); });
+      });
+    };
+    var show = function (src, keep) {
+      var found = false;
+      Array.prototype.forEach.call(buttons, function (b) {
+        var on = b.getAttribute("data-zdroj") === src;
+        found = found || on;
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      if (!found) { return; }
+      Array.prototype.forEach.call(document.querySelectorAll("[data-zdroj-panel]"), function (p) {
+        p.hidden = p.getAttribute("data-zdroj-panel") !== src;
+        var b = zdroje.querySelector('[data-zdroj="' + src + '"]');
+        if (!p.hidden && !p.hasAttribute("data-nacteno") && b && b.getAttribute("data-panel")) {
+          loadPanel(p, b.getAttribute("data-panel"));
+        }
+      });
+      if (keep) {
+        fetch(zdroje.getAttribute("data-zdroje"), {
+          method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": window.OBAPP.csrf },
+          body: JSON.stringify({ zdroj: src })
+        }).catch(function () { /* not kept: the page still shows it */ });
+      }
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-zdroj-panel][data-nacteno]"), function (p) {
+      var b = zdroje.querySelector('[data-zdroj="' + p.getAttribute("data-zdroj-panel") + '"]');
+      if (b && b.getAttribute("data-panel")) { wirePanel(p, b.getAttribute("data-panel")); }
+    });
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        show(b.getAttribute("data-zdroj"), true);
+        if (history.replaceState && window.URL) {   // ?zdroj= of the address would win over the switch on a reload
+          var u = new URL(location.href);
+          u.searchParams.delete("zdroj");
+          u.hash = "zdroj=" + b.getAttribute("data-zdroj");
+          history.replaceState(null, "", u.href);
+        }
+      });
+      b.addEventListener("keydown", function (ev) {
+        if (ev.key === " ") { ev.preventDefault(); b.click(); }
+      });
+    });
+    var hash = /^#zdroj=(\w+)$/.exec(location.hash);
+    if (hash) { show(hash[1], false); }
   }
 
   window.addEventListener("error", function (e) { (window.__errors = window.__errors || []).push(String(e.message)); });

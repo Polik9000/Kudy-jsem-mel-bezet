@@ -572,3 +572,54 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | „Teď ne“ a nezaškrtnuté běhy se pamatují v tabulce `watch_seen` (sha1). Stránka hodinek je dál nabízí jako nové. | Jinak by řádek s běhy, které nechci (kolo, posilovna), visel napořád. |
 | MTP se nečte, jen nápověda (`docs/hodinky-mtp.md`). | `pywin32` v sestavení není, PowerShell `CopyHere` je asynchronní a bez hlášení chyb, na Macu to bez další knihovny nejde. Bez testu na skutečných hodinkách to nejde udělat spolehlivě (otázka 63). |
 | Stránka hodinek (`watch.html`) je teď i anglicky. | Texty v ní nebyly obalené `_()`. |
+
+
+## 14. 11. 2026: nový vzhled stránky závodu (prompt 9, maketa `docs/vzhled-navrh/zavod.html`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Stránka závodu nemá záložky. Pořadí: záhlaví s akcemi, pás čísel, mapa (63 %) a tabulka úseků (37 %) vedle sebe, vybraný úsek pod nimi, zbytek v rozbalovacích oddílech `<details class="ob-oddil">` (Úseky podrobně, Jak je rozbor spočítaný, GPS stopa, Mezičasy kategorie, Podklady, Nastavení). | Uživatel se nemusí rozklikávat a mapa s úseky je hned vidět. Oddíly fungují i bez skriptu. |
+| Ostatní akce (odkazy na ORIS, OResults, klub, Livelox, jiná kategorie, poslat závod, spustit analýzu) jsou v menu „Další možnosti“ (`<details>`). „Běžel jsem jinou kategorii“ je v oddílu Nastavení. | Záhlaví má jen tři tlačítka. Menu jde otevřít i bez skriptu. |
+| Odkaz na prvek uvnitř oddílu (`#podklady`, `#kategorie`, `#soubor`) oddíl nejdřív otevře (`ob.js` `openTo`). Po samočinném obnovení stránky zůstanou otevřené tytéž oddíly. | Náhrada za přepínání záložek; přesměrování na `#kategorie` dál funguje. |
+| Pás úseků (čipy ‹ ›) a velká tabulka úseků zůstaly: čipy v liště mapy, velká tabulka v oddílu Úseky podrobně. Malý seznam úseků z pravého panelu zmizel, nahradila ho tabulka vedle mapy. | Nic funkčního se neodebírá. |
+| V tabulce vedle mapy je ztráta šedě do 20 s, oranžově nad 20 s a červeně se štítkem jen u chyby, kterou rozpoznal `oroute/mistakes.py` (`leg.mistake`). Mapa a čipy dál barví podle velikosti ztráty. | Červená jen pro skutečnou chybu, barva nestačí sama, proto štítek. Barvy mapy se v tomhle PR nemění. |
+| Šipky ← → a klávesy vrstev fungují, jen když je mapa aspoň zčásti v okně. | Dřív hlídala otevřená záložka; při čtení oddílů pod mapou by šipky jinak přepínaly úseky místo posunu stránky. |
+| Mapa a tabulka jsou vedle sebe od 960 px, užší okno je dá pod sebe. Písmo tabulky 13 px, štítky a hlavičky 12 px, číslice JetBrains Mono. | Zadání: okno od 960 px, nic pod 12 px. |
+
+
+## 15. 11. 2026: Nahrát běh nebo mapu na jedné stránce (prompt 10, maketa `docs/vzhled-navrh/nahrat.html`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Nahrát má dvě části vedle sebe: 1. Běh z hodinek (tři zdroje: Počítač, Garmin Connect, Hodinky / složka) a 2. Mapa závodu. Pod 1120 px jsou pod sebou. | Všechno k rozboru na jednom místě, jak chce maketa. |
+| Zdroje se přepínají na místě. Panely Garmin Connect a hodinek se načtou, až když je uživatel otevře (`/upload/panel/<zdroj>`); období a složka v nich panel načtou znovu, stránka zůstane. Bez skriptu jdou tytéž formuláře jako obyčejné odkazy (`/upload?zdroj=…`). | Panel Garmin se ptá Garminu a panel hodinek čte disk. Nemá to zdržovat každé otevření stránky. |
+| Poslední zdroj si aplikace pamatuje u účtu (`users.upload_source`), ne v `localStorage`. | Stejný důvod jako u barevného režimu: lokální aplikace startuje na jiném portu. |
+| Staré adresy `/upload/garmin` a `/upload/hodinky` přesměrují na Nahrát s předvoleným zdrojem. Formuláře Garmin a hodinek dál posílají na ně, odpověď vede zpět na Nahrát. Šablony `garmin.html` a `watch.html` nahradily `_zdroj_garmin.html` a `_zdroj_hodinky.html`. | Odkazy z nápovědy, testů a z oznámení o hodinkách fungují dál. Co se se soubory děje, se nemění. |
+| Pole map jsou v `_podklady.html` (makra `mapy()` a `vratit()`), stejná na stránce závodu i na Nahrát: dvě pole KMZ vedle sebe a sbalené „Nemám KMZ z Livelox“ se snímky a fotkou. Sbalené je otevřené, když závod už snímek nebo fotku má. | Žádný zdvojený kód. Formulář „Vrátit původní usazení“ je mimo formulář souborů (dřív byl formulář ve formuláři). |
+| Mapy z Nahrát jdou na `race_files` vybraného závodu s `zpet=nahrat` a vrátí se na Nahrát s tímtéž závodem. Odkaz „Doplnit“ na stránce závodu a stav „chybí“ v přehledu vedou na `/upload?zavod=<id>#mapa-zavodu`. Bez `?zavod` se vybere nejnovější závod, kterému chybí mapa. | Zadání promptu 10. |
+| Stav úloh je pod každou částí (řádek `ob-jobline`): úlohy bez závodu pod během, úlohy vybraného závodu pod mapou. Stránka je sleduje a po dokončení se sama obnoví. Nahrání souborů a Garmin Connect už nepřesměrují na Úlohy. | Stav na místě, ne jinde. |
+| Nápověda pořád mluví o „Nahrát běhy, Načíst přímo z Garmin Connect“. | Texty nápovědy přepíše prompt 12 (dodělání vzhledu a nápovědy). |
+
+## 15. 11. 2026: Přehled závodů s dalším krokem a ORIS číslem na místě (prompt 11, maketa `docs/vzhled-navrh/prehled.html`)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Záhlaví má dvě akce: Načíst z ORIS (bez čísla Přidat závod z ORIS) a hlavní Nahrát běh nebo mapu. Přidat závod z ORIS a ručně, Načíst ze souboru, Garmin Connect a Přepočítat všechno jsou v nabídce Další možnosti ▾ (stejný `<details class="ob-vice">` jako na stránce závodu). | Méně tlačítek, jasná hlavní akce. Nabídka jde bez skriptu. |
+| Pás čísel znovu používá `.ob-cisla` ze stránky závodu (pevná výška). „Běhy ke spárování“ jsou běhy ze dne a místa závodu, které se se závodem nespárovaly (`matching.at_races`), ne všechny tréninky. Odkaz vede na seznam běhů v Nahrát (`#behy`). | Všechny nespárované běhy by u importu z Garmin Connect byly stovky tréninků. |
+| Filtry Vše, Hotovo, Chybí běh, Chybí mapa jsou odkazy s `?jen=`. Stránka má všechny závody sezóny, filtr jen skrývá řádky, takže skript ho přepne bez načtení stránky. Hledání respektuje filtr. Starý `?jen=beh` dál funguje, jen nemá tlačítko. | Funguje i bez JavaScriptu (zadání). |
+| Tabulka: Datum, Závod a místo, Kat., Čas (m:ss, od hodiny h:mm:ss), Běh, Mapa, Další krok. Stavy jsou štítky s textem. Další krok je jeden odkaz: Otevřít rozbor, Doplnit běh (`/upload?zavod=<id>#beh`), Doplnit mapu (`#mapa-zavodu`), Pokračovat s průběhem úlohy, jinak Otevřít závod. Když chybí běh i mapa, nabídne se běh. Klik na řádek otevře závod. Umístění je v řádku pod názvem. | Podle makety. Nahrát má obě části na jedné stránce, na pořadí nezáleží. |
+| První spuštění lokální aplikace už nepřesměruje do Profilu. Na Přehledu je rámeček Jak začít s polem pro registrační číslo (`POST /uvod/oris`) a tlačítkem Přeskočit (`POST /uvod/preskocit`, značka `.uvod-profil` v datové složce). Ověření v ORIS a spuštění načítání je jedna funkce `save_first_regno` pro Přehled i Profil. Číslo jde zadat jednou, další v Profilu. | Zadání promptu 11. Rámeček zůstane, dokud uživatel číslo nezadá nebo nepřeskočí. |
+| Levé menu: Závody, Nahrát, pak Další (Model rychlosti, Úlohy, Profil, Nápověda, O aplikaci). Dole „Data zůstávají v tomto počítači“, přepínač režimu s názvem a jazyk. Přepínač režimu v hlavičce je na širokém displeji schovaný (je v panelu). | Podle makety, jen skutečné odkazy. |
+
+## 15. 11. 2026: Dodělání nového vzhledu (prompt 12)
+
+| Rozhodnutí | Proč |
+|---|---|
+| Prompt 12 je ve stejné větvi a PR jako prompt 11 (#58). | Tobias chce jednu větev se všemi změnami vzhledu 9 až 12, ze které se postaví instalátor. |
+| Tlačítko 34 px, malé 30 px, roh 5 px. Záhlaví tabulek, štítky, menu a popisky nejméně 12 px. | Zadání: jednotné prvky, tabulky a štítky nejméně 12 px. |
+| Kontrast měří `tools/kontrast.py` nad tokeny v `les.css`, hlídá ho `tests/test_kontrast.py`. Tlumený text ve světlém režimu ztmavl na `#55695B` (byl 4,4 : 1). Čísla jsou v `docs/vzhled.md`. | Aby se kontrast nerozbil další změnou barev. |
+| ↑ ↓ v seznamu úseků přejde na předchozí nebo další úsek, Esc a klik mimo zavře nabídku Další možnosti. | Ovládání klávesnicí. |
+| Smazáno CSS, které už žádná stránka nepoužívá (záložky, starý přehled, malá tabulka úseků). `base.css` se nemění, používá ho i klubový web. | Dvě verze téhož nedělají zmatek. |
+| Stránka O aplikaci měla třídu `.ob-zdroje` stejnou jako přepínač zdrojů na Nahrát (prompt 10), rozbila se. Teď `.ob-o-zdroje`. | Chyba nalezená při kontrole. |
+| Soubor závodu (.obzavod), druhy aktivit na Nahrát a jejich hlášky byly jen česky, teď i anglicky. Nápověda mluví o „Nahrát“ a zdrojích Garmin Connect a Hodinky / složka. | Zadání: EN a nápověda podle nového rozvržení. |
+| Okno appky zůstává 960 × 600 s pozadím `#10251E`. Skutečné okno Windows a macOS jsem neviděl, otázka 64 v `docs/co-zbyva.md`. | V cloudu jde jen prohlížeč. |
