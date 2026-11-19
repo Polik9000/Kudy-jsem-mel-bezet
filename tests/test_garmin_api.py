@@ -168,7 +168,7 @@ def test_offer_download_and_pair(local):
     assert job["status"] == "done" and "Staženo z Garmin Connect 2" in job["message"]
     # now they show as already in the app, and are no longer pre-selected
     html = c.get("/upload/garmin?dni=60").get_data(as_text=True)
-    assert html.count(">ano</td>") == 2
+    assert html.count(">ano</span></td>") == 2
     # downloading them again adds nothing
     c.post("/upload/garmin", data=dict(csrf_token=csrf(c, "/upload"), akce="nacist", aktivita=["111"]))
     run_once(local.config["OB"])
@@ -228,7 +228,7 @@ def test_page_in_english(local):
     c.get("/")
     html = c.get("/upload/garmin?lang=en").get_data(as_text=True)
     assert "Personal API key" in html and "Connect Garmin account" in html
-    page = html[html.index("Runs from Garmin Connect</h2>"):html.index("<script")]
+    page = html[html.index("Runs from Garmin Connect</h1>"):html.index("<script")]
     assert not re.search("[ěščřžťďňůĚŠČŘŽŤĎŇŮ]", re.sub(r"<[^>]+>", " ", page))
 
 

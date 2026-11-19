@@ -1,18 +1,46 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Můj model rychlosti') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('graf', 'ikona-nadpis') }}{{ _('Profil rychlostního modelu') }}</h2>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Osobní model') }}</p>
+    <h1>{{ _('Profil rychlostního modelu') }}</h1>
+    <p class="sub">{% if model %}{% trans %}Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech. Nový závod
+      nebo poznámka ho změní; postupy ostatních závodů se přepočítají tlačítkem Přepočítat všechno.{% endtrans %}{% else %}{{ _('Jak rychle běháš v terénu a do kopce, spočítané z tvých závodů.') }}{% endif %}</p>
+  </div>
+  {% if model %}
+  <div class="page-actions">
+    <form method="post" action="{{ url_for('ob.model_refit') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn">{{ ikona('obnovit') }}{{ _('Přepočítat teď') }}</button>
+    </form>
+    {% include "ob/_recompute.html" %}
+  </div>
+  {% endif %}
+</header>
 {% if not model %}
-<div class="prazdno empty">{{ ikona('graf', 'ikona-velka') }}{% trans %}Model se spočítá sám po první analýze závodu, ke kterému je
-  mapa s tratí, mapa bez tratě a běh z hodinek.{% endtrans %}</div>
+<div class="prazdno">{{ ikona('graf', 'ikona-velka') }}<b>{% trans %}Model se spočítá sám po první analýze závodu, ke kterému je
+  mapa s tratí, mapa bez tratě a běh z hodinek.{% endtrans %}</b>
+  <p>{{ _('Do té doby se nejlepší postupy počítají s výchozími rychlostmi podle mapového klíče ISOM.') }}</p>
+  <div class="prazdno-akce"><a class="btn btn-maly" href="{{ url_for('ob.races') }}">{{ _('Přehled závodů') }}</a></div></div>
 {% else %}
-<p class="evhead">{% trans %}Podle něj se počítají nejlepší postupy. Model se učí z tvých stop ve všech závodech. Nový závod
-  nebo poznámka ho změní; postupy ostatních závodů se přepočítají tlačítkem Přepočítat všechno.{% endtrans %}</p>
-<div class="ob-karty3">
-  <div class="karta"><b>{{ _('Terén') }}</b><span>{{ personal.races | length }} {{ plural(personal.races | length, _('závod'), _('závody'), _('závodů')) }}</span></div>
-  <div class="karta"><b>{{ _('Kopce') }}</b><span>{% if slope_own %}{% trans n=slope.activities %}{{ n }} běhů z Garminu{% endtrans %}{% else %}{% trans %}výchozí tvar (bez exportu z Garminu){% endtrans %}{% endif %}</span></div>
-  <div class="karta"><b>{{ _('Vliv stoupání') }}</b><span>{% trans k=num(model.up_k, 1) %}1 m nahoru = <b class="ob-cislo">{{ k }}</b> m po rovině{% endtrans %}</span></div>
+<div class="statrow">
+  <div class="stat"><span class="stat-popis">{{ _('Terén') }}</span><b class="stat-hodnota">{{ personal.races | length }}</b>
+    <small>{{ plural(personal.races | length, _('závod'), _('závody'), _('závodů')) }} {{ _('s čistými úseky') }}</small></div>
+  <div class="stat"><span class="stat-popis">{{ _('Rovná cesta') }}</span><b class="stat-hodnota">{{ num(model.v_flat * 3.6, 1) }}</b>
+    <small>km/h · {{ (1000 / model.v_flat) | mmss }} min/km</small></div>
+  <div class="stat"><span class="stat-popis">{{ _('Vliv stoupání') }}</span><b class="stat-hodnota">{{ num(model.up_k, 1) }}</b>
+    <small>{% trans k=num(model.up_k, 1) %}1 m nahoru = {{ k }} m po rovině{% endtrans %}</small></div>
+  <div class="stat"><span class="stat-popis">{{ _('Kopce') }}</span><b class="stat-hodnota">{{ slope.activities if slope_own else '—' }}</b>
+    <small>{% if slope_own %}{{ _('běhů z Garminu') }}{% else %}{% trans %}výchozí tvar (bez exportu z Garminu){% endtrans %}{% endif %}</small></div>
 </div>
+<details class="vysvetlivka">
+  <summary>{{ _('Co je osobní model rychlosti a jak se počítá') }}</summary>
+  <p>{% trans %}Model říká, jak rychle běháš po rovině v jednotlivých terénech (cesta, louka, les, podrost, zelená) a jak tě zpomalí
+    stoupání. Učí se jen z čistých úseků tvých závodů (bez chyb a záměrných zastávek); novější závody mají vyšší váhu.
+    Terén, kde máš málo dat, se drží výchozí hodnoty podle mapového klíče ISOM; nejistota u každého terénu říká, jak moc
+    se dá číslu věřit. Z modelu se počítají nejlepší postupy a odhad ztráty; není to měření.{% endtrans %}</p>
+</details>
 <div class="karta ob-pruhy-karta">
   <h3>{{ _('Moje rychlost po rovině (km/h)') }}</h3>
   {% set vmax = (terrain | map(attribute='kmh') | max) or 1 %}
@@ -36,11 +64,6 @@
       (poločas {{ days }} dní){% endtrans %}</dd>
     <dt>{{ _('Spočítáno') }}</dt><dd>{{ fitted_at | kdy }}</dd>
   </dl>
-  <form method="post" action="{{ url_for('ob.model_refit') }}" class="controls ob-odkazy">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn">{{ _('Přepočítat teď') }}</button>
-  </form>
-  {% include "ob/_recompute.html" %}
 </div>
 
 <h2>{{ _('Proti průměrnému běžci') }}</h2>

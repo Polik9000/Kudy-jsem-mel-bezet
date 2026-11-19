@@ -94,10 +94,20 @@ def create_app(instance=None):
         """An application icon from the inline SVG sprite (the <svg> with the symbols is at the top of every page)."""
         return Markup('<svg class="ikona %s" aria-hidden="true"><use href="#i-%s"></use></svg>') % (cls, name)
 
+    from .i18n import N_
+
+    sports = {"running": N_("běh"), "walking": N_("chůze"), "hiking": N_("turistika"), "cycling": N_("kolo"),
+              "training": N_("trénink"), "generic": N_("jiná aktivita"), "trail_running": N_("běh v terénu")}
+
+    def sport_name(sport):
+        """The kind of a Garmin activity in the language of the page (the code itself when it is not known)."""
+        from .i18n import _
+        return _(sports[sport]) if sport in sports else (sport or "")
+
     @app.context_processor
     def _layout():
         return dict(sprite=sprite, ikona=ikona, club=club, app_version=VERSION, dem_sources=conf.dem_sources,
-                    local_app=conf.local, data_dir=conf.instance)
+                    local_app=conf.local, data_dir=conf.instance, sport_name=sport_name)
 
     @app.url_defaults
     def _static_version(endpoint, values):

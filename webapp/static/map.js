@@ -119,6 +119,7 @@
       groups[k] = L.layerGroup().addTo(map);
     });
     draw();
+    available();
     trimPreview();
     table();
     strip();
@@ -224,6 +225,29 @@
 
   // --- modes of the map click: refreshment point, forbidden line ---
   // The buttons that start them are on the settings tab; the map and the bar that says what to do are here.
+  // A layer switch only where this analysis has something to draw (the alternatives, the average runner, the
+  // catching features and the obstacles read from the map are not in every one); the panel says which are missing.
+  function available() {
+    var legs = D.legs || [], none = [];
+    var has = {
+      "l-alts": legs.some(function (l) { return l.alts && l.alts.length; }),
+      "l-prumer": legs.some(function (l) { return l.generic && l.generic.route; }),
+      "l-zachyt": legs.some(function (l) { return l.relocate; }),
+      "l-prekazky": (D.obstacles || []).length > 0
+    };
+    Object.keys(has).forEach(function (id) {
+      var label = $(id);
+      if (!label) { return; }
+      label.hidden = !has[id];
+      if (!has[id]) { none.push(label.querySelector("span").textContent); }
+    });
+    var note = $("vrstvy-bez-dat");
+    if (note) {
+      note.hidden = !none.length;
+      note.textContent = none.length ? T("Bez dat v tomhle rozboru: %(what)s.", { what: none.join(", ") }) : "";
+    }
+  }
+
   function toggleMode(m) {
     if (drawing) { stopDrawing(); }
     mode = mode === m ? null : m;
@@ -436,10 +460,14 @@
     });
     catching(leg);
     Array.prototype.forEach.call(document.querySelectorAll("#legs tr[data-n]"), function (tr) {
-      tr.classList.toggle("sel", Number(tr.dataset.n) === selected);
+      var on = Number(tr.dataset.n) === selected;
+      tr.classList.toggle("sel", on);
+      if (on) { tr.setAttribute("aria-selected", "true"); } else { tr.removeAttribute("aria-selected"); }
     });
     Array.prototype.forEach.call(document.querySelectorAll(".ob-sl, .ob-mini-r"), function (b) {
-      b.classList.toggle("sel", Number(b.dataset.n) === selected);
+      var on = Number(b.dataset.n) === selected;
+      b.classList.toggle("sel", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
     });
     var box = $("pas-useky");
     Array.prototype.forEach.call(box.querySelectorAll("button"), function (b) {
@@ -588,7 +616,7 @@
     D.legs.forEach(function (l) {
       var m = marks(l), text = (l.explain || "") + (l.mistake ? " " + l.mistake.text : ""), cut = text.indexOf(". ");
       var first = cut < 0 ? text : text.slice(0, cut + 1);
-      h += "<tr data-n='" + l.n + "'" + (selected === l.n ? " class='sel'" : "") + ">" +  // kept up to date by mark()
+      h += "<tr data-n='" + l.n + "' tabindex='0'" + (selected === l.n ? " class='sel' aria-selected='true'" : "") + ">" +  // kept up to date by mark()
         "<td><i class='sw z" + grade(l.loss) + "'></i> " + esc(l.name) + "</td>" +
         "<td class='num'>" + mmss(l.time) + "</td>" + (off ? "<td class='num'>" + mmss(l.official) + "</td>" : "") +
         (R ? "<td class='num'>" + mmss(l.best ? l.best.time : null) + "</td><td class='num'><b>" + lossCell(l) +
@@ -606,15 +634,19 @@
     $("legs").innerHTML = h + "</tbody>";
     Array.prototype.forEach.call($("legs").querySelectorAll("tr[data-n]"), function (tr) {
       tr.addEventListener("click", function () { select(Number(tr.dataset.n), true); });
+      // from the keyboard too: Tab to the row, Enter or Space selects the leg in the map, the chart and the panel
+      tr.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(Number(tr.dataset.n), true); }
+      });
     });
   }
 
   // --- overview of the whole race (right column) and the bar chart of the losses ---
   function lossOf(l) { return D.has_routes ? l.loss_total : l.est_loss; }
   function metrics(box, actual, model, loss) {
-    box.innerHTML = "<div><span>" + T("Skutečně") + "</span><b class='ob-cislo'>" + (actual === null ? "–" : mmss(actual)) + "</b></div>" +
-      "<div class='ob-model'><span>" + T("Model") + "</span><b class='ob-cislo'>" + (model === null ? "–" : mmss(model)) + "</b></div>" +
-      "<div class='ob-zt'><span>" + T("Ztráta") + "</span><b class='ob-cislo'>" + (loss === null ? "–" : mmss(loss, true)) + "</b></div>";
+    box.innerHTML = "<div title='" + T("změřeno: tvůj čas podle GPS stopy a mezičasů") + "'><span>" + T("Tvůj čas") + "</span><b class='ob-cislo'>" + (actual === null ? "–" : mmss(actual)) + "</b></div>" +
+      "<div class='ob-model' title='" + T("vypočteno: nejlepší postup podle tvého modelu rychlosti, ideál bez zaváhání") + "'><span>" + T("Model") + "</span><b class='ob-cislo'>" + (model === null ? "–" : mmss(model)) + "</b></div>" +
+      "<div class='ob-zt' title='" + T("odhad: rozdíl proti modelu, ne změřená chyba") + "'><span>" + T("Odhad ztráty") + "</span><b class='ob-cislo'>" + (loss === null ? "–" : mmss(loss, true)) + "</b></div>";
   }
   function overview() {
     var t = D.totals, sum = t.route + t.mistake + t.fatigue;

@@ -5,10 +5,18 @@
 <link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
 {% endif %}
 {% endblock %}
+{% set aktivni = 'races' %}
+{% block crumbs %}<span class="crumb-sep" aria-hidden="true">/</span><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a><span class="crumb-sep" aria-hidden="true">/</span><strong>{{ _('Ztratil jsem se') }}</strong>{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Ztratil jsem se u kontroly') }}</h2>
-<p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a> · {{ e.date | datum }}
-  · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %} · <a href="{{ url_for('ob.help_page') }}#ztraceny">{{ _('jak to funguje') }}</a></p>
+<a class="zpet-odkaz" href="{{ url_for('ob.race', entry_id=e.id) }}">{{ ikona('zpet') }}{{ _('Zpět na rozbor závodu') }}</a>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Rozbor závodu') }}</p>
+    <h1>{{ _('Ztratil jsem se u kontroly') }}</h1>
+    <p class="sub">{{ e.event_name }} · {{ e.date | datum }}
+      · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %} · <a href="{{ url_for('ob.help_page') }}#ztraceny">{{ _('jak to funguje') }}</a></p>
+  </div>
+</header>
 
 {% if state == 'too_early' %}
 <div class="karta">

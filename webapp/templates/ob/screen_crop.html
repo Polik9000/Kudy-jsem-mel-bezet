@@ -3,10 +3,17 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
 {% endblock %}
+{% set aktivni = 'races' %}
+{% block crumbs %}<span class="crumb-sep" aria-hidden="true">/</span><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a><span class="crumb-sep" aria-hidden="true">/</span><strong>{{ _('Oříznout snímek') }}</strong>{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Oříznout snímek z Livelox') }}</h2>
-<p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ e.event_name }}</a> · {{ e.date | datum }}
-  · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</p>
+<a class="zpet-odkaz" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ ikona('zpet') }}{{ _('Zpět na podklady závodu') }}</a>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Ruční oprava mapy') }}</p>
+    <h1>{{ _('Oříznout snímek z Livelox') }}</h1>
+    <p class="sub">{{ e.event_name }} · {{ e.date | datum }} · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</p>
+  </div>
+</header>
 {% if not reliable and not by_hand %}
 <div class="stalewarn">{% trans %}Kde na snímku končí mapa a začíná stránka Livelox, aplikace nepoznala jistě. Zkontroluj obdélník.{% endtrans %}</div>
 {% endif %}

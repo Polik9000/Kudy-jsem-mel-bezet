@@ -302,9 +302,9 @@ def race_file_load():
         f = request.files.get("soubor")
         data = f.read(MAX_RACE_FILE + 1) if f and f.filename else b""
         if not data:
-            flash("Vyber soubor se závodem (.obzavod).", "error")
+            flash(_("Vyber soubor se závodem (.obzavod)."), "error")
         elif len(data) > MAX_RACE_FILE:
-            flash("Soubor je na uložený závod příliš velký.", "error")
+            flash(_("Soubor je na uložený závod příliš velký."), "error")
         else:
             try:
                 entry_id, msg = race_file.load(get_db(), cfg(), g.user, data)

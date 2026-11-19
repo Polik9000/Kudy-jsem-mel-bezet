@@ -1,17 +1,19 @@
 {% extends "ob/base.html" %}
-{% block title %}Načíst závod ze souboru{% endblock %}
+{% block title %}{{ _('Načíst závod ze souboru') }}{% endblock %}
+{% set aktivni = 'races' %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('archiv', 'ikona-nadpis') }}Načíst závod ze souboru</h2>
-<p class="evhead">Závod, který ti poslal jiný běžec z téhle aplikace (soubor <b>.obzavod</b>). Přidá se k tvým závodům
-  i s mapami, tratí a oficiálními časy. Pak k němu nahraj svůj běh z hodinek a rozbor se spočítá podle tebe.</p>
-<form method="post" enctype="multipart/form-data" class="karta ob-form" data-nahravani>
+{% with nadpis=_('Načíst závod ze souboru'), cesta='soubor', podnadpis=None %}{% include "ob/_race_add_head.html" %}{% endwith %}
+<p class="evhead">{% trans %}Závod, který ti poslal jiný běžec z téhle aplikace (soubor <b>.obzavod</b>). Přidá se k tvým závodům
+  i s mapami, tratí a oficiálními časy. Pak k němu nahraj svůj běh z hodinek a rozbor se spočítá podle tebe.{% endtrans %}</p>
+<form method="post" enctype="multipart/form-data" class="karta ob-form" data-nahravani data-pretahni>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label class="ob-pole">Soubor se závodem (.obzavod) <input type="file" name="soubor" accept=".obzavod,.zip" required></label>
-  <p class="hint">Co už v aplikaci máš, zůstane, jak je; doplní se jen to, co chybí. Mapa patří pořadateli a mapaři:
-    sdílej ji jen s ostatními účastníky závodu.</p>
-  <div class="controls">
-    <button type="submit" class="btn btn-hlavni">Načíst závod</button>
-    <span class="hint ob-nahravani-stav" role="status"></span>
+  <label class="ob-pole ob-drop">{{ _('Soubor se závodem (.obzavod)') }} <input type="file" name="soubor" accept=".obzavod,.zip" required></label>
+  <p class="hint">{% trans %}Co už v aplikaci máš, zůstane, jak je; doplní se jen to, co chybí (mapy, trať, oficiální časy,
+    občerstvení a zakázané čáry).{% endtrans %}</p>
+  <p class="nota">{% trans %}Mapa patří pořadateli a mapaři: sdílej ji jen s ostatními účastníky závodu.{% endtrans %}</p>
+  <div class="akce-rada">
+    <button type="submit" class="btn btn-hlavni">{{ ikona('soubor') }}{{ _('Načíst závod') }}</button>
+    <span class="hint ob-nahravani-stav" role="status" aria-live="polite" style="margin:0"></span>
   </div>
 </form>
 {% endblock %}

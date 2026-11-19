@@ -367,11 +367,11 @@ def test_hatched_areas_are_kept_per_class_and_switched_per_event(app, client, us
 
 
 def test_only_lesni_klid_theme_is_loaded(client):
-    """The app has one supported appearance; its own base and app styles load before Lesní klid."""
+    """The app has one supported appearance ("Kartografie" in les.css); its own base and app styles load before it."""
     html = client.get("/login").get_data(as_text=True)
     assert html.index("/base.css") < html.index("/ob.css") < html.index("/les.css")
     assert "/kudy.css" not in html and "/skob.css" not in html
-    assert 'content="#10251E"' in html and "Kudy jsem měl běžet" in html
+    assert 'content="#172B25"' in html and "Kudy jsem měl běžet" in html
     assert client.get("/ob-static/les.css").status_code == 200
     for name in ("manrope-latin-wght-normal.woff2", "jetbrains-mono-latin-ext-wght-normal.woff2", "OFL-Manrope.txt"):
         assert client.get("/ob-static/fonts/" + name).status_code == 200, name

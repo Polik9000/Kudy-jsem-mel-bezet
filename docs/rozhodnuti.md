@@ -572,3 +572,16 @@ Livelox API klíč ani import IOF XML, Strava, výška porostu z LiDARu (zadán�
 | „Teď ne“ a nezaškrtnuté běhy se pamatují v tabulce `watch_seen` (sha1). Stránka hodinek je dál nabízí jako nové. | Jinak by řádek s běhy, které nechci (kolo, posilovna), visel napořád. |
 | MTP se nečte, jen nápověda (`docs/hodinky-mtp.md`). | `pywin32` v sestavení není, PowerShell `CopyHere` je asynchronní a bez hlášení chyb, na Macu to bez další knihovny nejde. Bez testu na skutečných hodinkách to nejde udělat spolehlivě (otázka 63). |
 | Stránka hodinek (`watch.html`) je teď i anglicky. | Texty v ní nebyly obalené `_()`. |
+
+
+## 19. 11. 2026: redesign „Kartografie“
+
+| Rozhodnutí | Proč |
+|---|---|
+| Nový vzhled je jen v šablonách, `les.css`, `ob.js` a pár řádcích `map.js`; výpočty, routy, názvy polí a datové služby se nemění. | Zadání: nový design nad stejnou funkční aplikací pro lokální i serverovou instalaci. |
+| Světlý „mapový papír“ je výchozí, tmavý podle zařízení nebo volby. | Prototyp je světlý; tmavý režim zůstává pro večer a pro ty, kdo ho mají v systému. |
+| Detail závodu má nahoře seznam podkladů (běh, mapa s tratí, mapa bez tratě, mezičasy) a další krok. Obojí se počítá ze stejných dat jako stav závodu; uložený, ale nezpracovaný soubor je „čeká“, ne „hotovo“. | Běžec má hned vidět, co chybí a co udělat; nesmí se plést přijetí souboru s hotovým rozborem. |
+| Podklady: místo šesti polí najednou volba podoby mapy (KMZ, dva snímky, fotka); pole leží v sekcích a k formuláři patří atributem `form=`. Přepnutí volby nic nemaže; vybrané a neodeslané soubory jiné varianty se zruší jen po potvrzení. | Méně zahlcení, žádné náhodné odeslání starého výběru. Backend dál přijímá kterékoli pole a kdykoli. |
+| Hledání v tabulkách nerozlišuje velikost písmen ani diakritiku (NFD bez kombinujících znamének), každé slovo dotazu musí v řádku být. | „pribram“ má najít „Příbram“. Mimo `ob.js` žádné textové hledání není. |
+| Vrstvy mapy bez dat se skryjí a panel řekne, které chybí. | Přepínač, který nic nevykreslí, mate. |
+| Riziková akce (smazání běhu, čáry, dat, odpojení Garminu, změna výchozího nastavení závodu, vrácení GPS stopy nebo posunu mapy, změna kategorie, zastavení všech úloh) se ptá `confirm()`; běžné vratné akce ne. | Zadání (UX bod 21). |

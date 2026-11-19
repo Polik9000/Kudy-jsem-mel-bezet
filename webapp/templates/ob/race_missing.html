@@ -1,8 +1,13 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Závod') }} {{ oris_id }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ ev.name if ev else _('Závod ORIS') ~ ' ' ~ oris_id }}</h2>
-<p class="evhead">{% if ev %}{{ ev.date | datum }}{% if ev.place %} · {{ ev.place }}{% endif %}{% endif %}</p>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Závod z ORIS') }}</p>
+    <h1>{{ ev.name if ev else _('Závod ORIS') ~ ' ' ~ oris_id }}</h1>
+    <p class="sub">{% if ev %}{{ ev.date | datum }}{% if ev.place %} · {{ ev.place }}{% endif %}{% endif %}</p>
+  </div>
+</header>
 <div class="karta">
   <p>{% trans %}Tenhle závod v seznamu svých závodů nemáš, takže k němu zatím není žádný rozbor.{% endtrans %}</p>
   <p class="hint">{% trans %}Rozbor vznikne, když jsi závod běžel a je v ORIS pod tvým registračním číslem. Potom stačí nahrát běh

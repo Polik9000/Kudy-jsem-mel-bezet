@@ -1,16 +1,27 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Načíst z hodinek') }}{% endblock %}
+{% set aktivni = 'upload' %}
+{% block crumbs %}<span class="crumb-sep" aria-hidden="true">/</span><a href="{{ url_for('ob.upload') }}">{{ _('Nahrát běhy') }}</a><span class="crumb-sep" aria-hidden="true">/</span><strong>{{ _('Načíst z hodinek') }}</strong>{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Načíst z hodinek') }}</h2>
-<p class="evhead">{% trans %}Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty,
-  které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.{% endtrans %}</p>
-<form method="get" class="karta ob-form">
+<a class="zpet-odkaz" href="{{ url_for('ob.upload') }}">{{ ikona('zpet') }}{{ _('Zpět na Nahrát běhy') }}</a>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Import aktivit') }}</p>
+    <h1>{{ _('Načíst z hodinek') }}</h1>
+    <p class="sub">{% trans %}Připoj hodinky Garmin kabelem. Když se ukážou jako disk, běhy v nich najdu sám. Nabídnu jen ty,
+      které v aplikaci ještě nejsou. Nic se na hodinkách nemění ani nemaže.{% endtrans %}</p>
+  </div>
+</header>
+<form method="get" class="karta" style="max-width:56rem">
+  <h2 class="sectiontitle">{{ _('Zdroj') }}</h2>
   {% if found %}
-  <p>{{ _('Nalezené hodinky:') }}
-    {% for f in found %}<a class="btn btn-maly" href="{{ url_for('ob.watch_page', slozka=f) }}">{{ f }}</a> {% endfor %}</p>
+  <p>{{ _('Nalezené hodinky:') }}</p>
+  <div class="akce-rada" style="margin:0 0 14px">
+    {% for f in found %}<a class="btn{{ ' btn-hlavni' if f == folder }}" href="{{ url_for('ob.watch_page', slozka=f) }}">{{ ikona('hodinky') }}<span class="kod-cesta">{{ f }}</span></a>{% endfor %}</div>
   {% else %}
-  <p class="hint">{% trans %}Žádné hodinky jako disk nevidím. Buď ještě nejsou připojené, nebo jsou v režimu MTP: ten appka
+  <p><span class="stav ob-off">{{ _('Žádné hodinky') }}</span> {% trans %}Žádné hodinky jako disk nevidím. Buď ještě nejsou připojené, nebo jsou v režimu MTP: ten appka
     neumí.{% endtrans %}</p>
+  <details class="vysvetlivka"><summary>{{ _('Hodinky se neukázaly? Režim MTP a jak dál') }}</summary>
   <ul class="hint" id="mtp">
     <li>{% trans %}<b>Přepni hodinky na režim Garmin</b> (disk), pokud ho mají. Fēnix 5X Plus a podobné: na hodinkách
       Nastavení → Systém → Režim USB → Garmin (anglicky Settings → System → USB Mode → Garmin). Pak kabel odpoj a znovu
@@ -22,11 +33,15 @@
     <li>{% trans %}Programy Garmin Express a Android File Transfer si hodinky po připojení zaberou. Zavři je, ať se hodinky
       ukážou jako disk.{% endtrans %}</li>
   </ul>
+  </details>
   <p class="hint">{% trans garmin=url_for('ob.garmin_page'), help=url_for('ob.help_page') %}Jinak: <a href="{{ garmin }}">Načíst
     přímo z Garmin Connect</a>, nebo běhy exportuj a nahraj (<a href="{{ help }}#garmin">Jak na to</a>).{% endtrans %}</p>
   {% endif %}
+  <div class="ob-form">
   <label>{{ _('Nebo složka se soubory .fit') }}
-    <input name="slozka" value="{{ folder }}" placeholder="{{ sample }}" autocomplete="off"></label>
+    <input name="slozka" value="{{ folder }}" placeholder="{{ sample }}" autocomplete="off">
+    <span class="pole-napoveda">{{ _('Celá cesta ke složce, třeba zkopírovaná složka GARMIN\\Activity z hodinek.') }}</span></label>
+  </div>
   <button type="submit" class="btn">{{ _('Zobrazit běhy') }}</button>
 </form>
 {% if rows is not none %}
@@ -36,13 +51,13 @@
   <input type="hidden" name="slozka" value="{{ folder }}">
   <p>{% trans base=base, n=rows | length, new=rows | selectattr('new') | list | length %}Ve složce <code>{{ base }}</code> je běhů: {{ n }}, nových {{ new }}.{% endtrans %}</p>
   <div class="tablewrap"><table>
-    <thead><tr><th></th><th>{{ _('Start') }}</th><th>{{ _('Sport') }}</th><th class="num">{{ _('Čas') }}</th><th class="num">km</th><th>GPS</th><th></th></tr></thead>
+    <thead><tr><th><span class="sr-only">{{ _('Vybrat') }}</span></th><th>{{ _('Start') }}</th><th>{{ _('Sport') }}</th><th class="num">{{ _('Čas') }}</th><th class="num">km</th><th>GPS</th><th>{{ _('Stav') }}</th></tr></thead>
     <tbody>
     {% for r in rows %}
     <tr><td>{% if r.new %}<input type="checkbox" name="soubor" value="{{ r.name }}" checked aria-label="{{ _('Načíst %(name)s', name=r.name) }}">{% endif %}</td>
-      <td>{{ r.start.strftime('%-d. %-m. %Y %H:%M') }}</td><td>{{ r.sport }}</td>
+      <td>{{ r.start.date().isoformat() | datum }} {{ r.start.strftime('%H:%M') }}</td><td>{{ sport_name(r.sport) }}</td>
       <td class="num">{{ r.timer_s | mmss }}</td><td class="num">{{ '%.2f' | format((r.dist_m or 0) / 1000) }}</td>
-      <td>{{ _('ano') if r.has_gps else _('ne') }}</td><td>{% if not r.new %}<span class="hint">{{ _('už v aplikaci') }}</span>{% endif %}</td></tr>
+      <td>{{ _('ano') if r.has_gps else _('ne') }}</td><td>{% if not r.new %}<span class="stav ob-ok">{{ _('už v aplikaci') }}</span>{% else %}<span class="stav ob-warn">{{ _('nový') }}</span>{% endif %}</td></tr>
     {% endfor %}
     </tbody>
   </table></div>
@@ -50,7 +65,8 @@
   <button type="submit" class="btn btn-hlavni">{{ _('Načíst vybrané') }}</button>
 </form>
 {% elif folder %}
-<p class="prazdno empty">{{ _('Ve složce nejsou žádné běhy (.fit se záznamem aktivity).') }}</p>
+<div class="prazdno"><b>{{ _('Ve složce nejsou žádné běhy (.fit se záznamem aktivity).') }}</b>
+  <p>{{ _('Zkontroluj, že je to složka Activity z hodinek, nebo zkus jinou.') }}</p></div>
 {% endif %}
 {% endif %}
 {% endblock %}
