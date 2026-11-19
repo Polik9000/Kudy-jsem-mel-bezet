@@ -1,5 +1,6 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ e.event_name }}{% endblock %}
+{% block crumbs %}<span class="crumb-sep" aria-hidden="true">/</span><a href="{{ url_for('ob.races') }}">{{ _('Závody') }}</a><span class="crumb-sep" aria-hidden="true">/</span><strong>{{ e.event_name }}</strong>{% endblock %}
 {# while a job of the race waits or runs the page follows it and loads itself again when the analysis changes #}
 {% block body_attrs %} data-zavod="{{ e.id }}" data-analyza="{{ stamp }}"{% if progress %} data-obnovit{% endif %}{% endblock %}
 {% block head %}
@@ -8,53 +9,146 @@
 {% endif %}
 {% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ e.event_name }} <span class="stav {{ status[1] }}">{{ status[0] }}</span></h2>
-<p class="evhead">{{ e.date | datum }}{% if e.place %} · {{ e.place }}{% endif %}{% if e.discipline %} · {{ e.discipline }}{% endif %}
-  {%- if e.stage_n %} · {% trans n=e.stage_n, of=e.stage_count %}etapa {{ n }} / {{ of }}{% endtrans %}{% endif %} · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}
-  {%- if e.distance_km %} · {{ e.distance_km }} km{% endif %}{% if e.climb_m %}, {% trans m=e.climb_m | int %}{{ m }} m stoupání{% endtrans %}{% endif %}
-  {%- if e.controls %}, {% trans n=e.controls %}{{ n }} kontrol{% endtrans %}{% endif %}
-  {%- if e.official_time_s %} · {{ _('oficiální čas') }} <b>{{ e.official_time_s | mmss }}</b>{% endif %}
-  {%- if e.result_place %} ({% trans place=e.result_place %}{{ place }}. místo{% endtrans %}){% endif %}</p>
-<div class="controls zavododkazy">
-  <a class="btn btn-maly" href="{{ url_for('ob.races') }}">← {{ _('moje závody') }}</a>
-  {% if lost_early %}<span class="hint">{{ _('Rozbor „Ztratil jsem se u kontroly“ bude po závodě.') }}</span>
-  {% elif e.maponly_file and e.course_file %}<a class="btn btn-maly" href="{{ url_for('ob.lost_page', entry_id=e.id) }}">{{ _('Ztratil jsem se u kontroly') }}</a>{% endif %}
-  {% if oris_url %}
-  <a class="btn btn-zdroj zdroj-prostor" href="{{ oris_url }}" rel="noopener">{{ ikona('prostor') }}{{ _('Závod v ORIS') }} ↗</a>
-  <a class="btn btn-zdroj zdroj-cil" href="{{ oris_results }}" rel="noopener">{{ ikona('cil') }}{{ _('Výsledky (ORIS)') }} ↗</a>
-  {% endif %}
-  {% if oresults %}<a class="btn btn-zdroj zdroj-cil" href="{{ oresults }}" rel="noopener">{{ ikona('cil') }}{{ _('Výsledky (OResults)') }} ↗</a>{% endif %}
-  {% if club_url %}<a class="btn btn-zdroj zdroj-start" href="{{ club_url }}">{{ ikona('start') }}{{ _('Klubový web') }} ↗</a>{% endif %}
-  {% if livelox %}<a class="btn btn-zdroj zdroj-prostor" href="{{ livelox }}" target="_blank" rel="noopener">{{ ikona('mapy') }}Livelox ↗</a>{% endif %}
-</div>
-{% if e.event_oris_id %}
-{# the class the runner really ran (services/oris_class.py) #}
-<details class="ob-kategorie" id="kategorie">
-  <summary>{{ _('Běžel jsem jinou kategorii') }}</summary>
-  <form method="post" action="{{ url_for('ob.race_class', entry_id=e.id) }}" class="controls">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {% if classes | length > 1 %}
-    <label class="ob-pole">{{ _('Kategorie') }}
-      <select name="class_id">{% for c in classes %}<option value="{{ c.id }}"{% if c.id == e.class_id %} selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></label>
-    <button type="submit" class="btn btn-maly">{{ _('Změnit kategorii') }}</button>
-    {% else %}
-    <button type="submit" class="btn btn-maly">{{ _('Načíst kategorie závodu z ORIS') }}</button>
-    {% endif %}
-  </form>
-  <p class="hint">{% trans %}Oficiální čas a mezičasy se vezmou z výsledků zvolené kategorie (z ORIS jednou) a rozbor se spočítá
-    znovu s její tratí. Rozbor a poznámky k úsekům dosavadní kategorie se smažou, trať je jiná.{% endtrans %}
-    {%- if e.class_chosen %} {{ _('Kategorii jsi vybral sám; synchronizace s ORIS ji nezmění.') }}{% endif %}</p>
-</details>
+{% set src_names = {'kmz': _('KMZ z Livelox'), 'image': _('obrázek mapy'), 'photo': _('fotka papírové mapy'), 'manual': _('fotka usazená ručně'), 'screen': _('snímek z Livelox')} %}
+{% set my_splits = e.splits and e.splits != '[]' and e.splits != 'null' %}
+<a class="zpet-odkaz" href="{{ url_for('ob.races') }}">{{ ikona('zpet') }}{{ _('Zpět na závody') }}</a>
+<header class="pagehead zavod-hlava">
+  <div>
+    <p class="eyebrow">{{ _('Rozbor závodu') }} · {{ 'ORIS' if e.event_oris_id else _('mimo ORIS') }}{% if e.stage_n %} · {% trans n=e.stage_n, of=e.stage_count %}etapa {{ n }} / {{ of }}{% endtrans %}{% endif %}</p>
+    <h1>{{ e.event_name }}</h1>
+    <p class="sub"><span>{{ e.date | datum }}</span>{% if e.place %}<span>{{ e.place }}</span>{% endif %}{% if e.discipline %}<span>{{ e.discipline }}</span>{% endif %}
+      <span>{% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</span></p>
+  </div>
+  <div class="page-actions">
+    <span class="stav {{ status[1] }}" title="{{ _('Stav rozboru') }}">{{ status[0] }}</span>
+    {% if lost_early %}<span class="hint">{{ _('Rozbor „Ztratil jsem se u kontroly“ bude po závodě.') }}</span>
+    {% elif e.maponly_file and e.course_file %}<a class="btn" href="{{ url_for('ob.lost_page', entry_id=e.id) }}">{{ ikona('kompas') }}{{ _('Ztratil jsem se u kontroly') }}</a>{% endif %}
+  </div>
+</header>
+{% if oris_url or oresults or club_url or livelox %}
+<nav class="zavod-odkazy" aria-label="{{ _('Závod na jiných webech') }}">
+  {% if oris_url %}<a href="{{ oris_url }}" rel="noopener">{{ _('Závod v ORIS') }}{{ ikona('ven') }}</a>
+  <a href="{{ oris_results }}" rel="noopener">{{ _('Výsledky (ORIS)') }}{{ ikona('ven') }}</a>{% endif %}
+  {% if oresults %}<a href="{{ oresults }}" rel="noopener">{{ _('Výsledky (OResults)') }}{{ ikona('ven') }}</a>{% endif %}
+  {% if club_url %}<a href="{{ club_url }}">{{ _('Klubový web') }}{{ ikona('ven') }}</a>{% endif %}
+  {% if livelox %}<a href="{{ livelox }}" target="_blank" rel="noopener">Livelox{{ ikona('ven') }}</a>{% endif %}
+</nav>
 {% endif %}
 
+<div class="statrow kompaktni zavod-metriky">
+  <div class="stat"><span class="stat-popis">{{ _('Oficiální čas') }}</span>
+    <b class="stat-hodnota">{{ (e.official_time_s | mmss) or '—' }}</b>
+    <small>{% if e.result_place %}{% trans place=e.result_place %}{{ place }}. místo{% endtrans %}{% elif e.official_time_s %}{{ _('z ORIS nebo zadaný ručně') }}{% else %}{{ _('není k dispozici') }}{% endif %}</small></div>
+  <div class="stat"><span class="stat-popis">{{ _('Délka tratě') }}</span>
+    <b class="stat-hodnota">{% if e.distance_km %}{{ e.distance_km }} km{% else %}—{% endif %}</b>
+    <small>{% if e.climb_m %}{% trans m=e.climb_m | int %}{{ m }} m stoupání{% endtrans %}{% else %}{{ _('podle ORIS') if e.event_oris_id else _('neuvedeno') }}{% endif %}</small></div>
+  <div class="stat"><span class="stat-popis">{{ _('Kontroly') }}</span>
+    <b class="stat-hodnota">{{ e.controls or '—' }}</b><small>{{ _('počet podle ORIS') if e.controls else _('přečtou se z mapy') }}</small></div>
+  <div class="stat"><span class="stat-popis">{{ _('Čas start–cíl') }}</span>
+    <b class="stat-hodnota">{{ (analysis.total_time_s | mmss) if analysis and analysis.total_time_s else '—' }}</b>
+    <small>{{ _('z rozboru stopy') if analysis else _('až po analýze') }}</small></div>
+</div>
+
+{# What the analysis depends on, from the data of the race and the class (not from a picture of a state). A file
+   that is stored but waits to be placed is "waiting", not "done". #}
+<section class="pripravenost" aria-labelledby="pripravenost-nadpis">
+  <div class="pripravenost-hlava">
+    <h2 id="pripravenost-nadpis">{{ _('Podklady pro rozbor') }}</h2>
+    {% if progress %}<span class="stav ob-run">{{ _('Zpracovává se') }}</span>
+    {% elif job and job.status == 'failed' %}<span class="stav ob-bad">{{ _('Chyba') }}</span>
+    {% elif analysis and analysis.has_routes %}<span class="stav ob-ok">{{ _('Rozbor hotový') }}</span>
+    {% elif analysis %}<span class="stav ob-warn">{{ _('Rozbor bez nejlepších postupů') }}</span>
+    {% else %}<span class="stav">{{ _('Rozbor zatím není') }}</span>{% endif %}
+  </div>
+  <ul class="prip-polozky">
+    <li class="prip-polozka" data-stav="{{ 'ok' if e.activity_id else 'chybi' }}">
+      <b>{{ _('Běh z hodinek') }}</b>
+      {% if e.activity_id %}<small>{% trans start=e.act_start | localtime('%H:%M'), timer=e.act_timer | mmss, km=num((e.act_dist or 0) / 1000, 2) %}Start {{ start }}, {{ timer }}, {{ km }} km{% endtrans %}
+        · {% trans match=conf[e.match_confidence][0] %}shoda {{ match }}{% endtrans %}</small>
+        <span class="stav ob-ok">{{ _('Přiřazený') }}</span>
+      {% else %}<small>{% trans date=e.date | datum %}K závodu není spárovaný žádný běh ze dne {{ date }}.{% endtrans %}</small>
+        <span class="stav ob-off">{{ _('Chybí') }}</span>{% endif %}
+    </li>
+    <li class="prip-polozka" data-stav="{{ 'ok' if e.course_file else 'ceka' if (screen_pending and screen_pending.course_file) or has_photo else 'chybi' }}">
+      <b>{% trans name=e.class_name %}Mapa s tratí · {{ name }}{% endtrans %}</b>
+      {% if e.course_file %}<small>{{ src_names.get(course_src, _('nahraná')) }}{% if course_acc %}, {% trans acc=course_acc %}přesnost asi ±{{ acc }} m{% endtrans %}{% endif %}. {{ _('Z ní se čtou kontroly a jejich pořadí.') }}</small>
+        <span class="stav ob-ok">{{ _('Nahráno') }}</span>
+      {% elif screen_pending and screen_pending.course_file %}<small>{{ _('Snímek s tratí je uložený a čeká na běh, mezičasy nebo zpracování.') }}</small>
+        <span class="stav ob-wait">{{ _('Čeká na zpracování') }}</span>
+      {% elif has_photo %}<small>{{ _('Fotka mapy je uložená a čeká na usazení (automaticky nebo ručně).') }}</small>
+        <span class="stav ob-wait">{{ _('Čeká na usazení') }}</span>
+      {% else %}<small>{{ _('Bez ní se nepozná, kde byly kontroly.') }}</small>
+        <span class="stav ob-off">{{ _('Chybí') }}</span>{% endif %}
+    </li>
+    <li class="prip-polozka" data-stav="{{ 'ok' if e.maponly_file else 'ceka' if screen_pending and screen_pending.maponly_file else 'chybi' }}">
+      <b>{{ _('Mapa bez tratě · celý závod') }}</b>
+      {% if e.maponly_file %}<small>{{ _('snímek z Livelox') if e.maponly_source == 'snimek' else _('KMZ z Livelox') }}{% if maponly_acc %}, {% trans acc=maponly_acc %}přesnost asi ±{{ acc }} m{% endtrans %}{% endif %}{% if e.maponly_who %} · {% trans who=e.maponly_who %}nahrál {{ who }}{% endtrans %}{% endif %}. {{ _('Z ní se čte terén pro nejlepší postupy.') }}</small>
+        <span class="stav ob-ok">{{ _('Nahráno') }}</span>
+      {% elif screen_pending and screen_pending.maponly_file %}<small>{{ _('Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.') }}</small>
+        <span class="stav ob-wait">{{ _('Čeká na druhý snímek') }}</span>
+      {% else %}<small>{{ _('Bez ní nebudou nejlepší postupy; stopa a mezičasy ano.') }}</small>
+        <span class="stav ob-off">{{ _('Chybí') }}</span>{% endif %}
+    </li>
+    {% if not e.event_oris_id %}
+    <li class="prip-polozka" data-stav="info"><b>{{ _('Časy na kontrolách') }}</b>
+      <small>{{ _('Závod není v ORIS: mezičasy se odhadnou z GPS stopy.') }}</small><span class="stav">{{ _('Z GPS') }}</span></li>
+    {% elif official and official.used %}
+    <li class="prip-polozka" data-stav="ok"><b>{{ _('Oficiální mezičasy') }}</b>
+      <small>{{ _('Časy na kontrolách jsou z ORIS.') }}{% if official.clock_shift_s %} {% trans s=official.clock_shift_s | int %}Hodinky a časomíra se liší o {{ s }} s.{% endtrans %}{% endif %}</small>
+      <span class="stav ob-ok">{{ _('Z ORIS') }}</span></li>
+    {% elif official %}
+    <li class="prip-polozka" data-stav="ceka"><b>{{ _('Oficiální mezičasy') }}</b>
+      <small>{% trans reason=official_reason %}Nešly použít ({{ reason }}); časy na kontrolách jsou odhad z GPS.{% endtrans %}</small>
+      <span class="stav ob-warn">{{ _('Náhradně z GPS') }}</span></li>
+    {% elif my_splits %}
+    <li class="prip-polozka" data-stav="ok"><b>{{ _('Oficiální mezičasy') }}</b>
+      <small>{{ _('Načtené z ORIS; použijí se při analýze.') }}</small><span class="stav ob-ok">{{ _('Z ORIS') }}</span></li>
+    {% else %}
+    <li class="prip-polozka" data-stav="ceka"><b>{{ _('Oficiální mezičasy') }}</b>
+      <small>{{ _('ORIS zatím tvoje mezičasy nemá (nebo tě ve výsledcích kategorie nevidí); rozbor se spočítá z GPS.') }}</small>
+      <span class="stav ob-wait">{{ _('Zatím nejsou') }}</span></li>
+    {% endif %}
+  </ul>
+  {# the next step follows the same data as the list above #}
+  <div class="dalsi-krok" role="status">
+    {% if progress %}
+    <b>{{ _('Teď se počítá') }}</b><span>{{ progress }} {{ _('Stránka se sama obnoví, až to doběhne; nahrávat znovu nic nemusíš.') }}</span>
+    <a class="btn btn-maly" href="{{ url_for('ob.jobs_page') }}">{{ ikona('hodiny') }}{{ _('Stav úloh') }}</a>
+    {% elif job and job.status == 'failed' %}
+    <b>{{ _('Další krok: oprav příčinu a spusť analýzu znovu') }}</b><span>{{ _('Co se nepovedlo, je popsané níže.') }}</span>
+    {% elif not e.activity_id %}
+    <b>{{ _('Další krok: nahraj běh z hodinek') }}</b><span>{{ _('Soubor .fit nebo zip z Garmin Connect; spáruje se s tímhle závodem.') }}</span>
+    <a class="btn btn-maly btn-hlavni" href="#podklady" data-tab="podklady">{{ _('Nahrát běh') }}{{ ikona('sipka') }}</a>
+    {% elif not e.course_file and not (screen_pending and screen_pending.course_file) and not has_photo %}
+    <b>{{ _('Další krok: dodej mapu s tratí') }}</b><span>{{ _('Nejlépe KMZ z Livelox pro tvoji kategorii.') }}</span>
+    <a class="btn btn-maly btn-hlavni" href="#podklady" data-tab="podklady" data-otevri-volbu="kmz">{{ _('Dodat mapu') }}{{ ikona('sipka') }}</a>
+    {% elif not e.course_file %}
+    <b>{{ _('Mapa s tratí čeká na usazení') }}</b><span>{{ _('Usadí se sama, jakmile bude běh i mezičasy. Když usazení selže, nabídne se ruční.') }}</span>
+    {% if has_photo %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id) }}">{{ _('Usadit fotku ručně') }}</a>{% endif %}
+    {% elif not e.maponly_file %}
+    <b>{{ _('Další krok: dodej mapu bez tratě') }}</b><span>{{ _('Z ní se počítají nejlepší postupy. Stačí jedna pro celý závod.') }}</span>
+    <a class="btn btn-maly btn-hlavni" href="#podklady" data-tab="podklady" data-otevri-volbu="kmz">{{ _('Dodat mapu bez tratě') }}{{ ikona('sipka') }}</a>
+    {% elif analysis and analysis.has_routes %}
+    <b>{{ _('Další krok: projdi největší ztráty') }}</b><span>{{ _('Vyber úsek v mapě, v grafu nebo v tabulce; výběr platí všude naráz. Šipky ← → přepínají úseky.') }}</span>
+    <a class="btn btn-maly" href="#mapa" data-tab="mapa">{{ _('Přejít na úseky') }}{{ ikona('sipka') }}</a>
+    {% else %}
+    <b>{{ _('Podklady jsou kompletní') }}</b><span>{{ _('Analýza se spouští sama po každé změně podkladů. Když nic neběží a rozbor chybí, spusť ji ručně.') }}</span>
+    <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-maly">{{ ikona('obnovit') }}{{ _('Spustit analýzu') }}</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
 {% if job and job.status == 'failed' %}
-<div class="stalewarn" data-hlaska="{{ _('Poslední analýza selhala.') }}">{{ _('Poslední analýza selhala.') }} {{ (job.error or '').splitlines()[0] if job.error else '' }}
+<div class="stalewarn" data-hlaska="{{ _('Poslední analýza selhala.') }}" role="alert"><b>{{ _('Poslední analýza selhala.') }}</b> {{ (job.error or '').splitlines()[0] if job.error else '' }}
   <details><summary>{{ _('Podrobnosti') }}</summary><pre>{{ job.error }}</pre></details>
   {% if course_failed and e.course_file %}<p>{% trans fix=url_for('ob.course_fix_page', entry_id=e.id) %}Když je mapa
     s tratí správná, označ kontroly, start a cíl ručně: <a href="{{ fix }}">Doplnit kontroly</a>.{% endtrans %}</p>{% endif %}
   <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-maly">{{ _('Zkusit znovu') }}</button>
+    <button type="submit" class="btn btn-maly">{{ ikona('obnovit') }}{{ _('Zkusit znovu') }}</button>
   </form></div>
 {% elif job and job.status == 'stopped' and not progress %}
 <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}" class="nota controls">
@@ -73,19 +167,44 @@
   {{ n }} jsem dohledal podle místa, kde byly hodinky v čase ražení, a trať má {{ oris }} kontrol jako v ORIS.{% endtrans %}
   <a href="{{ url_for('ob.course_fix_page', entry_id=e.id) }}">{{ _('Zkontrolovat kontroly') }}</a></p>
 {% endif %}
-{# what the race still needs, with the way to it: shown until the run and both maps are there #}
-{% if not (e.activity_id and e.course_file and e.maponly_file) %}
-<ol class="ob-kroky" aria-label="{{ _('Co závod potřebuje k rozboru') }}">
-  {% for done, label, why in [
-    (e.activity_id, _('běh z hodinek (.fit)'), _('stopa na mapě')),
-    (e.course_file, _('mapa s tratí'), _('kontroly a jejich pořadí')),
-    (e.maponly_file, _('mapa bez tratě'), _('nejlepší postupy'))] %}
-  <li class="{{ 'je' if done else 'neni' }}"><b>{{ '✓' if done else loop.index }}</b>
-    <span>{{ label }}<small>{{ _('hotovo') if done else why }}</small></span>
-    {% if not done %}<a class="btn btn-maly" href="#podklady" data-tab="podklady">{{ _('Doplnit') }}</a>{% endif %}</li>
-  {% endfor %}
-</ol>
+
+{% if e.event_oris_id %}
+{# the class the runner really ran (services/oris_class.py) #}
+<details class="vysvetlivka" id="kategorie">
+  <summary>{{ _('Běžel jsem jinou kategorii') }}</summary>
+  <form method="post" action="{{ url_for('ob.race_class', entry_id=e.id) }}" class="controls"
+        data-potvrdit="{{ _('Rozbor a poznámky k úsekům dosavadní kategorie se smažou a závod se spočítá znovu. Pokračovat?') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if classes | length > 1 %}
+    <label class="ob-pole">{{ _('Kategorie') }}
+      <select name="class_id">{% for c in classes %}<option value="{{ c.id }}"{% if c.id == e.class_id %} selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></label>
+    <button type="submit" class="btn btn-maly">{{ _('Změnit kategorii') }}</button>
+    {% else %}
+    <button type="submit" class="btn btn-maly">{{ _('Načíst kategorie závodu z ORIS') }}</button>
+    {% endif %}
+  </form>
+  <p class="hint">{% trans %}Oficiální čas a mezičasy se vezmou z výsledků zvolené kategorie (z ORIS jednou) a rozbor se spočítá
+    znovu s její tratí. Rozbor a poznámky k úsekům dosavadní kategorie se smažou, trať je jiná.{% endtrans %}
+    {%- if e.class_chosen %} {{ _('Kategorii jsi vybral sám; synchronizace s ORIS ji nezmění.') }}{% endif %}</p>
+</details>
 {% endif %}
+
+<details class="vysvetlivka" id="jak-cist">
+  <summary>{{ _('Jak číst časy a odhad ztráty') }}</summary>
+  <dl>
+    <dt><span class="puvod mereno">{{ _('změřeno') }}</span></dt><dd>{{ _('Čas z tvé GPS stopy (hodinky). Skutečnost, jen s nepřesností GPS.') }}</dd>
+    <dt><span class="puvod oficialni">{{ _('oficiální') }}</span></dt><dd>{{ _('Mezičasy a výsledek z ORIS (časomíra pořadatele). Když se nedají použít, časy na kontrolách se odhadnou z GPS.') }}</dd>
+    <dt><span class="puvod model">{{ _('model') }}</span></dt><dd>{{ _('Čas nejlepšího postupu podle tvého osobního modelu rychlosti: teoretický ideál bez zaváhání, ne čas, který šlo opravdu uběhnout.') }}</dd>
+    <dt><span class="puvod odhad">{{ _('odhad') }}</span></dt><dd>{% trans %}<b>Ztráta</b> je rozdíl tvého času proti modelu, ne změřená chyba. Dělí se na <b>volbu postupu</b>
+      (zvolil jsi pomalejší variantu) a <b>chybu</b> (bloudění, přeběhnutí, kroužení u kontroly, zastavení). Rozdíly do 20 s na
+      úsek jsou v šumu modelu.{% endtrans %}</dd>
+    <dt>{{ _('Osobní model rychlosti') }}</dt><dd>{{ _('Jak rychle běháš v jednotlivých terénech a do kopce; učí se z tvých čistých úseků. Čím víc dat, tím menší nejistota (stránka Rychlostní model).') }}</dd>
+    <dt>{{ _('Alternativní postupy') }}</dt><dd>{{ _('Další rozumné cesty úsekem s cenou podle modelu; průměrný běžec je tentýž výpočet s učebnicovým modelem.') }}</dd>
+    <dt>{{ _('Záchytné body') }}</dt><dd>{{ _('Výrazné objekty u kontroly (cesta, potok, hrana), podle kterých se dá znovu chytit mapa.') }}</dd>
+    {% if sp %}<dt>{{ _('Mezičasy kategorie') }}</dt><dd>{% trans %}Měří něco jiného než model: o kolik jsi byl na úseku pomalejší než tvoje obvyklé
+      tempo proti ostatním běžcům. Proto jsou čísla menší. Kde se model a mezičasy rozcházejí o víc než minutu, úsek to napíše.{% endtrans %}</dd>{% endif %}
+  </dl>
+</details>
 
 <div data-taby{% if not analysis %} data-vychozi="podklady"{% endif %}>
 <nav class="taby" aria-label="{{ _('Části stránky') }}">
@@ -137,16 +256,6 @@
 </details>
 {% endif %}
 <p id="totals" class="ob-souhrn"></p>
-<details class="ob-jak">
-  <summary>{{ _('Jak se ztráta počítá') }}</summary>
-  <p>{% trans %}<b>Ztráta</b> u úseku je rozdíl proti tvému nejlepšímu možnému běhu podle tvého modelu rychlosti: nejlepší postup
-    a tvoje tempo bez zaváhání. Dělí se na <b>volbu postupu</b> (zvolil jsi pomalejší variantu) a <b>chybu</b>
-    (bloudění, přeběhnutí, kroužení a dohledávání u kontroly, zastavení). Když stopa vypadá na bloudění, nebo se čas
-    ztratil smyčkami u kontroly, počítá se to jako chyba, ne jako volba postupu.{% endtrans %}</p>
-  {% if sp %}<p>{% trans %}<b>Mezičasy kategorie</b> měří něco jiného: o kolik jsi byl na úseku pomalejší než tvoje obvyklé tempo
-    proti ostatním běžcům. Proto jsou čísla v mezičasech menší. Kde se model a mezičasy rozcházejí o víc než minutu,
-    úsek to napíše; tam ber ztrátu z modelu s rezervou.{% endtrans %}</p>{% endif %}
-</details>
 {% if model_stale %}
 <div class="nota controls" id="starsi-model">
   <span>{% trans %}Postupy jsou spočítané se starším modelem rychlosti. Přepočítat všechno je přepočítá u všech závodů s jedním
@@ -180,31 +289,33 @@
 
 {# the legs in the order of the course, coloured by loss; arrows and the keys ← → go from leg to leg #}
 <div class="ob-pas ob-ceka" id="pas">
-  <button type="button" class="btn btn-maly" id="b-prev" aria-label="{{ _('Předchozí úsek') }}" title="{{ _('Předchozí úsek (←)') }}">‹</button>
+  <button type="button" class="btn btn-maly" id="b-prev" aria-label="{{ _('Předchozí úsek') }}" title="{{ _('Předchozí úsek (←)') }}">{{ ikona('zpet') }}</button>
   <div class="ob-pas-useky" id="pas-useky" role="group" aria-label="{{ _('Úseky') }}"></div>
-  <button type="button" class="btn btn-maly" id="b-next" aria-label="{{ _('Další úsek') }}" title="{{ _('Další úsek (→)') }}">›</button>
+  <button type="button" class="btn btn-maly" id="b-next" aria-label="{{ _('Další úsek') }}" title="{{ _('Další úsek (→)') }}">{{ ikona('sipka') }}</button>
 </div>
 
-{% if course_acc %}<p><span class="badge">{% trans src={'image': _('obrázku'), 'screen': _('snímku Livelox')}.get(course_src, _('fotky')), acc=course_acc %}Mapa z {{ src }},
+{% if course_acc %}<p class="nota"><span class="badge">{% trans src={'image': _('obrázku'), 'screen': _('snímku Livelox')}.get(course_src, _('fotky')), acc=course_acc %}Mapa z {{ src }},
   přesnost asi ±{{ acc }} m{% endtrans %}</span> {{ _('Kontroly a stopa leží na mapě s touhle přesností') }}
   {%- if analysis.has_routes and course_src != 'screen' %}; {{ _('záchytné a náběhové body u kontrol ber s rezervou (terén je z mapy bez tratě, poloha kontroly z fotky)') }}{% endif %}.</p>{% endif %}
-{% if analysis.has_routes and not e.maponly_file %}<p class="ob-upozorneni">{% trans %}<b>Postupy jsou odhadnuté z mapy s tratí.</b> Kde trať nebo
+{% if analysis.has_routes and not e.maponly_file %}<p class="nota ob-upozorneni">{% trans %}<b>Postupy jsou odhadnuté z mapy s tratí.</b> Kde trať nebo
   čára postupu zakrývá mapu, terén se domýšlí z okolí. S mapou bez tratě budou přesnější. Záchytné body a „Ztratil
   jsem se“ z odhadnuté mapy nepočítáme.{% endtrans %}</p>{% endif %}
-{% if maponly_acc and analysis.has_routes %}<p>{% trans acc=maponly_acc %}<span class="badge">Mapa bez tratě ze snímku Livelox, přesnost asi
+{% if maponly_acc and analysis.has_routes %}<p class="nota">{% trans acc=maponly_acc %}<span class="badge">Mapa bez tratě ze snímku Livelox, přesnost asi
   ±{{ acc }} m</span> Z ní je přečtený terén pro nejlepší postupy. Až bude mapa bez tratě jako KMZ, nahraj ji
   a postupy se přepočítají.{% endtrans %}</p>{% endif %}
 <div class="ob-mapa-obal">
   <div class="ob-mapa-ram">
-    <div id="map"></div>
-    {# floating panel of the map layers (keys 1-3, M); the check boxes keep their ids, map.js listens to them #}
-    <div class="ob-vrstvy" id="vrstvy" role="group" aria-label="{{ _('Vrstvy mapy') }}">
+    <div id="map" role="application" aria-label="{{ _('Mapa závodu se stopou a postupy. Úseky vybereš i tlačítky nad mapou nebo šipkami ← →.') }}"></div>
+    {# floating panel of the map layers (keys M, T, 1-4); the check boxes keep their ids, map.js listens to them #}
+    <div class="ob-vrstvy" id="vrstvy" role="group" aria-labelledby="vrstvy-titulek">
+      <p class="ob-vrstvy-titulek" id="vrstvy-titulek">{{ _('Vrstvy mapy') }}</p>
       <label class="check"><input type="checkbox" id="c-map" checked><span>{{ _('Mapa') }}</span><kbd>M</kbd></label>
       <label class="check" id="l-course" hidden><input type="checkbox" id="c-course"><span>{{ _('Mapa s tratí') }}</span><kbd>T</kbd></label>
-      <label class="check"><input type="checkbox" id="c-alts" checked><i class="sw alt"></i><span>{{ _('Další možnosti') }}</span><kbd>1</kbd></label>
-      <label class="check"><input type="checkbox" id="c-prumer" checked><i class="sw prumer"></i><span>{{ _('Průměrný běžec') }}</span><kbd>2</kbd></label>
-      <label class="check"><input type="checkbox" id="c-zachyt"><i class="sw zachyt"></i><span>{{ _('Záchytné body') }}</span><kbd>3</kbd></label>
-      <label class="check"><input type="checkbox" id="c-prekazky"><i class="sw prek"></i><span>{{ _('Rozpoznané překážky') }}</span><kbd>4</kbd></label>
+      <label class="check" id="l-alts"><input type="checkbox" id="c-alts" checked><i class="sw alt"></i><span>{{ _('Další možnosti') }}</span><kbd>1</kbd></label>
+      <label class="check" id="l-prumer"><input type="checkbox" id="c-prumer" checked><i class="sw prumer"></i><span>{{ _('Průměrný běžec') }}</span><kbd>2</kbd></label>
+      <label class="check" id="l-zachyt"><input type="checkbox" id="c-zachyt"><i class="sw zachyt"></i><span>{{ _('Záchytné body') }}</span><kbd>3</kbd></label>
+      <label class="check" id="l-prekazky"><input type="checkbox" id="c-prekazky"><i class="sw prek"></i><span>{{ _('Rozpoznané překážky') }}</span><kbd>4</kbd></label>
+      <p class="bez-dat" id="vrstvy-bez-dat" hidden></p>
     </div>
     <p id="map-stav" class="ob-mapa-stav" role="status">{{ _('Načítám stopu a postupy…') }}</p>
     {# what the next clicks into the map draw (planned route, forbidden line, refreshment point) #}
@@ -216,15 +327,30 @@
         <button type="button" class="btn btn-maly" id="b-cancel">{{ _('Zrušit') }}</button>
       </span>
     </div>
-  <div id="graf-useky" class="ob-sloupce karta" hidden>
-    <h3>{{ _('Minuty ztráty na úseku') }}</h3>
+    <div class="controls ob-legenda" aria-label="{{ _('Legenda mapy') }}">
+      <span><i class="sw z0"></i> {{ _('bez ztráty') }}</span>
+      <span><i class="sw z1"></i> {{ _('do 1 min') }}</span>
+      <span><i class="sw z2"></i> {{ _('do 3 min') }}</span>
+      <span><i class="sw z3"></i> {{ _('víc') }}</span>
+      <span><i class="sw best"></i> {{ _('nejlepší postup') }}</span>
+      <span><i class="sw alt"></i> {{ _('další možnosti') }}</span>
+      <span><i class="sw prumer"></i> {{ _('průměrný běžec') }}</span>
+      <span><i class="sw plan"></i> {{ _('plánovaný postup') }}</span>
+      <span><i class="sw zakaz"></i> {{ _('zakázaný přechod nebo prostor') }}</span>
+      <span><i class="sw prek"></i> {{ _('rozpoznaná překážka (vrstva 4: kliknutím ji opravíš)') }}</span>
+      <span><i class="sw dot"></i> {{ _('zastávka') }}</span>
+      <span><i class="sw zachyt"></i> {{ _('záchytný bod') }}</span>
+    </div>
+  <div id="graf-useky" class="ob-sloupce" hidden>
+    <h3>{{ _('Minuty ztráty na úseku') }} <span class="puvod odhad">{{ _('odhad') }}</span></h3>
     <div id="graf-sloupce" class="ob-sloupce-telo" role="group" aria-label="{{ _('Ztráta po úsecích') }}"></div>
   </div>
   </div>
   {# on a narrow screen the panel of the leg is far below the map: the gist of the leg right under it #}
   <p id="souhrn" class="ob-usek-souhrn" hidden></p>
-  <aside id="panel" class="karta">
+  <aside id="panel" class="karta" aria-label="{{ _('Rozbor úseku') }}">
     <div id="panel-empty">
+      <h3 class="ob-panel-nadpis">{{ _('Celá trať') }}</h3>
       <div id="o-metriky" class="ob-metriky"></div>
       <p id="o-pozn" class="hint"></p>
       <div id="o-ztraty"></div>
@@ -234,7 +360,7 @@
     </div>
     <div id="panel-leg" hidden>
       <div class="ob-panel-hlava">
-        <button type="button" class="btn btn-maly" id="b-zpet" title="{{ _('Celá trať (Esc)') }}">← {{ _('Celá trať') }}</button>
+        <button type="button" class="btn btn-maly" id="b-zpet" title="{{ _('Celá trať (Esc)') }}">{{ ikona('zpet') }}{{ _('Celá trať') }}</button>
         <h3 id="p-title"></h3>
       </div>
       <div id="p-metriky" class="ob-metriky"></div>
@@ -252,7 +378,7 @@
       </details>
       <p id="p-flags" class="hint"></p>
       <fieldset>
-        <legend>{{ _('Co se na úseku stalo') }}</legend>
+        <legend>{{ _('Moje poznámky k úseku') }}</legend>
         <label class="check"><input type="checkbox" id="n-stop"> {{ _('záměrná zastávka (nepočítá se jako chyba)') }}</label>
         <label class="check"><input type="checkbox" id="n-lost"> {{ _('ztráta kontaktu s mapou') }}</label>
         <label class="ob-pole">{{ _('Zelená') }}
@@ -263,38 +389,28 @@
             <option>4</option><option>5</option></select></label>
         <p class="hint" id="p-fatigue-hint">{{ _('Únava 1–3 jen popisuje. Výpočet mění až 4–5: úsek se vyřadí z modelu a ztráta provedením se vede jako únava.') }}</p>
         <p id="p-effect" class="hint"></p>
+        <label class="ob-pole">{{ _('Poznámka') }} <textarea id="n-text" rows="3"></textarea></label>
+        <p id="p-saved" class="hint" role="status" aria-live="polite"></p>
       </fieldset>
-      <label class="ob-pole">{{ _('Poznámka') }} <textarea id="n-text" rows="3"></textarea></label>
-      <div class="controls">
-        <button type="button" class="btn btn-maly" id="b-draw">{{ _('Nakreslit plánovaný postup') }}</button>
-        <button type="button" class="btn btn-maly" id="b-clear">{{ _('Smazat plán') }}</button>
-        <button type="button" class="btn btn-maly" id="b-oprava" title="{{ _('Když GPS zlobí: nakresli, kudy jsi na úseku opravdu běžel') }}">{{ _('Opravit moji stopu') }}</button>
-        <button type="button" class="btn btn-maly" id="b-gps" hidden>{{ _('Vrátit GPS stopu') }}</button>
-      </div>
-      <p id="p-saved" class="hint"></p>
+      <fieldset>
+        <legend>{{ _('Nástroje pro úsek') }}</legend>
+        <div class="controls">
+          <button type="button" class="btn btn-maly" id="b-draw">{{ ikona('tuzka') }}{{ _('Nakreslit plánovaný postup') }}</button>
+          <button type="button" class="btn btn-maly" id="b-clear">{{ _('Smazat plán') }}</button>
+          <button type="button" class="btn btn-maly" id="b-oprava" title="{{ _('Když GPS zlobí: nakresli, kudy jsi na úseku opravdu běžel') }}">{{ _('Opravit moji stopu') }}</button>
+          <button type="button" class="btn btn-maly" id="b-gps" hidden data-potvrdit="{{ _('Vrátit na úseku původní GPS stopu? Tvoje ručně nakreslená oprava se smaže a úsek se spočítá znovu.') }}">{{ _('Vrátit GPS stopu') }}</button>
+        </div>
+        <p class="hint">{{ _('Oprava stopy mění jen tenhle úsek tvého běhu. Když leží vedle stopy celá mapa, použij v Podkladech „Usadit mapu ručně“.') }}</p>
+      </fieldset>
     </div>
   </aside>
-</div>
-<div class="controls ob-legenda">
-  <span><i class="sw z0"></i> {{ _('bez ztráty') }}</span>
-  <span><i class="sw z1"></i> {{ _('do 1 min') }}</span>
-  <span><i class="sw z2"></i> {{ _('do 3 min') }}</span>
-  <span><i class="sw z3"></i> {{ _('víc') }}</span>
-  <span><i class="sw best"></i> {{ _('nejlepší postup') }}</span>
-  <span><i class="sw alt"></i> {{ _('další možnosti') }}</span>
-  <span><i class="sw prumer"></i> {{ _('průměrný běžec') }}</span>
-  <span><i class="sw plan"></i> {{ _('plánovaný postup') }}</span>
-  <span><i class="sw zakaz"></i> {{ _('zakázaný přechod nebo prostor') }}</span>
-  <span><i class="sw prek"></i> {{ _('rozpoznaná překážka (vrstva 4: kliknutím ji opravíš)') }}</span>
-  <span><i class="sw dot"></i> {{ _('zastávka') }}</span>
-  <span><i class="sw zachyt"></i> {{ _('záchytný bod') }}</span>
 </div>
 <p class="hint">{% trans %}Mapa závodu je dílo pořadatele a mapaře a je chráněná autorským právem.{% endtrans %}
   {% if local_app %}{% trans %}Zůstává jen v tomhle počítači; používej ji jen pro rozbor vlastního běhu a posílej ji nanejvýš ostatním
   účastníkům závodu.{% endtrans %}{% else %}{% trans %}V aplikaci slouží jen
   přihlášeným členům oddílu k rozboru vlastního běhu; nejde stáhnout a nesmí se šířit dál.{% endtrans %}{% endif %}</p>
 
-<h2>{{ _('Úseky') }}</h2>
+<h2 class="sectiontitle">{{ _('Úseky') }}</h2>
 <div class="tablewrap"><table id="legs"></table></div>
 <p class="hint">{% trans %}<b>Nejlepší</b> je čas modelu pro nejrychlejší postup, <b>volba</b> je o kolik je tvůj postup pomalejší při
   stejném tempu, <b>provedení</b> je o kolik jsi byl pomalejší než tvoje tempo na postupu, který jsi běžel. Rozdíly do
@@ -306,124 +422,221 @@
 
 <section class="tabpanel" id="podklady">
 <h3 class="tabnadpis">{{ _('Podklady') }}</h3>
-{# one form for the run and both maps: the analysis is queued once, after everything is in (views.race_files) #}
-<form method="post" enctype="multipart/form-data" action="{{ url_for('ob.race_files', entry_id=e.id) }}"
-      data-nahravani data-pretahni>
+{# One form sends the run and the maps (views.race_files): the analysis is queued once, after everything is in. Its
+   fields live in the sections below (form="nahrat-podklady"), so the tools of each section can be forms of their own. #}
+<form id="nahrat-podklady" method="post" enctype="multipart/form-data" action="{{ url_for('ob.race_files', entry_id=e.id) }}" data-nahravani>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="ob-radek">
-    <div class="karta">
-      <h3>{{ _('Běh z hodinek') }}</h3>
-      {% if e.activity_id %}
-      <p>{% trans start=e.act_start | localtime('%H:%M:%S'), timer=e.act_timer | mmss, km=num((e.act_dist or 0) / 1000, 2), cls=conf[e.match_confidence][1], match=conf[e.match_confidence][0] %}Start {{ start }}, čas {{ timer }}, {{ km }} km
-        <span class="stav {{ cls }}">shoda {{ match }}</span>{% endtrans %}</p>
-      {% if match_note %}<p class="hint">{{ match_note }}</p>{% endif %}
-      {% else %}
-      <p class="muted">{% trans date=e.date | datum %}K závodu není spárovaný žádný běh ze dne {{ date }}.{% endtrans %}</p>
-      {% endif %}
-      <label class="ob-pole">{{ _('Běh z hodinek (.fit, nebo zip z Garmin Connect)') }}
-        <input type="file" name="fit" accept=".fit,.zip" data-max="{{ max_fit }}"></label>
-      <p class="hint">{% trans upload=url_for('ob.upload') %}Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export
-        z Garminu: <a href="{{ upload }}">Nahrát běhy</a>.{% endtrans %}</p>
-    </div>
-  </div>
-  <p class="ob-poradi">{% trans help=url_for('ob.help_page') %}<b>Mapa:</b> nejlepší je <b>1. KMZ z Livelox</b>. Když ho Livelox stáhnout nedovolí, <b>2. dva
-    snímky z Livelox</b>, jinak <b>3. fotka papírové mapy</b>. <a href="{{ help }}#livelox">Jak na to</a>{% endtrans %}</p>
-  <div class="ob-radek">
-    <div class="karta">
-      <h3>{% trans %}1. KMZ z Livelox <span class="badge badge-tichy">nejpřesnější podklady</span>{% endtrans %}</h3>
-      <h4>{% trans name=e.class_name %}Mapa s tratí · kategorie {{ name }}{% endtrans %}</h4>
-      <p>{% if e.course_file %}<span class="stav ob-ok">{{ _('nahraná') }}</span>{% else %}<span class="stav">{{ _('chybí') }}</span>{% endif %}
-        {% if course_acc %}<span class="badge">{% trans src={'image': _('z obrázku'), 'photo': _('z fotky'), 'manual': _('z fotky usazené ručně'), 'screen': _('ze snímku Livelox')}[course_src], acc=course_acc %}{{ src }},
-          přesnost asi ±{{ acc }} m{% endtrans %}</span>{% endif %}
-        {{ _('Z ní se čtou kontroly a jejich pořadí.') }}</p>
-      {% if has_photo %}<p><a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id) }}">{{ _('Usadit fotku ručně') }}</a>
-        <span class="hint">{{ _('když se fotka neusadila, nebo sedí špatně') }}</span></p>{% endif %}
-      <label class="ob-pole">{{ _('KMZ z Livelox: Mapa s tratí') }}
-        <input type="file" name="course" accept=".kmz"></label>
-      {% if moved %}<form method="post" action="{{ url_for('ob.map_fix_revert', entry_id=e.id) }}" class="nota">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {% trans m='%.0f' | format(moved.shift_m) %}Mapa závodu je posunutá ručně o {{ m }} m.{% endtrans %}
-        <button type="submit" class="btn btn-maly">{{ _('Vrátit původní usazení') }}</button></form>{% endif %}
-      {% if e.activity_id and course_src in ('kmz', 'screen') %}<p class="hint">{% trans fix=url_for('ob.map_fix_page', entry_id=e.id) %}Leží celá mapa vedle tvé stopy (všechny
-        kontroly posunuté stejně)? <a href="{{ fix }}">Usadit mapu ručně podle
-        kontrol</a>. Když zlobí GPS jen na pár úsecích, oprav si stopu u úseku.{% endtrans %}</p>{% endif %}
-      {% if e.course_file %}<p class="hint">{% if course_by_hand %}{% trans fix=url_for('ob.course_fix_page', entry_id=e.id) %}Kontroly
-        tratě jsou označené ručně (<a href="{{ fix }}">Doplnit kontroly</a>).{% endtrans %}{% else %}{% trans fix=url_for('ob.course_fix_page', entry_id=e.id) %}Chybí
-        na mapě některá kontrola, nebo je některá navíc? <a href="{{ fix }}">Doplnit kontroly</a>.{% endtrans %}{% endif %}</p>{% endif %}
-      <h4>{% trans %}Mapa bez tratě · sdílená pro celý závod{% endtrans %}</h4>
-      <p>{% if e.maponly_file %}<span class="stav ob-ok">{{ _('nahraná') }}</span>{% else %}<span class="stav">{{ _('chybí') }}</span>{% endif %}
-        {% if maponly_acc %}<span class="badge">{% trans acc=maponly_acc, res=num(e.maponly_res_m, 1) %}ze snímku Livelox, přesnost asi ±{{ acc }} m,
-          {{ res }} m na pixel{% endtrans %}</span>
-          {% if e.maponly_who %}<span class="hint">{% trans who=e.maponly_who %}nahrál {{ who }}{% endtrans %}</span>{% endif %}{% endif %}
-        {{ _('Z ní se čte terén pro nejlepší postupy.') if local_app else _('Z ní se čte terén pro nejlepší postupy. Stačí, když ji nahraje jeden člověk z oddílu.') }}</p>
-      <label class="ob-pole">{{ _('KMZ z Livelox: Pouze mapa') }} <input type="file" name="maponly" accept=".kmz"></label>
-      {% if maponly_acc %}<p class="hint">{{ _('KMZ bez tratě nahradí mapu ze snímku a nejlepší postupy se přepočítají.') }}</p>{% endif %}
-    </div>
-    <div class="karta">
-      <h3>{% trans %}2. Dva snímky z Livelox <span class="badge badge-tichy">když KMZ stáhnout nejde</span>{% endtrans %}</h3>
-      <p>{% trans %}Snímek obrazovky mapy s tratí a druhý ze stejného pohledu s vypnutou tratí. Z prvního se čtou kontroly, z druhého
-        terén pro nejlepší postupy (jako z KMZ bez tratě).{% endtrans %}</p>
-      {% if screen %}<p>{% trans w=screen.width, h=screen.height %}<span class="stav ob-ok">snímek s tratí uložený</span> {{ w }} × {{ h }} px;
-        snímek bez tratě ze stejného pohledu můžeš nahrát i sám.{% endtrans %}
-        <a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id, snimek=1) }}">{{ _('Oříznout snímek') }}</a></p>{% elif screen_pending %}
-        <p class="hint">{% if screen_pending.course_file %}{{ _('Snímek s tratí čeká na běh a mezičasy, nebo na zpracování.') }}{% else %}{{ _('Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.') }}{% endif %}</p>{% endif %}
-      <label class="ob-pole">{{ _('Snímek z Livelox s tratí') }}
-        <input type="file" name="screen_course" accept=".png,.jpg,.jpeg"></label>
-      <label class="ob-pole">{{ _('Snímek z Livelox bez tratě (stejný pohled)') }}
-        <input type="file" name="screen_maponly" accept=".png,.jpg,.jpeg"></label>
-      <p class="hint">{% trans help=url_for('ob.help_page') %}Oba snímky můžeš nahrát najednou, nebo každý zvlášť a klidně před během. Aplikace je uloží a počká na FIT i mezičasy z ORIS. Musí jít o stejný pohled. <a href="{{ help }}#snimky">Jak je udělat v Chromu</a>. Jen pro vlastní rozbor, nesdílej je dál.{% endtrans %}</p>
-    </div>
-    <div class="karta">
-      <h3>{% trans %}3. Fotka papírové mapy <span class="badge badge-tichy">když nejde nic z toho</span>{% endtrans %}</h3>
-      <p>{{ _('Z fotky se čtou jen kontroly; nejlepší postupy z ní nebudou (terén se z ní spolehlivě přečíst nedá).') }}</p>
-      <label class="ob-pole">{{ _('Fotka nebo obrázek mapy s tratí (jpg, png)') }}
-        <input type="file" name="course_photo" accept=".jpg,.jpeg,.png"></label>
-      <p class="hint">{% trans %}Celou mapu shora, za světla a bez blesku, mapu polož rovně a nic ať nezakrývá kontroly. Fotka se na
-        místo usadí podle kontrol a tvé stopy v oficiálních časech ražení. Můžeš ji nahrát kdykoliv; pokud ještě chybí
-        běh nebo mezičasy z ORIS, počká uložená na jejich doplnění.{% endtrans %}</p>
-    </div>
-  </div>
-  <div class="controls">
-    <button type="submit" class="btn btn-hlavni">{{ _('Nahrát vybrané soubory') }}</button>
-    <span class="hint ob-nahravani-stav" role="status">{{ _('Soubory jde do polí i přetáhnout myší. Analýza se po nahrání spustí sama.') }}</span>
-  </div>
 </form>
-<p class="hint">{% if livelox %}<a href="{{ livelox }}" target="_blank" rel="noopener">{{ _('Otevřít závod v Livelox') }}</a>:
-  {% else %}{{ _('V Livelox:') }} {% endif %}{% trans %}vyber závod a kategorii, v zobrazení mapy vpravo nahoře tři čárky → Stáhnout mapu.
-  Dvakrát: Mapa s tratí (KMZ) a Pouze mapa (KMZ). Mapy vidí jen přihlášení členové a nejdou z aplikace stáhnout.{% endtrans %}</p>
-<div class="ob-radek">
+<p class="nota">{% trans %}<b>Co rozbor potřebuje:</b> běh z hodinek, mapu s tratí tvé kategorie a mapu bez tratě pro celý závod.
+  Časy a mezičasy se podle možností načtou z ORIS. Podklady můžeš doplňovat postupně; nic se nesmaže jen tím, že zvolíš jiný
+  způsob nahrání.{% endtrans %}</p>
+
+<section class="podklady-blok" id="podklady-beh" aria-labelledby="h-beh">
+  <p class="eyebrow">{{ _('Záznam aktivity') }}</p>
+  <h3 id="h-beh">{{ _('Běh z hodinek') }}</h3>
+  <p class="sub">{{ _('Jiný druh dat než mapa: tvoje GPS stopa a čas. Patří jen tobě.') }}</p>
+  <div class="beh-souhrn">
+    {% if e.activity_id %}
+    <div><b>{% trans start=e.act_start | localtime('%H:%M:%S'), timer=e.act_timer | mmss, km=num((e.act_dist or 0) / 1000, 2) %}Start {{ start }}, čas {{ timer }}, {{ km }} km{% endtrans %}</b>
+      {% if match_note %}<small>{{ match_note }}</small>{% endif %}</div>
+    <span class="stav {{ conf[e.match_confidence][1] or 'ob-ok' }}">{% trans match=conf[e.match_confidence][0] %}shoda {{ match }}{% endtrans %}</span>
+    {% else %}
+    <div><b>{{ _('Běh zatím není přiřazený') }}</b><small>{% trans date=e.date | datum %}K závodu není spárovaný žádný běh ze dne {{ date }}.{% endtrans %}</small></div>
+    <span class="stav ob-off">{{ _('Chybí') }}</span>
+    {% endif %}
+  </div>
   {% if day %}
-  <form method="post" action="{{ url_for('ob.race_activity', entry_id=e.id) }}" class="karta">
+  <form method="post" action="{{ url_for('ob.race_activity', entry_id=e.id) }}" class="controls">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label class="ob-pole">{{ _('Vybrat jiný běh z toho dne') }}
+    <label class="ob-pole" style="margin:0">{{ _('Vybrat jiný běh z toho dne') }}
       <select name="activity_id">
         <option value="auto">{{ _('automaticky') }}</option>
         {% for a in day %}
         <option value="{{ a.id }}" {% if a.id == e.activity_id and e.match_confidence == 'manual' %}selected{% endif %}>
-          {{ a.start_utc | localtime('%H:%M') }} · {{ a.sport }} · {{ a.timer_s | mmss }} · {{ num((a.dist_m or 0) / 1000, 1) }} km
+          {{ a.start_utc | localtime('%H:%M') }} · {{ sport_name(a.sport) }} · {{ a.timer_s | mmss }} · {{ num((a.dist_m or 0) / 1000, 1) }} km
           {%- if a.km_from_event is not none %} · {% trans km=num(a.km_from_event, 1) %}{{ km }} km od centra{% endtrans %}{% endif %}</option>
         {% endfor %}
       </select></label>
     <button type="submit" class="btn">{{ _('Použít') }}</button>
   </form>
   {% endif %}
-  <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}" class="karta">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <p class="hint">{{ _('Analýza se spouští sama po každé změně podkladů. Ručně je potřeba jen výjimečně.') }}</p>
-    <button type="submit" class="btn">{{ _('Spustit analýzu znovu') }}</button>
-  </form>
+  <label class="ob-pole ob-drop">{{ _('Nahrát nebo vyměnit běh (.fit, nebo zip z Garmin Connect)') }}
+    <input type="file" name="fit" form="nahrat-podklady" accept=".fit,.zip" data-max="{{ max_fit }}" data-vyber></label>
+  <p class="hint">{% trans upload=url_for('ob.upload') %}Běh nahraný tady se spáruje rovnou s tímhle závodem. Víc běhů najednou nebo celý export
+    z Garminu: <a href="{{ upload }}">Nahrát běhy</a>.{% endtrans %}</p>
+</section>
+
+{% set volba = 'kmz' if course_src == 'kmz' or (e.maponly_file and (e.maponly_source or 'kmz') == 'kmz') else 'snimky' if course_src == 'screen' or screen or screen_pending else 'foto' if course_src in ('image', 'photo', 'manual') or has_photo else '' %}
+<section class="podklady-blok" id="podklady-mapa" aria-labelledby="h-mapa">
+  <p class="eyebrow">{{ _('Mapové podklady') }}</p>
+  <h3 id="h-mapa">{{ _('Jakou podobu mapy máš?') }}</h3>
+  <p class="sub">{{ _('Nejdřív je vidět, co je k závodu uložené. Pod tím vyber, v jaké podobě mapu máš; ukážou se jen pole, která k ní patří.') }}</p>
+  <div class="mapa-stav">
+    <p class="mapa-stav-titulek">{{ _('Co je uložené teď') }}</p>
+    <dl class="mapa-stav-polozky">
+      <div>
+        <dt>{% trans name=e.class_name %}Mapa s tratí · kategorie {{ name }}{% endtrans %}
+          {% if e.course_file %}<span class="stav ob-ok">{{ _('Nahraná') }}</span>
+          {% elif screen_pending and screen_pending.course_file %}<span class="stav ob-wait">{{ _('Čeká na zpracování') }}</span>
+          {% elif has_photo %}<span class="stav ob-wait">{{ _('Čeká na usazení') }}</span>
+          {% else %}<span class="stav ob-off">{{ _('Chybí') }}</span>{% endif %}</dt>
+        <dd>{% if e.course_file %}{% trans src=src_names.get(course_src, '?') %}Zdroj: {{ src }}{% endtrans %}{% if course_acc %}, {% trans acc=course_acc %}přesnost asi ±{{ acc }} m{% endtrans %}{% endif %}.
+          {% if course_by_hand %}{{ _('Kontroly tratě jsou označené ručně.') }}{% endif %}
+          {% elif screen_pending and screen_pending.course_file %}{{ _('Snímek s tratí čeká na běh a mezičasy, nebo na zpracování.') }}
+          {% elif has_photo %}{{ _('Fotka je uložená; usadí se, až bude běh i mezičasy, nebo ji usaď ručně.') }}
+          {% else %}{{ _('Z ní se čtou kontroly a jejich pořadí.') }}{% endif %}
+          {# tools only where they make sense and the server offers them #}
+          <span class="akce-rada">
+          {% if has_photo %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id) }}">{{ _('Usadit fotku ručně') }}</a>{% endif %}
+          {% if screen %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=e.id, snimek=1) }}">{{ _('Oříznout snímek') }}</a>{% endif %}
+          {% if e.course_file %}<a class="btn btn-maly" href="{{ url_for('ob.course_fix_page', entry_id=e.id) }}">{{ _('Doplnit kontroly') }}</a>{% endif %}
+          {% if e.activity_id and course_src in ('kmz', 'screen') %}<a class="btn btn-maly" href="{{ url_for('ob.map_fix_page', entry_id=e.id) }}">{{ _('Usadit mapu ručně') }}</a>{% endif %}
+          </span></dd>
+      </div>
+      <div>
+        <dt>{{ _('Mapa bez tratě · celý závod') }}
+          {% if e.maponly_file %}<span class="stav ob-ok">{{ _('Nahraná') }}</span>
+          {% elif screen_pending and screen_pending.maponly_file %}<span class="stav ob-wait">{{ _('Čeká na druhý snímek') }}</span>
+          {% else %}<span class="stav ob-off">{{ _('Chybí') }}</span>{% endif %}</dt>
+        <dd>{% if e.maponly_file %}{% if maponly_acc %}{% trans acc=maponly_acc, res=num(e.maponly_res_m, 1) %}Ze snímku Livelox, přesnost asi ±{{ acc }} m,
+          {{ res }} m na pixel.{% endtrans %} {{ _('KMZ bez tratě nahradí mapu ze snímku a nejlepší postupy se přepočítají.') }}{% else %}{{ _('Zdroj: KMZ z Livelox.') }}{% endif %}
+          {% if e.maponly_who %}{% trans who=e.maponly_who %}Nahrál {{ who }}.{% endtrans %}{% endif %}
+          {% elif screen_pending and screen_pending.maponly_file %}{{ _('Snímek bez tratě čeká na snímek s tratí ze stejného pohledu.') }}
+          {% endif %}
+          {{ _('Z ní se čte terén pro nejlepší postupy.') if local_app else _('Z ní se čte terén pro nejlepší postupy. Stačí, když ji nahraje jeden člověk z oddílu.') }}</dd>
+      </div>
+    </dl>
+    {% if moved %}<form method="post" action="{{ url_for('ob.map_fix_revert', entry_id=e.id) }}" class="nastroje"
+          data-potvrdit="{{ _('Vrátit mapu do původní polohy? Ruční posun se zahodí a analýzy závodu se pustí znovu.') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <span>{% trans m='%.0f' | format(moved.shift_m) %}Mapa závodu je posunutá ručně o {{ m }} m.{% endtrans %}</span>
+      <button type="submit" class="btn btn-maly">{{ _('Vrátit původní usazení') }}</button></form>{% endif %}
+  </div>
+  <details class="vysvetlivka">
+    <summary>{{ _('Co znamenají stavy podkladů?') }}</summary>
+    <dl>
+      <dt>{{ _('Chybí') }}</dt><dd>{{ _('Soubor zatím nikdo nenahrál.') }}</dd>
+      <dt>{{ _('Čeká na zpracování / usazení') }}</dt><dd>{{ _('Soubor je přijatý a uložený, ale ještě se nepoužil: čeká na běh z hodinek, na mezičasy z ORIS, na druhý snímek nebo na frontu úloh.') }}</dd>
+      <dt>{{ _('Zpracovává se') }}</dt><dd>{{ _('Úloha běží na pozadí (stav je v Úlohách a dole na stránce).') }}</dd>
+      <dt>{{ _('Nahraná / hotovo') }}</dt><dd>{{ _('Podklad je použitelný pro rozbor.') }}</dd>
+      <dt>{{ _('Chyba / vyžaduje ruční zásah') }}</dt><dd>{{ _('Zpracování se nepovedlo; u úlohy je důvod a nabídka ruční opravy (usadit fotku, oříznout snímek, doplnit kontroly).') }}</dd>
+    </dl>
+  </details>
+
+  <div class="volby" data-volby="{{ e.id }}" data-vychozi="{{ volba }}" role="group" aria-label="{{ _('Způsob dodání mapy') }}">
+    <button type="button" class="volba" data-volba="kmz" aria-pressed="false" aria-controls="volba-kmz">
+      <span class="volba-cislo" aria-hidden="true">01</span>
+      <span class="volba-text"><b>{{ _('Mapa z Liveloxu') }}</b><small>{{ _('Nejpřesnější varianta · stáhneš KMZ') }}</small></span>
+      <span class="volba-znacka">{{ _('Doporučeno') }}</span></button>
+    <button type="button" class="volba" data-volba="snimky" aria-pressed="false" aria-controls="volba-snimky">
+      <span class="volba-cislo" aria-hidden="true">02</span>
+      <span class="volba-text"><b>{{ _('Snímky obrazovky z Liveloxu') }}</b><small>{{ _('Když stažení KMZ není dostupné') }}</small></span></button>
+    <button type="button" class="volba" data-volba="foto" aria-pressed="false" aria-controls="volba-foto">
+      <span class="volba-cislo" aria-hidden="true">03</span>
+      <span class="volba-text"><b>{{ _('Fotka papírové mapy') }}</b><small>{{ _('Záložní varianta · JPG nebo PNG') }}</small></span></button>
+  </div>
+  <p class="volba-vyzva" data-volba-vyzva>{{ ikona('sipka') }}<span><b>{{ _('Nejdřív vyber jednu z možností výše.') }}</b>
+    {{ _('Nemusíš mít všechno hned: podklady můžeš nahrát po částech a vrátit se k nim později.') }}</span></p>
+
+  <div class="volba-panel" id="volba-kmz" data-volba-panel="kmz" hidden>
+    <p class="eyebrow">{{ _('01 · doporučená varianta') }}</p>
+    <h4>{{ _('KMZ z Liveloxu') }}</h4>
+    <p>{{ _('Dva různé soubory, protože každý slouží k něčemu jinému: z mapy s tratí se čtou kontroly, z mapy bez tratě terén pro nejlepší postupy. Každý můžeš nahrát zvlášť.') }}</p>
+    <div class="volba-pole">
+      <div>
+        <h5>{% trans name=e.class_name %}Mapa s tratí · kategorie {{ name }}{% endtrans %}
+          {% if course_src == 'kmz' %}<span class="stav ob-ok">{{ _('Nahraná') }}</span>{% endif %}</h5>
+        <p>{{ _('V Livelox „Mapa s tratí“ pro tvoji kategorii.') }}</p>
+        <label class="ob-pole ob-drop">{{ _('Mapa s tratí (.kmz)') }}
+          <input type="file" name="course" form="nahrat-podklady" accept=".kmz" data-vyber></label>
+      </div>
+      <div>
+        <h5>{{ _('Mapa bez tratě · celý závod') }}
+          {% if e.maponly_file and e.maponly_source != 'snimek' %}<span class="stav ob-ok">{{ _('Nahraná') }}</span>{% endif %}</h5>
+        <p>{{ _('V Livelox „Pouze mapa“. Stačí jedna pro celý závod.') }}</p>
+        <label class="ob-pole ob-drop">{{ _('Mapa bez tratě (.kmz)') }}
+          <input type="file" name="maponly" form="nahrat-podklady" accept=".kmz" data-vyber></label>
+      </div>
+    </div>
+    <dl class="co-ziskas">
+      <div><dt>{{ _('Co z toho bude') }}</dt><dd>{{ _('Kontroly, přesná poloha mapy, nejlepší postupy, záchytné body a „Ztratil jsem se“.') }}</dd></div>
+      <div><dt>{{ _('Jak je stáhnout') }}</dt><dd>{% if livelox %}<a href="{{ livelox }}" target="_blank" rel="noopener">{{ _('Otevřít závod v Livelox') }}</a>:
+        {% endif %}{% trans %}vyber závod a kategorii, v zobrazení mapy vpravo nahoře tři čárky → Stáhnout mapu.
+        Dvakrát: Mapa s tratí (KMZ) a Pouze mapa (KMZ).{% endtrans %}</dd></div>
+    </dl>
+  </div>
+
+  <div class="volba-panel" id="volba-snimky" data-volba-panel="snimky" hidden>
+    <p class="eyebrow">{{ _('02 · alternativa') }}</p>
+    <h4>{{ _('Snímky obrazovky z Liveloxu') }}</h4>
+    <p>{{ _('Dva snímky ze stejného pohledu: jeden s tratí (z něj se čtou kontroly) a druhý s vypnutou tratí (z něj se čte terén). Můžeš je nahrát najednou nebo každý zvlášť, klidně před během; aplikace počká na běh i na mezičasy z ORIS.') }}</p>
+    <div class="volba-pole">
+      <div>
+        <h5>{{ _('Snímek s tratí') }}{% if screen %} <span class="stav ob-ok">{{ _('Uložený') }}</span>{% elif screen_pending and screen_pending.course_file %} <span class="stav ob-wait">{{ _('Čeká') }}</span>{% endif %}</h5>
+        {% if screen %}<p>{% trans w=screen.width, h=screen.height %}Uložený snímek má {{ w }} × {{ h }} px.{% endtrans %}</p>{% endif %}
+        <label class="ob-pole ob-drop">{{ _('Snímek s tratí (png, jpg)') }}
+          <input type="file" name="screen_course" form="nahrat-podklady" accept=".png,.jpg,.jpeg" data-vyber></label>
+      </div>
+      <div>
+        <h5>{{ _('Snímek bez tratě') }}{% if screen_pending and screen_pending.maponly_file %} <span class="stav ob-wait">{{ _('Čeká') }}</span>{% endif %}</h5>
+        <p>{{ _('Stejný pohled, jen s vypnutou tratí.') }}</p>
+        <label class="ob-pole ob-drop">{{ _('Snímek bez tratě (png, jpg)') }}
+          <input type="file" name="screen_maponly" form="nahrat-podklady" accept=".png,.jpg,.jpeg" data-vyber></label>
+      </div>
+    </div>
+    <dl class="co-ziskas">
+      <div><dt>{{ _('Co z toho bude') }}</dt><dd>{{ _('Kontroly a terén skoro jako z KMZ; přesnost polohy je o něco horší (uvidíš ji u mapy).') }}</dd></div>
+      <div><dt>{{ _('Když se snímek neusadí') }}</dt><dd>{{ _('Úloha nabídne ruční oříznutí snímku (bez lišt a tlačítek Livelox).') }}</dd></div>
+      <div><dt>{{ _('Jak je udělat') }}</dt><dd>{% trans help=url_for('ob.help_page') %}<a href="{{ help }}#snimky">Návod pro Chrome</a>. Jen pro vlastní rozbor, nesdílej je dál.{% endtrans %}</dd></div>
+    </dl>
+  </div>
+
+  <div class="volba-panel" id="volba-foto" data-volba-panel="foto" hidden>
+    <p class="eyebrow">{{ _('03 · záložní varianta') }}</p>
+    <h4>{{ _('Fotka papírové mapy') }}</h4>
+    <p>{{ _('Fotka pomůže rozpoznat kontroly a tvoje chyby, ale nedodá spolehlivý terén pro výpočet nejlepších postupů.') }}</p>
+    <div class="volba-pole jedno">
+      <div>
+        <h5>{{ _('Fotka mapy s tratí') }}{% if has_photo %} <span class="stav ob-wait">{{ _('Uložená') }}</span>{% endif %}</h5>
+        <p>{{ _('Celou mapu shora, za světla a bez blesku; mapu polož rovně a nic ať nezakrývá kontroly.') }}</p>
+        <label class="ob-pole ob-drop">{{ _('Fotka mapy (jpg, png)') }}
+          <input type="file" name="course_photo" form="nahrat-podklady" accept=".jpg,.jpeg,.png" data-vyber></label>
+      </div>
+    </div>
+    <dl class="co-ziskas">
+      <div><dt>{{ _('Co z toho bude') }}</dt><dd>{{ _('Kontroly a stopa na mapě s přesností asi ±15 m. Nejlepší postupy až s mapou bez tratě.') }}</dd></div>
+      <div><dt>{{ _('Usazení') }}</dt><dd>{{ _('Fotka se usadí sama podle kontrol a tvé stopy v časech ražení. Když to nejde, usadíš ji ručně: označ aspoň 4 kontroly co nejdál od sebe (rohy tratě).') }}</dd></div>
+    </dl>
+  </div>
+  <p class="hint">{{ _('Mapy vidí jen přihlášení členové a nejdou z aplikace stáhnout.') if not local_app else _('Mapy zůstávají jen v tomhle počítači.') }}
+    {% trans help=url_for('ob.help_page') %}<a href="{{ help }}#livelox">Jak na mapy z Livelox</a>{% endtrans %}</p>
+</section>
+<div class="odeslat-rada">
+  <button type="submit" form="nahrat-podklady" class="btn btn-hlavni">{{ ikona('nahrat') }}{{ _('Nahrát vybrané soubory') }}</button>
+  <span class="hint ob-nahravani-stav" data-form="nahrat-podklady" role="status" aria-live="polite">{{ _('Soubory jde do polí i přetáhnout myší. Analýza se po nahrání spustí sama.') }}</span>
 </div>
+
+<section class="podklady-blok" aria-labelledby="h-analyza">
+  <p class="eyebrow">{{ _('Výpočet') }}</p>
+  <h3 id="h-analyza">{{ _('Analýza závodu') }}</h3>
+  <form method="post" action="{{ url_for('ob.race_reanalyse', entry_id=e.id) }}" class="controls">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <span class="hint" style="margin:0">{{ _('Analýza se spouští sama po každé změně podkladů. Ručně je potřeba jen výjimečně.') }}</span>
+    <button type="submit" class="btn"{% if progress %} disabled title="{{ _('Analýza už čeká nebo běží') }}"{% endif %}>{{ ikona('obnovit') }}{{ _('Spustit analýzu znovu') }}</button>
+  </form>
+</section>
 {% if local_app %}
-<form method="post" action="{{ url_for('ob.race_file_save', entry_id=e.id) }}" class="karta" id="soubor">
+<form method="post" action="{{ url_for('ob.race_file_save', entry_id=e.id) }}" class="podklady-blok" id="soubor">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h3>Poslat závod jinému běžci</h3>
-  <p>Uloží závod do souboru <b>.obzavod</b>: mapy, trať, oficiální časy, občerstvení a zakázané čáry. Druhý běžec ho
-    načte ve svých závodech (Načíst závod ze souboru) a nahraje k němu svůj běh.</p>
-  <label class="check"><input type="checkbox" name="stopa" value="1"> přidat i můj běh z hodinek a můj výsledek</label>
-  <label class="check"><input type="checkbox" name="nastaveni" value="1"> přidat i moje nastavení a poznámky k úsekům</label>
-  <p class="hint">Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu. Bez zaškrtnutí v souboru
-    není nic tvého, jen to, co mají všichni běžci závodu.</p>
-  <button type="submit" class="btn">Uložit závod do souboru</button>
+  <p class="eyebrow">{{ _('Sdílení mezi běžci') }}</p>
+  <h3>{{ _('Poslat závod jinému běžci') }}</h3>
+  <p>{% trans %}Uloží závod do souboru <b>.obzavod</b>: mapy, trať, oficiální časy, občerstvení a zakázané čáry. Druhý běžec ho
+    načte ve svých závodech (Načíst závod ze souboru) a nahraje k němu svůj běh.{% endtrans %}</p>
+  <label class="check"><input type="checkbox" name="stopa" value="1"> {{ _('přidat i můj běh z hodinek a můj výsledek') }}</label>
+  <label class="check"><input type="checkbox" name="nastaveni" value="1"> {{ _('přidat i moje nastavení a poznámky k úsekům') }}</label>
+  <p class="hint">{% trans %}Mapa patří pořadateli a mapaři: posílej ji jen ostatním účastníkům závodu. Bez zaškrtnutí v souboru
+    není nic tvého, jen to, co mají všichni běžci závodu.{% endtrans %}</p>
+  <button type="submit" class="btn">{{ ikona('sdilet') }}{{ _('Uložit závod do souboru') }}</button>
 </form>
 {% endif %}
 </section>

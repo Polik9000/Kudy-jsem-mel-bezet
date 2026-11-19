@@ -73,7 +73,8 @@
 {% endif %}
 
 <h2>{{ _('Běžci kategorie') }}</h2>
-<div class="tablewrap"><table>
+<div class="filtry"><input type="search" data-filter="#bezci-kategorie" placeholder="{{ _('Hledat běžce nebo oddíl') }}" aria-label="{{ _('Hledat běžce nebo oddíl') }}" autocomplete="off"></div>
+<div class="tablewrap"><table id="bezci-kategorie">
   <thead><tr><th class="num" data-sort="number">{{ _('Místo') }}</th><th data-sort="text">{{ _('Jméno') }}</th><th data-sort="text">{{ _('Oddíl') }}</th>
       <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">{{ _('Ztráta') }}</th>
       <th class="num" data-sort="number">{{ _('Normál') }}</th><th class="num" data-sort="number">{{ _('Chyb') }}</th>
@@ -91,6 +92,8 @@
   {% endfor %}
   </tbody>
 </table></div>
+<div class="prazdno filtr-prazdno" data-filter-empty="#bezci-kategorie" hidden><b>{{ _('Hledání neodpovídá žádný běžec.') }}</b>
+  <div class="prazdno-akce"><button type="button" class="btn btn-maly" data-filter-reset="#bezci-kategorie">{{ _('Zrušit hledání') }}</button></div></div>
 <p class="hint">{% trans %}Sloupce Normál, Chyb a Ztraceno chybami se počítají pro každého běžce stejnou metodou z veřejných
   mezičasů ORIS (proto je mají i ostatní). <b>Normál</b> je tvoje obvyklé tempo proti referenci, 100 % = jako reference.
   Výsledky a mezičasy jsou veřejné údaje z ORIS. Stopy z hodinek ostatních běžců aplikace neukazuje.{% endtrans %}</p>

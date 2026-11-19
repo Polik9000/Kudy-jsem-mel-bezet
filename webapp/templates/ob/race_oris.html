@@ -1,47 +1,66 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Přidat závod z ORIS') }}{% endblock %}
+{% set aktivni = 'races' %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ _('Přidat závod z ORIS') }}</h2>
-{% if umbrella %}
-<p class="evhead">{{ umbrella.name }} · {{ umbrella.date | datum }}
-  {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">{{ _('závod v ORIS') }} ↗</a>{% endif %}</p>
-<p class="nota">{% trans %}Etapový závod: mapy, tratě a mezičasy patří k jednotlivým etapám. Vyber etapu, kterou jsi běžel, pak
-  kategorii.{% endtrans %}</p>
-{% if stage_races %}
-<ul class="karta ob-etapy">
-  {% for s in stage_races %}
-  <li><a href="{{ url_for('ob.race_oris_class', oris_id=s.oris_id) }}">{% if s.stage_n %}E{{ s.stage_n }} / {{ s.stage_count }} · {% endif %}{{ s.name }}</a>
-    · {{ s.date | datum }}{% if s.discipline %} · {{ s.discipline }}{% endif %}</li>
+{% with nadpis=_('Přidat závod z ORIS'), cesta='oris', podnadpis=_('Pro závod z ORIS, kde nejsi v přihláškách pod svou registračkou (běžel jsi za někoho, na místě, jinou kategorii). Závody, na které jsi přihlášený, se načtou samy.') %}{% include "ob/_race_add_head.html" %}{% endwith %}
+{# the steps: find the race, (the stage), the class, add #}
+{% set krok = 3 if (ev and not have) else 2 if (umbrella or have) else 1 %}
+<ol class="kroky-oris" aria-label="{{ _('Postup') }}">
+  {% for n, label in [(1, _('Vyhledání')), (2, _('Nalezený závod a etapa')), (3, _('Kategorie')), (4, _('Přidání'))] %}
+  <li{% if n == krok %} aria-current="step"{% elif n < krok %} class="hotovo"{% endif %}><span class="krok-cislo">{{ n }}</span>{{ label }}</li>
   {% endfor %}
-</ul>
-{% else %}
-<p class="nota">{% trans %}Etapy se z ORIS načíst nepodařilo, zkus to později.{% endtrans %}</p>
-{% endif %}
+</ol>
+{% if umbrella %}
+<div class="karta" style="max-width:56rem">
+  <h2 class="sectiontitle">{{ _('Nalezený závod') }}</h2>
+  <p><b>{{ umbrella.name }}</b> · {{ umbrella.date | datum }}
+    {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">{{ _('závod v ORIS') }}{{ ikona('ven') }}</a>{% endif %}</p>
+  <p class="nota">{% trans %}Etapový závod: mapy, tratě a mezičasy patří k jednotlivým etapám. Vyber etapu, kterou jsi běžel, pak
+    kategorii.{% endtrans %}</p>
+  {% if stage_races %}
+  <ul class="ob-etapy volby-seznam">
+    {% for s in stage_races %}
+    <li><a class="btn" href="{{ url_for('ob.race_oris_class', oris_id=s.oris_id) }}">{% if s.stage_n %}E{{ s.stage_n }} / {{ s.stage_count }} · {% endif %}{{ s.name }}
+      · {{ s.date | datum }}{% if s.discipline %} · {{ s.discipline }}{% endif %}{{ ikona('sipka') }}</a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="stalewarn">{% trans %}Etapy se z ORIS načíst nepodařilo, zkus to později.{% endtrans %}</p>
+  {% endif %}
+</div>
 {% elif not ev %}
-<p class="evhead">{% trans %}Pro závod z ORIS, kde nejsi v přihláškách pod svou registračkou (běžel jsi za někoho, na místě, jinou
-  kategorii). Závody, na které jsi přihlášený, se načtou samy.{% endtrans %}</p>
-<form method="post" class="karta ob-form">
+<form method="post" class="karta ob-form" role="search">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label>{{ _('Číslo závodu v ORIS nebo odkaz') }}
-    <input name="zavod" required value="{{ request.form.get('zavod', '') }}" placeholder="https://oris.ceskyorientak.cz/Zavod?id=9827"></label>
-  <button type="submit" class="btn btn-hlavni">{{ _('Najít závod') }}</button>
+    <input name="zavod" required value="{{ request.form.get('zavod', '') }}" placeholder="https://oris.ceskyorientak.cz/Zavod?id=9827">
+    <span class="pole-napoveda">{{ _('Číslo najdeš v adrese závodu v ORIS (…/Zavod?id=9827). Aplikace se ORIS zeptá jen na veřejné údaje závodu.') }}</span></label>
+  <button type="submit" class="btn btn-hlavni">{{ ikona('kontrola') }}{{ _('Najít závod') }}</button>
+  <p class="hint" style="margin-top:12px">{% trans url=url_for('ob.race_new') %}ORIS nefunguje nebo závod v něm není? <a href="{{ url }}">Přidej závod ručně</a>; mezičasy se pak vezmou z GPS.{% endtrans %}</p>
 </form>
 {% else %}
-<p class="evhead">{{ ev.name }} · {{ ev.date | datum }}{% if ev.place %} · {{ ev.place }}{% endif %}
-  {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">{{ _('závod v ORIS') }} ↗</a>{% endif %}</p>
-{% if have %}
-<p class="nota">{% trans name=have.name, url=url_for('ob.race', entry_id=have.id) %}Tenhle závod už mezi svými závody máš (kategorie {{ name }}):
-  <a href="{{ url }}#kategorie">otevřít</a>. Kategorii změníš na jeho stránce.{% endtrans %}</p>
-{% elif classes %}
-<form method="post" class="karta ob-form">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>{{ _('Kategorie, kterou jsi běžel') }}
-    <select name="class_id">{% for c in classes %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
-  <p class="hint">{% trans %}Oficiální čas a mezičasy se vezmou z výsledků kategorie, když v nich jsi; jinak z GPS.{% endtrans %}</p>
-  <button type="submit" class="btn btn-hlavni">{{ _('Přidat') }}</button>
-</form>
-{% else %}
-<p class="nota">{% trans %}Závod v ORIS nemá žádné kategorie.{% endtrans %}</p>
-{% endif %}
+<div class="karta" style="max-width:56rem">
+  <h2 class="sectiontitle">{{ _('Nalezený závod') }}</h2>
+  <p><b>{{ ev.name }}</b> · {{ ev.date | datum }}{% if ev.place %} · {{ ev.place }}{% endif %}
+    {% if oris_url %} · <a href="{{ oris_url }}" rel="noopener">{{ _('závod v ORIS') }}{{ ikona('ven') }}</a>{% endif %}</p>
+  {% if have %}
+  <p class="nota">{% trans name=have.name, url=url_for('ob.race', entry_id=have.id) %}Tenhle závod už mezi svými závody máš (kategorie {{ name }}):
+    <a href="{{ url }}#kategorie">otevřít</a>. Kategorii změníš na jeho stránce.{% endtrans %}</p>
+  <a class="btn btn-hlavni" href="{{ url_for('ob.race', entry_id=have.id) }}">{{ _('Otevřít uložený závod') }}{{ ikona('sipka') }}</a>
+  {% elif classes %}
+  <form method="post" class="ob-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>{{ _('Kategorie, kterou jsi běžel') }}
+      <select name="class_id">{% for c in classes %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
+    <p class="hint">{% trans %}Oficiální čas a mezičasy se vezmou z výsledků kategorie, když v nich jsi; jinak z GPS.{% endtrans %}</p>
+    <div class="akce-rada">
+      <button type="submit" class="btn btn-hlavni">{{ ikona('plus') }}{{ _('Přidat') }}</button>
+      <a class="btn btn-tichy" href="{{ url_for('ob.race_oris') }}">{{ _('Hledat jiný závod') }}</a>
+    </div>
+  </form>
+  {% else %}
+  <p class="nota">{% trans %}Závod v ORIS nemá žádné kategorie.{% endtrans %}</p>
+  <a class="btn" href="{{ url_for('ob.race_new') }}">{{ _('Přidat závod ručně') }}</a>
+  {% endif %}
+</div>
 {% endif %}
 {% endblock %}

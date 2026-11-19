@@ -3,6 +3,7 @@ import datetime as dt
 import io
 import json
 import os
+import re
 
 import pytest
 from conftest import FakeOris, clear_jobs, csrf, post, register
@@ -139,7 +140,10 @@ def test_map_upload_is_shared_by_the_event(app, client, user):
     theirs = con.execute("INSERT INTO entries (user_id, class_id) VALUES (?, ?)", (other, cls)).lastrowid
     con.commit()
     html = client.get(f"/races/{theirs}").get_data(as_text=True)
-    assert html.count("nahraná") == 1 and html.count(">chybí<") == 1
+    # the list of what the analysis needs (race.html): the map without course is there, the course of D21C is not
+    states = {name.strip(): st for st, name in
+              re.findall(r'<li class="prip-polozka" data-stav="(\w+)">\s*<b>([^<]*)</b>', html)}
+    assert states["Mapa bez tratě · celý závod"] == "ok" and states["Mapa s tratí · D21C"] == "chybi", states
     # and cannot open somebody else's race
     assert client.get(page).status_code == 404
     assert client.get(page + "/data.json").status_code == 404
@@ -442,7 +446,8 @@ def test_run_and_both_maps_in_one_form(app, client, user):
     page = f"/races/{mine}"
     html = client.get(page).get_data(as_text=True)
     # nothing is there yet: the page opens on the tab where the files go and says what is missing
-    assert 'data-vychozi="podklady"' in html and html.count('data-tab="podklady"') == 3
+    assert 'data-vychozi="podklady"' in html and "Další krok: nahraj běh z hodinek" in html
+    assert html.count('data-stav="chybi"') == 3                  # the run and both maps
     course, maponly, fit = inputs("pohora")
     files = {name: (open(path, "rb"), os.path.basename(path)) for name, path in
              (("fit", fit), ("course", course), ("maponly", maponly))}
@@ -455,7 +460,7 @@ def test_run_and_both_maps_in_one_form(app, client, user):
     assert [tuple(j) for j in queued] == [("analyse", mine)]
     html = client.get(page).get_data(as_text=True)
     assert "spárovaný s tímhle závodem" in html and "uložená pro kategorii" in html and "uložená pro všechny" in html
-    assert 'class="ob-kroky"' not in html                # nothing is missing any more
+    assert 'data-stav="chybi"' not in html                # nothing is missing any more
     # a file that is not a run is refused, and nothing chosen is said so
     r = client.post(page + "/files", data=dict(csrf_token=csrf(client), fit=(io.BytesIO(b"x"), "photo.fit")),
                     content_type="multipart/form-data", follow_redirects=True)

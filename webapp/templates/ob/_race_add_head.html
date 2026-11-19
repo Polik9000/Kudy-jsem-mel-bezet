@@ -1,0 +1,14 @@
+{# Head of the three ways to add a race (race_oris, race_new, race_file): the way chosen and the other ones. #}
+<a class="zpet-odkaz" href="{{ url_for('ob.races') }}">{{ ikona('zpet') }}{{ _('Zpět na závody') }}</a>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Přidat závod') }}</p>
+    <h1>{{ nadpis }}</h1>
+    {% if podnadpis %}<p class="sub">{{ podnadpis }}</p>{% endif %}
+  </div>
+</header>
+<nav class="taby" aria-label="{{ _('Způsob přidání závodu') }}">
+  <a class="tab{{ ' aktivni' if cesta == 'oris' }}" href="{{ url_for('ob.race_oris') }}"{% if cesta == 'oris' %} aria-current="page"{% endif %}>{{ _('Z ORIS') }}</a>
+  <a class="tab{{ ' aktivni' if cesta == 'rucne' }}" href="{{ url_for('ob.race_new') }}"{% if cesta == 'rucne' %} aria-current="page"{% endif %}>{{ _('Ručně') }}</a>
+  {% if local_app %}<a class="tab{{ ' aktivni' if cesta == 'soubor' }}" href="{{ url_for('ob.race_file_load') }}"{% if cesta == 'soubor' %} aria-current="page"{% endif %}>{{ _('Ze souboru .obzavod') }}</a>{% endif %}
+</nav>

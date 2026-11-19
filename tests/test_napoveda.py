@@ -21,7 +21,7 @@ def test_help_page_is_open_and_linked_from_the_header_and_the_empty_list(app, cl
         assert words in html, words
     for gone in ("OB postupy", "Exportovat originál", "Google Earth (KMZ)"):   # not advised any more
         assert gone not in html, gone
-    assert "<img" not in html.split("ikona-nadpis")[1].split("<footer")[0]       # (no pictures of other sites)
+    assert "<img" not in html.split("<main")[1].split("<footer")[0]       # (no pictures of other sites)
     assert 'href="/jak-na-to"' in client.get("/login").get_data(as_text=True)
 
 
@@ -70,8 +70,8 @@ def test_race_page_takes_the_zip_of_one_activity(app, client, user):
                     " WHERE ev.oris_id = 8989").fetchone()["id"]
     html = client.get(f"/races/{e}").get_data(as_text=True)
     assert 'accept=".fit,.zip"' in html
-    # the three ways to the map, best first
-    heads = ["1. KMZ z Livelox", "2. Dva snímky z Livelox", "3. Fotka papírové mapy"]
+    # the three ways to the map, best first (the choice in Podklady, race.html)
+    heads = ["Mapa z Liveloxu", "Snímky obrazovky z Liveloxu", "Fotka papírové mapy"]
     assert [html.index(h) for h in heads] == sorted(html.index(h) for h in heads)
     one = (io.BytesIO(_one_run_zip("pohora")), "x.zip")
     r = client.post(f"/races/{e}/files", data=dict(csrf_token=csrf(client), fit=one),

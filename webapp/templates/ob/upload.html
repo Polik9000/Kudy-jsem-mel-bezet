@@ -1,48 +1,116 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Nahrát běhy') }}{% endblock %}
+{% set aktivni = 'upload' %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Nahrát běhy') }}</h2>
-{% if local_app %}<p class="karta ob-hodinky" data-hodinky="{{ url_for('ob.watch_news') }}" data-ted-ne="{{ url_for('ob.watch_not_now') }}" role="status" hidden></p>{% endif %}
-{% if local_app %}
-{# the simplest ways first (Jak na to, #garmin): straight from the account or from the watch #}
-<p class="karta"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}</a>
-  <span class="hint">{% trans %}Bez ručního exportu: appka si běhy stáhne z tvého účtu Garmin klíčem, který vložíš jen sem.{% endtrans %}</span></p>
-<p class="karta"><a class="btn" href="{{ url_for('ob.watch_page') }}">{{ _('Načíst z hodinek přes USB nebo ze složky') }}</a>
-  <span class="hint">{{ _('Hodinky Garmin připojené kabelem jako disk, nebo složka se soubory .fit.') }}</span></p>
-{% endif %}
-<form method="post" enctype="multipart/form-data" class="karta" data-nahravani data-pretahni>
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label class="ob-pole">{{ _('Soubory .fit nebo .zip (jde vybrat víc najednou)') }}
-    <input type="file" name="files" multiple accept=".fit,.zip" required></label>
-  <p class="hint">{% trans %}Jednotlivé soubory <b>.fit</b> z hodinek, nebo celý <b>export účtu Garmin</b> (zip z Garmin Connect,
-    Správa dat, Export dat). Běhy se samy spárují se závody podle data, času startu a vzdálenosti od centra závodu.
-    Z celého exportu se navíc spočítá tvůj model kopců. Po zpracování aplikace smaže pouze nahranou dočasnou
-    kopii ZIPu ze svého úložiště; původní soubor ve tvém počítači zůstává beze změny. V aplikaci zůstanou běhy
-    spárované se závody a běhy ze dne a místa závodu, které se nespárovaly (ty přiřadíš nebo smažeš níže).
-    Ostatní běhy se z aplikace smažou kvůli ochraně soukromí a vrátí se jen opětovným nahráním exportu.
-    Před párováním se z ORIS načtou tvoje závody. Velký export se nahrává i několik minut.{% endtrans %}</p>
-  <div class="controls">
-    <button type="submit" class="btn btn-hlavni">{{ _('Nahrát') }}</button>
-    <span class="hint ob-nahravani-stav" role="status"></span>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Import aktivit') }}</p>
+    <h1>{{ _('Nahrát běhy') }}</h1>
+    <p class="sub">{% trans %}Přenes záznamy z hodinek Garmin a spáruj je se závody. Párování jde samo podle data, času startu
+      a vzdálenosti od centra závodu.{% endtrans %}</p>
   </div>
-</form>
-<h2>{% trans %}Nahrané aktivity ({{ total }}){% endtrans %}</h2>
+  <div class="page-actions"><a class="btn" href="{{ url_for('ob.race_oris') }}">{{ ikona('plus') }}{{ _('Přidat závod') }}</a></div>
+</header>
+{% if local_app %}<p class="nota ob-hodinky" data-hodinky="{{ url_for('ob.watch_news') }}" data-ted-ne="{{ url_for('ob.watch_not_now') }}" role="status" hidden></p>{% endif %}
+<p class="nota">{% trans %}<b>Podporované vstupy:</b> jednotlivé soubory Garmin <b>.fit</b> nebo celý ZIP export účtu Garmin Connect.
+  Jiné formáty (GPX, TCX) aplikace nečte.{% endtrans %}</p>
+
+<div class="cesty">
+  {% if local_app %}
+  {# the simplest ways first (Jak na to, #garmin): straight from the account or from the watch #}
+  <section class="cesta" aria-labelledby="c-garmin">
+    {{ ikona('kompas') }}
+    <h2 id="c-garmin">{{ _('Garmin Connect') }}</h2>
+    <p>{% trans %}Bez ručního exportu: appka si vybrané běhy stáhne z tvého účtu klíčem Personal API, který vložíš jen sem. Heslo
+      Garminu nepotřebuje.{% endtrans %}</p>
+    <div class="akce-rada"><a class="btn" href="{{ url_for('ob.garmin_page') }}">{{ _('Načíst přímo z Garmin Connect') }}{{ ikona('sipka') }}</a></div>
+  </section>
+  <section class="cesta" aria-labelledby="c-hodinky">
+    {{ ikona('hodinky') }}
+    <h2 id="c-hodinky">{{ _('Hodinky přes USB nebo složka') }}</h2>
+    <p>{{ _('Hodinky Garmin připojené kabelem jako disk, nebo složka se soubory .fit. Na hodinkách se nic nemění ani nemaže.') }}</p>
+    <div class="akce-rada"><a class="btn" href="{{ url_for('ob.watch_page') }}">{{ _('Načíst z hodinek přes USB nebo ze složky') }}{{ ikona('sipka') }}</a></div>
+  </section>
+  {% endif %}
+  <section class="cesta hlavni" aria-labelledby="c-soubory">
+    {{ ikona('nahrat') }}
+    <h2 id="c-soubory">{{ _('Soubory z počítače') }}</h2>
+    <p>{{ _('Jeden nebo více souborů .fit, nebo celý ZIP export z Garmin Connect (Správa dat, Export dat). ZIP nemusíš rozbalovat.') }}</p>
+    <form method="post" enctype="multipart/form-data" data-nahravani data-pretahni>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="ob-pole ob-drop velky"><span class="drop-titulek">{{ _('Přetáhni soubory sem') }}</span>
+        <span class="drop-text">{{ _('nebo je vyber; .fit nebo .zip, víc souborů najednou') }}</span>
+        <input type="file" name="files" multiple accept=".fit,.zip" required aria-label="{{ _('Soubory .fit nebo .zip (jde vybrat víc najednou)') }}"></label>
+      <div class="akce-rada">
+        <button type="submit" class="btn btn-hlavni">{{ ikona('nahrat') }}{{ _('Nahrát') }}</button>
+        <span class="hint ob-nahravani-stav" role="status" aria-live="polite" style="margin:0"></span>
+      </div>
+    </form>
+  </section>
+</div>
+<details class="vysvetlivka">
+  <summary>{{ _('Co se stane po nahrání a co zůstane po importu ZIP exportu?') }}</summary>
+  <dl>
+    <dt>{{ _('Přijato') }}</dt><dd>{{ _('Soubor se nahrál; vadný nebo nepodporovaný soubor se odmítne zvlášť a ostatní se zpracují dál (uvidíš to v hlášení nahoře).') }}</dd>
+    <dt>{{ _('Čeká a zpracovává se') }}</dt><dd>{% trans url=url_for('ob.jobs_page') %}Import běží na pozadí v <a href="{{ url }}">Úlohách</a>; mezitím můžeš pokračovat. Před párováním se z ORIS načtou tvoje závody.{% endtrans %}</dd>
+    <dt>{{ _('Hotovo') }}</dt><dd>{{ _('Běhy jsou v knihovně níže a spárované se závody. Z celého exportu se navíc spočítá tvůj model kopců.') }}</dd>
+    <dt>{{ _('ZIP export') }}</dt><dd>{% trans %}V aplikaci zůstanou jen běhy spárované se závody a běhy ze dne a místa závodu, které se nespárovaly
+      (ty přiřadíš nebo smažeš níže). Ostatní běhy se z aplikace smažou kvůli ochraně soukromí a vrátí se jen opětovným nahráním
+      exportu. Po zpracování aplikace smaže svou dočasnou kopii ZIPu; původní soubor ve tvém počítači zůstává beze změny.{% endtrans %}</dd>
+    <dt>{{ _('Velikost') }}</dt><dd>{{ _('Velký export se nahrává i několik minut; průběh nahrávání je vidět u tlačítka.') }}</dd>
+  </dl>
+</details>
+
+<header class="pagehead" style="margin-top:28px">
+  <div>
+    <p class="eyebrow">{{ _('Knihovna aktivit') }}</p>
+    <h2 style="margin:0">{% trans %}Nahrané aktivity ({{ total }}){% endtrans %}</h2>
+    <p class="sub">{{ _('Uložené záznamy a jejich přiřazení k závodům.') }}</p>
+  </div>
+</header>
 {% if acts %}
-<div class="tablewrap"><table>
+{% set sports = acts | map(attribute='sport') | unique | list %}
+<div class="filtry" role="search">
+  <input type="search" data-filter="#aktivity" placeholder="{{ _('Hledat aktivitu nebo závod') }}" aria-label="{{ _('Hledat aktivitu nebo závod') }}" autocomplete="off">
+  <select data-filter="#aktivity" data-filter-attr="parovani" aria-label="{{ _('Přiřazení') }}">
+    <option value="">{{ _('Všechna přiřazení') }}</option>
+    <option value="zavod">{{ _('Spárované se závodem') }}</option>
+    <option value="nesparovane">{{ _('Nespárované u závodu') }}</option>
+    <option value="ostatni">{{ _('Bez závodu') }}</option>
+  </select>
+  {% if sports | length > 1 %}
+  <select data-filter="#aktivity" data-filter-attr="sport" aria-label="{{ _('Sport') }}">
+    <option value="">{{ _('Všechny sporty') }}</option>
+    {% for s in sports %}<option value="{{ s }}">{{ sport_name(s) }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <select data-razeni="#aktivity" aria-label="{{ _('Řazení') }}">
+    <option value="start:desc">{{ _('Nejnovější') }}</option>
+    <option value="start:asc">{{ _('Nejstarší') }}</option>
+    <option value="cas:desc">{{ _('Nejdelší čas') }}</option>
+    <option value="km:desc">{{ _('Nejdelší vzdálenost') }}</option>
+  </select>
+</div>
+<p class="filtry-aktivni" data-filter-count="#aktivity"></p>
+<div class="tablewrap"><table id="aktivity">
   <thead><tr><th data-sort="text">{{ _('Start') }}</th><th data-sort="text">{{ _('Sport') }}</th><th class="num" data-sort="number">{{ _('Čas') }}</th>
-      <th class="num" data-sort="number">km</th><th>GPS</th><th data-sort="text">{{ _('Závod') }}</th></tr></thead>
+      <th class="num" data-sort="number">km</th><th>GPS</th><th data-sort="text">{{ _('Závod') }}</th><th><span class="sr-only">{{ _('Akce') }}</span></th></tr></thead>
   <tbody>
   {% for a in acts %}
-  <tr><td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ {'running': 'běh', 'walking': 'chůze', 'hiking': 'turistika', 'cycling': 'kolo', 'training': 'trénink',
-                  'generic': 'jiná aktivita', 'trail_running': 'běh v terénu'}.get(a.sport, a.sport) }}</td>
+  <tr data-sport="{{ a.sport }}" data-parovani="{{ 'zavod' if a.race_entry else 'nesparovane' if a.id in at_races else 'ostatni' }}"
+      data-k-start="{{ a.start_utc }}" data-k-cas="{{ a.timer_s or 0 }}" data-k-km="{{ '%.3f' | format((a.dist_m or 0) / 1000) }}">
+      <td data-value="{{ a.start_utc }}">{{ a.start_utc | kdy }}</td><td>{{ sport_name(a.sport) }}</td>
       <td class="num" data-value="{{ a.timer_s or 0 }}">{{ a.timer_s | mmss }}</td>
-      <td class="num">{{ '%.2f' | format((a.dist_m or 0) / 1000) }}</td>
+      <td class="num">{{ num((a.dist_m or 0) / 1000, 2) }}</td>
       <td>{{ _('ano') if a.has_gps else _('ne') }}</td>
-      <td class="ob-wrap">{% if a.race_entry %}<a href="{{ url_for('ob.race', entry_id=a.race_entry) }}">{{ a.race }}</a>
+      <td class="ob-wrap">{% if a.race_entry %}<span class="stav ob-ok">{{ a.race }}</span>
         {% elif a.id in at_races %}
         {# a run on the day and at the place of a race that was not paired with it: the runner decides #}
         <span class="stav ob-warn">{{ _('nespárované u závodu') }}</span>
-        <span class="controls">
+        {% else %}<span class="muted">{{ _('bez závodu') }}</span>{% endif %}</td>
+      <td class="num">{% if a.race_entry %}<a class="z-otevrit" href="{{ url_for('ob.race', entry_id=a.race_entry) }}" title="{{ _('Jiný běh vybereš u závodu v Podkladech; spárovaný běh tady smazat nejde.') }}">{{ _('Otevřít závod') }}{{ ikona('sipka') }}</a>
+        {% elif a.id in at_races %}
+        <span class="akce-rada" style="justify-content:flex-end;margin:0">
           {% for entry_id, name in at_races[a.id] %}
           <form method="post" action="{{ url_for('ob.race_activity', entry_id=entry_id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -50,16 +118,23 @@
             <button type="submit" class="btn btn-maly" title="{{ _('Použít tenhle běh jako stopu závodu') }}">{% trans name=name %}Přiřadit: {{ name }}{% endtrans %}</button>
           </form>
           {% endfor %}
-          <form method="post" action="{{ url_for('ob.activity_delete', activity_id=a.id) }}">
+          <form method="post" action="{{ url_for('ob.activity_delete', activity_id=a.id) }}"
+                data-potvrdit="{{ _('Smazat tenhle běh z aplikace? Vrátit ho jde jen novým nahráním souboru.') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-maly">{{ _('Smazat') }}</button>
+            <button type="submit" class="btn btn-maly btn-nebezpeci">{{ ikona('smazat') }}{{ _('Smazat') }}</button>
           </form>
         </span>
         {% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table></div>
+<div class="prazdno filtr-prazdno" data-filter-empty="#aktivity" hidden>
+  <b>{{ _('Filtru neodpovídá žádná aktivita.') }}</b>
+  <div class="prazdno-akce"><button type="button" class="btn btn-maly" data-filter-reset="#aktivity">{{ _('Zrušit filtry') }}</button></div>
+</div>
+<p class="hint">{{ _('U závodu jde kdykoli vybrat jiný běh ze stejného dne (Podklady). Běh spárovaný se závodem se tady smazat nedá.') }}</p>
 {% else %}
-<div class="prazdno empty">{{ ikona('kompas', 'ikona-velka') }}{{ _('Zatím nic. Nahraj první běh.') }}</div>
+<div class="prazdno">{{ ikona('nahrat', 'ikona-velka') }}<b>{{ _('Zatím nic. Nahraj první běh.') }}</b>
+  <p>{{ _('Po nahrání se tu objeví každý běh se startem, časem, vzdáleností a závodem, ke kterému patří.') }}</p></div>
 {% endif %}
 {% endblock %}

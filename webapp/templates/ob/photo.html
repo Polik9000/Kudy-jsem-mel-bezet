@@ -4,10 +4,18 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('ob.static', filename='vendor/leaflet/leaflet.css') }}">
 {% endblock %}
+{% set aktivni = 'races' %}
+{% set wide = True %}
+{% block crumbs %}<span class="crumb-sep" aria-hidden="true">/</span><a href="{{ url_for('ob.race', entry_id=e.id) }}">{{ e.event_name }}</a><span class="crumb-sep" aria-hidden="true">/</span><strong>{{ nadpis() }}</strong>{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('vlajka', 'ikona-nadpis') }}{{ nadpis() }}</h2>
-<p class="evhead"><a href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ e.event_name }}</a> · {{ e.date | datum }}
-  · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</p>
+<a class="zpet-odkaz" href="{{ url_for('ob.race', entry_id=e.id) }}#podklady">{{ ikona('zpet') }}{{ _('Zpět na podklady závodu') }}</a>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Ruční oprava mapy') }}</p>
+    <h1>{{ nadpis() }}</h1>
+    <p class="sub">{{ e.event_name }} · {{ e.date | datum }} · {% trans name=e.class_name %}kategorie {{ name }}{% endtrans %}</p>
+  </div>
+</header>
 {% if kontroly %}
 <p>{% if oris %}{% trans n=n %}Trať má podle ORIS <b>{{ n }} kontrol</b>.{% endtrans %}{% endif %}
   {%- if found is not none %} {% trans found=found %}Na mapě jsem jich našel {{ found }}.{% endtrans %}{% endif %}

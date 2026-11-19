@@ -51,11 +51,7 @@
 .menuseznam form { margin: 0; }
 .ob-ulohy { margin-left: auto; }
 
-/* --- nadpis stránky a drobnosti --- */
-.ob-nadpis { font-size: 1.24rem; font-weight: 640; letter-spacing: -.01em; margin: 0 0 var(--s3); display: flex;
-  align-items: center; gap: .55rem; flex-wrap: wrap; }
-.ob-nadpis::before { content: ""; flex: 0 0 auto; width: .25rem; height: 1.05em; border-radius: var(--r-pill);
-  background: var(--brand-svetla); }
+/* --- drobnosti --- */
 .hint { color: var(--muted); font-size: .9em; margin: 0 0 var(--s3); white-space: normal; }
 .muted { color: var(--muted); }
 .small { font-size: .86em; }
@@ -209,22 +205,10 @@ tr.ob-ja td { font-weight: 650; background: color-mix(in srgb, var(--brand-2) 22
 .ob-graf .ostatni.zvyrazneno { stroke: var(--ink); stroke-width: 2.5; opacity: 1; }
 .ob-graf .ja.zvyrazneno { stroke-width: 4; }
 .ob-graf-obal { position: relative; overflow-x: auto; }
-.ob-poradi { margin: var(--s3) 0 var(--s2); }
 .ob-graf-obal .ob-graf { min-width: 640px; }   /* on a phone: readable, scrolled sideways */
 .ob-graf-tip { position: absolute; z-index: 2; max-width: 22rem; padding: var(--s1) var(--s2); pointer-events: none;
   background: var(--bg-elev); color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r1, 4px);
   box-shadow: var(--stin1); font-size: .85rem; }
-
-/* --- co závod ještě potřebuje (tři kroky nad záložkami) --- */
-.ob-kroky { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); padding: 0; margin: 0 0 var(--s3); }
-.ob-kroky li { display: flex; align-items: center; gap: var(--s2); flex: 1 1 15rem; padding: var(--s2) var(--s3);
-  background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r2); }
-.ob-kroky li > b { flex: none; width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center;
-  border: 2px solid var(--line-2); color: var(--muted); }
-.ob-kroky li.je > b { border-color: var(--brand-svetla); color: var(--brand-svetla); }
-.ob-kroky li.neni { border-color: var(--flag-b); }
-.ob-kroky li > span { flex: 1; min-width: 0; font-weight: 600; }
-.ob-kroky small { display: block; font-weight: 400; color: var(--muted); }
 
 /* --- pás úseků nad mapou a souhrn úseku pod ní --- */
 .ob-pas { display: flex; align-items: center; gap: var(--s2); margin: 0 0 var(--s2); }
@@ -353,14 +337,9 @@ path.ob-ztr-misto-bod { stroke: var(--ob-chyba); stroke-width: 4; fill: #fff; fi
 .ob-jak p { max-width: 72ch; }
 .ob-hlavni-cislo { font-size: 1.05em; }
 .ob-nesouhlas { color: var(--oranz-cit, var(--bronz)); font-weight: 600; }
-.ob-nejhorsi { list-style: none; padding: 0; margin: 0 0 var(--s2); }
-.ob-nejhorsi li { margin: 0 0 var(--s1, 4px); }
-.ob-uvod ol { margin: 0; padding-left: 1.3rem; }
-.ob-uvod li { margin-bottom: var(--s2); }
 .hint, .evhead, .karta > p { max-width: 80ch; }
 .ob-pas-useky { scroll-padding-inline: 2rem; }
 /* na telefonu: přetáhnout myší nedává smysl; záložky v jednom řádku, posunují se do strany */
-@media (hover: none) { .ob-mys { display: none; } }
 @media (max-width: 47.99rem) {
   .taby { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
   .taby .tab { white-space: nowrap; flex: none; }

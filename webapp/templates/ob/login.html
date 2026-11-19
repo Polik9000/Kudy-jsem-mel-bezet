@@ -1,8 +1,13 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Přihlášení') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('start', 'ikona-nadpis') }}{{ _('Přihlášení') }}</h2>
-<p class="evhead">{% trans %}Rozbor tvých závodů: stopa z hodinek na mapě, nejlepší postupy, mezičasy kategorie.{% endtrans %}</p>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Účet') }}</p>
+    <h1>{{ _('Přihlášení') }}</h1>
+    <p class="sub">{% trans %}Rozbor tvých závodů: stopa z hodinek na mapě, nejlepší postupy, mezičasy kategorie.{% endtrans %}</p>
+  </div>
+</header>
 <form method="post" class="karta ob-form">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">

@@ -1,7 +1,12 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Rozbory člena') }}{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('lide', 'ikona-nadpis') }}{{ _('Rozbory člena') }}</h2>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Klubový web') }}</p>
+    <h1>{{ _('Rozbory člena') }}</h1>
+  </div>
+</header>
 <div class="karta">
   <p>{% trans %}Rozbory postupů vidí jen ten, komu patří. Stopy z hodinek ostatních členů se v aplikaci neukazují.{% endtrans %}</p>
   <div class="controls zavododkazy">

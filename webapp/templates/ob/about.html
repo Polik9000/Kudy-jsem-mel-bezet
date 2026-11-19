@@ -1,40 +1,47 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('O aplikaci a omezení') }}{% endblock %}
 {% block content %}
-<h2 class="ob-nadpis">{% trans %}O aplikaci a omezení{% endtrans %}</h2>
-<p class="evhead">{% trans %}Jak to celé funguje a co model (zatím) nedokáže.{% endtrans %}</p>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('O aplikaci') }}</p>
+    <h1>{% trans %}O aplikaci a omezení{% endtrans %}</h1>
+    <p class="sub">{% trans %}Jak to celé funguje a co model (zatím) nedokáže.{% endtrans %}</p>
+  </div>
+</header>
 
-<h3 class="ob-oddil">{{ _("Jak to funguje") }}</h3>
+<h2 class="sectiontitle">{{ _("Jak to funguje") }}</h2>
 <div class="ob-kroky-o">
   <div class="karta">
     <span class="ob-krok-cislo">1</span>
-    <h4>{% trans %}Mřížka 2,7 × 2,7 m{% endtrans %}</h4>
+    <h3>{% trans %}Mřížka 2,7 × 2,7 m{% endtrans %}</h3>
     <p>{% trans %}Mapu z Livelox rozdělí na čtvercová políčka a z barev mapy přečte, jaký terén v každém leží (cesta, louka, les, podrost, zelená, voda).{% endtrans %}</p>
   </div>
   <div class="karta">
     <span class="ob-krok-cislo">2</span>
-    <h4>{% trans %}Ohodnocení v sekundách{% endtrans %}</h4>
+    <h3>{% trans %}Ohodnocení v sekundách{% endtrans %}</h3>
     <p>{% trans %}Každé políčko dostane cenu podle terénu, sklonu z výškopisu a tvého osobního modelu rychlosti.{% endtrans %}</p>
   </div>
   <div class="karta">
     <span class="ob-krok-cislo">3</span>
-    <h4>{% trans %}Výpočet bez AI{% endtrans %}</h4>
+    <h3>{% trans %}Výpočet bez AI{% endtrans %}</h3>
     <p>{% trans %}Najde trasu s nejmenším součtem časů, jako navigace přes les. Žádná umělá inteligence nic nehádá: počítá geometrie, mřížka a tvůj model.{% endtrans %}</p>
   </div>
 </div>
 
 <div class="ob-radek ob-o-spodek">
   <div>
-    <h3 class="ob-oddil">{{ _("Zdroje dat") }}</h3>
+    <h2 class="sectiontitle">{{ _("Zdroje dat") }}</h2>
     <div class="ob-zdroje">
       <div class="karta"><b>Garmin FIT</b><span>{% trans %}tvoje stopa{% endtrans %}</span></div>
       <div class="karta"><b>Livelox KMZ</b><span>{% trans %}mapa a trať{% endtrans %}</span></div>
       <div class="karta"><b>ORIS</b><span>{% trans %}výsledky a mezičasy{% endtrans %}</span></div>
       <div class="karta"><b>{% trans %}ČÚZK, AWS{% endtrans %}</b><span>{% trans %}výškopis{% endtrans %}</span></div>
+      <div class="karta"><b>OpenStreetMap</b><span>{{ _('železnice a dálnice') }}</span></div>
     </div>
+    <p class="hint">{% trans url=url_for('ob.profile') %}Co zůstává na počítači a co se posílá ven: <a href="{{ url }}#soukromi">Profil, Soukromí</a>.{% endtrans %}</p>
   </div>
   <div>
-    <h3 class="ob-oddil">{% trans %}Omezení modelu{% endtrans %}</h3>
+    <h2 class="sectiontitle">{% trans %}Omezení modelu{% endtrans %}</h2>
     <div class="ob-limity" role="note">
       <div class="ob-limity-hlava"><span>{% trans %}Limitace modelu{% endtrans %}</span><span>{% trans %}Pozor{% endtrans %}</span></div>
       <ul>

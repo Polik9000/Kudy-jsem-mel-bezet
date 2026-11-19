@@ -60,6 +60,28 @@
     });
   }
 
+  // the same choice as three buttons on the profile page (<div data-rezim-volby>)
+  var volby = document.querySelector("[data-rezim-volby]");
+  if (volby && btn) {
+    var choices = volby.querySelectorAll("[data-rezim-volba]");
+    var markChoice = function () {
+      Array.prototype.forEach.call(choices, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-rezim-volba") === mode() ? "true" : "false");
+      });
+    };
+    Array.prototype.forEach.call(choices, function (b) {
+      b.addEventListener("click", function () {
+        var m = b.getAttribute("data-rezim-volba");
+        keep(m);
+        show(m);
+        document.dispatchEvent(new CustomEvent("ob-rezim"));
+      });
+    });
+    document.addEventListener("ob-rezim", markChoice);
+    volby.hidden = false;
+    markChoice();
+  }
+
   // clock in the header
   var clock = document.getElementById("ted-cas");
   function tick() {
@@ -89,7 +111,8 @@
   // file, a form that is being filled in, or whatever the page guards itself (data-no-reload). Then it waits.
   var jobs = window.OBAPP && window.OBAPP.jobs, badges = document.querySelectorAll(".ob-ulohy"), was = 0, due = false;
   function unsaved() {
-    var fields = document.querySelectorAll("form[method=post] input, form[method=post] select, form[method=post] textarea");
+    var fields = document.querySelectorAll("form[method=post] input, form[method=post] select, form[method=post] textarea, " +
+                                           "input[form], select[form], textarea[form]");
     return Array.prototype.some.call(fields, function (el) {
       if (el.type === "hidden") { return false; }
       if (el.type === "file") { return el.files.length > 0; }
@@ -173,7 +196,9 @@
   // A form with files (<form data-nahravani>) is sent by script, so the page can say how much is uploaded:
   // a whole Garmin export or a map takes a while. The server answers with the address to go to (views.go).
   Array.prototype.forEach.call(document.querySelectorAll("form[data-nahravani]"), function (form) {
-    var note = form.querySelector(".ob-nahravani-stav"), button = form.querySelector("button[type=submit]");
+    // the fields, the button and the note may sit outside the form element itself (form="id", race.html)
+    var note = form.querySelector(".ob-nahravani-stav") || (form.id && document.querySelector('.ob-nahravani-stav[data-form="' + form.id + '"]'));
+    var button = form.querySelector("button[type=submit]") || (form.id && document.querySelector('button[type=submit][form="' + form.id + '"]'));
     form.addEventListener("submit", function (ev) {
       if (!window.FormData || !window.XMLHttpRequest) { return; }
       ev.preventDefault();
@@ -225,7 +250,7 @@
   function upload(form) {
     var data = new FormData(form), whole = (window.OBAPP && window.OBAPP.maxUpload) || 0, keep = [], had = 0;
     var room = whole ? whole - 256 * 1024 : 0;       // the other fields and the parts of the form take a little
-    Array.prototype.forEach.call(form.querySelectorAll("input[type=file][name]"), function (el) {
+    Array.prototype.filter.call(form.elements, function (el) { return el.type === "file" && el.name; }).forEach(function (el) {
       var max = parseInt(el.getAttribute("data-max") || "0", 10);
       data.delete(el.name);
       Array.prototype.forEach.call(el.files || [], function (f) {
@@ -254,7 +279,7 @@
 
   // Files can be dropped on a file field of such a form (<form data-pretahni>): on its whole label, not only
   // on the small button of the browser.
-  Array.prototype.forEach.call(document.querySelectorAll("form[data-pretahni] label"), function (label) {
+  Array.prototype.forEach.call(document.querySelectorAll("form[data-pretahni] label, label.ob-drop"), function (label) {
     var input = label.querySelector("input[type=file]");
     if (!input) { return; }
     function over(ev, on) {
@@ -309,17 +334,194 @@
     });
   });
 
-  // search box that filters the rows of a table: <input type="search" data-filter="#table-id">
-  Array.prototype.forEach.call(document.querySelectorAll("input[data-filter]"), function (inp) {
-    var table = document.querySelector(inp.dataset.filter);
-    if (!table) { return; }
-    inp.addEventListener("input", function () {
-      var q = inp.value.trim().toLocaleLowerCase("cs");
-      Array.prototype.forEach.call(table.tBodies[0].rows, function (r) {
-        r.hidden = !!q && r.textContent.toLocaleLowerCase("cs").indexOf(q) < 0;
+  // Search folds case and accents the same way on both sides (only for comparing; what is shown stays as it is):
+  // "pribram" finds "Příbram", "BELO" finds "Bělo". Every word of the query has to be in the row.
+  function fold(text) {
+    return String(text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("cs");
+  }
+  window.obFold = fold;
+
+  // Filters of a table, all of them at once: <input type="search" data-filter="#table-id"> looks for words in the
+  // row (or in its data-hledat), <select data-filter="#table-id" data-filter-attr="sport"> keeps the rows whose
+  // data-sport is the chosen value. <p data-filter-empty="#table-id" hidden> is shown when no row is left.
+  var filtered = {};
+  Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (el) {
+    var sel = el.dataset.filter;
+    (filtered[sel] = filtered[sel] || []).push(el);
+  });
+  Object.keys(filtered).forEach(function (sel) {
+    var table = document.querySelector(sel), controls = filtered[sel];
+    if (!table || !table.tBodies.length) { return; }
+    var empty = document.querySelector('[data-filter-empty="' + sel + '"]');
+    var rows = Array.prototype.slice.call(table.tBodies[0].rows);
+    rows.forEach(function (r) { r.dataset.obFold = fold(r.dataset.hledat || r.textContent); });
+    function apply() {
+      var shown = 0;
+      rows.forEach(function (r) {
+        var ok = controls.every(function (c) {
+          var v = c.value.trim();
+          if (!v) { return true; }
+          if (c.tagName === "SELECT") { return (" " + (r.getAttribute("data-" + c.dataset.filterAttr) || "") + " ").indexOf(" " + v + " ") >= 0; }
+          return fold(v).split(/\s+/).every(function (w) { return r.dataset.obFold.indexOf(w) >= 0; });
+        });
+        r.hidden = !ok;
+        if (ok) { shown += 1; }
       });
+      if (empty) { empty.hidden = shown > 0; }
+      var count = document.querySelector('[data-filter-count="' + sel + '"]');
+      if (count) { count.textContent = t("Zobrazeno %(n)s z %(of)s", { n: shown, of: rows.length }); }
+    }
+    controls.forEach(function (c) { c.addEventListener(c.tagName === "SELECT" ? "change" : "input", apply); });
+    var reset = document.querySelector('[data-filter-reset="' + sel + '"]');
+    if (reset) {
+      reset.addEventListener("click", function (ev) {
+        if (reset.tagName === "A" && reset.getAttribute("href") !== "#") { return; }  // the link also clears the filters of the server
+        ev.preventDefault();
+        controls.forEach(function (c) { c.value = ""; });
+        apply();
+      });
+    }
+    apply();
+  });
+
+  // Order of the rows chosen in a list: <select data-razeni="#table-id"> with options "key:asc|desc"; the rows carry
+  // data-k-key (a number or a text). Clicking a column heading still sorts as well (th[data-sort] above).
+  Array.prototype.forEach.call(document.querySelectorAll("select[data-razeni]"), function (select) {
+    var table = document.querySelector(select.dataset.razeni);
+    if (!table || !table.tBodies.length) { return; }
+    function order() {
+      var parts = select.value.split(":"), key = "k" + parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      var dir = parts[1] === "asc" ? 1 : -1, body = table.tBodies[0];
+      var rows = Array.prototype.slice.call(body.rows);
+      rows.sort(function (a, b) {
+        var x = a.dataset[key] || "", y = b.dataset[key] || "", number = /^-?\d+(\.\d+)?$/;
+        if (x === "" || y === "") { return x === y ? 0 : x === "" ? 1 : -1; }  // without a value always last
+        if (number.test(x) && number.test(y)) { return (parseFloat(x) - parseFloat(y)) * dir; }
+        return x.localeCompare(y, "cs") * dir;
+      });
+      rows.forEach(function (r) { body.appendChild(r); });
+      Array.prototype.forEach.call(table.querySelectorAll("th[aria-sort]"), function (th) { th.removeAttribute("aria-sort"); });
+    }
+    select.addEventListener("change", order);
+    if (select.value !== select.options[0].value) { order(); }
+  });
+
+  // What was chosen in a file field: the name, the size and a preview of a picture, with a way to take it back.
+  // A file the field or the server would not take is marked at once (the same limits upload() applies below).
+  function size(bytes) {
+    return bytes >= 1048576 ? (bytes / 1048576).toFixed(1).replace(".", OBAPP_LANG === "en" ? "." : ",") + " MB"
+      : Math.max(1, Math.round(bytes / 1024)) + " kB";
+  }
+  var OBAPP_LANG = (window.OBAPP && window.OBAPP.lang) || "cs";
+  Array.prototype.forEach.call(document.querySelectorAll("form[data-nahravani] input[type=file], input[type=file][data-vyber]"), function (input) {
+    var list = document.createElement("ul");
+    list.className = "vybrane-soubory";
+    list.setAttribute("aria-live", "polite");
+    list.hidden = true;
+    (input.closest("label") || input).insertAdjacentElement("afterend", list);
+    var urls = [];
+    function show() {
+      urls.forEach(function (u) { URL.revokeObjectURL(u); });
+      urls = [];
+      list.textContent = "";
+      var files = Array.prototype.slice.call(input.files || []);
+      list.hidden = !files.length;
+      var max = parseInt(input.getAttribute("data-max") || "0", 10), whole = (window.OBAPP && window.OBAPP.maxUpload) || 0;
+      var ok = (input.accept || "").split(",").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
+      files.forEach(function (f, i) {
+        var li = document.createElement("li"), name = document.createElement("span"), sz = document.createElement("span");
+        name.className = "jmeno";
+        name.textContent = f.name;
+        sz.className = "velikost";
+        sz.textContent = size(f.size);
+        li.append(name, sz);
+        var why = "";
+        if (ok.length && !ok.some(function (ext) { return f.name.toLowerCase().slice(-ext.length) === ext; })) {
+          why = t("tenhle druh souboru pole nepřijme");
+        } else if ((max && f.size > max) || (whole && f.size > whole)) {
+          why = t("je větší, než server přijme; nenahraje se");
+        }
+        if (why) {
+          var no = document.createElement("span");
+          no.className = "odmitnuto";
+          no.textContent = why;
+          li.appendChild(no);
+        } else if (/^image\/(png|jpeg)$/.test(f.type) && f.size < 40 * 1048576) {
+          var img = document.createElement("img"), u = URL.createObjectURL(f);
+          urls.push(u);
+          img.src = u;
+          img.alt = t("Náhled: %(name)s", { name: f.name });
+          li.insertBefore(img, name);
+        }
+        var drop = document.createElement("button");
+        drop.type = "button";
+        drop.className = "btn btn-maly btn-tichy";
+        drop.textContent = t("Odebrat");
+        drop.setAttribute("aria-label", t("Odebrat %(name)s", { name: f.name }));
+        drop.addEventListener("click", function () {
+          try {
+            var dt = new DataTransfer();
+            Array.prototype.forEach.call(input.files, function (g, k) { if (k !== i) { dt.items.add(g); } });
+            input.files = dt.files;
+          } catch (e) { input.value = ""; }
+          show();
+          input.dispatchEvent(new Event("ob-vyber", { bubbles: true }));
+          input.focus();
+        });
+        li.appendChild(drop);
+        list.appendChild(li);
+      });
+    }
+    input.addEventListener("change", show);
+    input.form && input.form.addEventListener("reset", function () { setTimeout(show, 0); });
+  });
+
+  // Choices that look like buttons (aria-pressed), each with its own part of the page: <div data-volby="key">
+  // <button class="volba" data-volba="a" aria-pressed="false"> … and <div data-volba-panel="a" hidden>. Choosing
+  // shows only that part; nothing that is stored changes. Files chosen in the part being left are not sent
+  // unseen: the reader is asked whether to drop them or to stay.
+  Array.prototype.forEach.call(document.querySelectorAll("[data-volby]"), function (box) {
+    var buttons = box.querySelectorAll("[data-volba]"), key = "ob-volba-" + box.dataset.volby;
+    var panels = document.querySelectorAll("[data-volba-panel]"), prompt = document.querySelector("[data-volba-vyzva]");
+    function chosenFiles(panel) {
+      return Array.prototype.some.call(panel.querySelectorAll("input[type=file]"), function (f) { return f.files && f.files.length; });
+    }
+    function pick(name, quiet) {
+      var leaving = Array.prototype.filter.call(panels, function (p) { return !p.hidden && p.dataset.volbaPanel !== name; });
+      if (!quiet && leaving.some(chosenFiles)) {
+        if (!window.confirm(t("V původní variantě máš vybrané soubory, které se ještě nenahrály. Zrušit jejich výběr a přepnout?"))) { return; }
+        leaving.forEach(function (p) {
+          Array.prototype.forEach.call(p.querySelectorAll("input[type=file]"), function (f) { f.value = ""; f.dispatchEvent(new Event("change")); });
+        });
+      }
+      Array.prototype.forEach.call(buttons, function (b) { b.setAttribute("aria-pressed", b.dataset.volba === name ? "true" : "false"); });
+      Array.prototype.forEach.call(panels, function (p) { p.hidden = p.dataset.volbaPanel !== name; });
+      if (prompt) { prompt.hidden = !!name; }
+      try { if (name) { sessionStorage.setItem(key, name); } } catch (e) { /* no storage: only for this page */ }
+    }
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () { pick(b.dataset.volba); });
+    });
+    var start = box.dataset.vychozi || "";
+    try { start = sessionStorage.getItem(key) || start; } catch (e) { /* no storage */ }
+    if (start && box.querySelector('[data-volba="' + start + '"]')) { pick(start, true); }
+    // a link elsewhere on the page can open a variant: <a data-otevri-volbu="b" href="#podklady">
+    Array.prototype.forEach.call(document.querySelectorAll("[data-otevri-volbu]"), function (a) {
+      a.addEventListener("click", function () { pick(a.dataset.otevriVolbu); });
     });
   });
+
+  // A risky step asks first (deleting, disconnecting, a change for the whole race): <form data-potvrdit="text">
+  // or <button data-potvrdit="text">. Ordinary steps that are easy to take back ask nothing.
+  document.addEventListener("submit", function (ev) {
+    var form = ev.target, text = form.getAttribute && form.getAttribute("data-potvrdit");
+    var by = ev.submitter && ev.submitter.getAttribute("data-potvrdit");
+    if ((by || text) && !window.confirm(by || text)) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+  }, true);
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("button[data-potvrdit]:not([type=submit])") : null;
+    if (b && !window.confirm(b.getAttribute("data-potvrdit"))) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+  }, true);
 
   // tabs: <div data-taby><nav class="taby"><a class="tab" href="#id">…</a></nav><section class="tabpanel" id="id">…
   Array.prototype.forEach.call(document.querySelectorAll("[data-taby]"), function (box) {

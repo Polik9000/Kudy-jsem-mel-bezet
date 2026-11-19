@@ -2,41 +2,80 @@
 {% block title %}{{ _('Úlohy') }}{% endblock %}
 {% block body_attrs %} data-obnovit{% endblock %}
 {% block content %}
-<h2 class="s-ikonou">{{ ikona('stav', 'ikona-nadpis') }}{{ _('Úlohy na pozadí') }}</h2>
-<p class="evhead">{% trans %}Načítání z ORIS, zpracování nahraných souborů, analýzy a přepočty modelu běží na pozadí. Stránka se
-  sama obnoví, až doběhnou.{% endtrans %}</p>
+{% set active = jobs | selectattr('status', 'in', ['queued', 'running']) | list %}
+{% set state_icon = {'queued': 'ob-wait', 'running': 'ob-run', 'done': 'ob-ok', 'failed': 'ob-bad', 'stopped': 'ob-off'} %}
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Fronta úloh') }}</p>
+    <h1>{{ _('Úlohy na pozadí') }}</h1>
+    <p class="sub">{% trans %}Načítání z ORIS, zpracování nahraných souborů, analýzy a přepočty modelu běží na pozadí. Stránka se
+      sama obnoví, až doběhnou.{% endtrans %}</p>
+  </div>
+  {% if active %}
+  <form method="post" action="{{ url_for('ob.jobs_stop_all') }}" class="page-actions"
+        data-potvrdit="{{ _('Zastavit všechny tvoje čekající a běžící úlohy? Rozpracovaný závod se zahodí a platí jeho předchozí rozbor.') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-nebezpeci">{{ ikona('zastavit') }}{{ _('Zastavit všechny moje') }}</button>
+  </form>
+  {% endif %}
+</header>
 {% if jobs %}
-{% if jobs | selectattr('status', 'in', ['queued', 'running']) | list %}
-<form method="post" action="{{ url_for('ob.jobs_stop_all') }}" class="controls">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button type="submit" class="btn">{{ _('Zastavit všechny moje') }}</button>
-  <span class="hint">{% trans %}Čekající se zruší hned. Běžící se zastaví do pár sekund; co bylo hotové, zůstane, rozpracovaný závod
-    se zahodí a platí jeho předchozí rozbor.{% endtrans %}</span>
-</form>
-{% endif %}
-<div class="tablewrap"><table data-ulohy>
-  <thead><tr><th>{{ _('Zadáno') }}</th><th>{{ _('Úloha') }}</th><th>{{ _('Stav') }}</th><th>{{ _('Výsledek') }}</th></tr></thead>
-  <tbody>
+<div class="statrow kompaktni">
+  {% for key in ('running', 'queued', 'failed', 'done') %}
+  <div class="stat"><span class="stat-popis">{{ _(states[key][0]) }}</span>
+    <b class="stat-hodnota">{{ jobs | selectattr('status', 'equalto', key) | list | length }}</b></div>
+  {% endfor %}
+</div>
+{% if active %}<p class="hint">{% trans %}Čekající se zruší hned. Běžící se zastaví do pár sekund; co bylo hotové, zůstane, rozpracovaný závod
+  se zahodí a platí jeho předchozí rozbor.{% endtrans %}</p>{% endif %}
+<div class="filtry ulohy-filtr">
+  <select data-filter="#ulohy-tabulka" data-filter-attr="stav" aria-label="{{ _('Stav úlohy') }}">
+    <option value="">{{ _('Všechny stavy') }}</option>
+    {% for key in ('running', 'queued', 'failed', 'done', 'stopped') %}<option value="{{ key }}">{{ _(states[key][0]) }}</option>{% endfor %}
+  </select>
+  <span class="filtry-aktivni" data-filter-count="#ulohy-tabulka" style="margin:0"></span>
+</div>
+{# one row per job; the table keeps data-ulohy (ob.js fills in the message of a running job) #}
+<table id="ulohy-tabulka" class="ulohy-tabulka" data-ulohy>
+  <caption class="sr-only">{{ _('Úlohy na pozadí') }}</caption>
+  <tbody class="ulohy">
   {% for j in jobs %}
-  <tr><td>{{ j.created_at | kdy }}</td>
-      <td>{{ _(kinds.get(j.kind, j.kind)) }}{% if j.event_name %}:
-          <a href="{{ url_for('ob.race', entry_id=j.entry_id) }}">{{ j.event_name }}</a>{% endif %}</td>
-      <td><span class="stav {{ states[j.status][1] }}">{{ _('zastavuje se') if j.status == 'running' and j.stop_requested else _(states[j.status][0]) }}</span>
-        {% if j.status in ('queued', 'running') and not j.stop_requested %}<form method="post" action="{{ url_for('ob.job_stop', job_id=j.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-maly">{{ _('Zastavit') }}</button></form>{% endif %}</td>
-      <td class="ob-wrap"{% if j.status == 'running' %} data-uloha="{{ j.id }}"{% endif %}>{% if j.status == 'failed' %}{{ (j.error or '-').splitlines()[0] }}
-          {% if j.error and (j.error.splitlines() | length) > 1 %}<details><summary>{{ _('Podrobnosti') }}</summary><pre>{{ j.error }}</pre></details>{% endif %}
-          {% if j.id in by_hand %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=j.entry_id) }}">{{ _('Usadit fotku ručně') }}</a>{% endif %}
-          {% if j.id in retry %}<form method="post" action="{{ url_for('ob.job_retry', job_id=j.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-maly">{{ _('Zkusit znovu') }}</button></form>{% endif %}
-          {% else %}{{ j.message or '' }}{% endif %}
-          {% if j.id in by_crop %}<a class="btn btn-maly" href="{{ url_for('ob.photo_page', entry_id=j.entry_id, snimek=1) }}">{{ _('Oříznout snímek') }}</a>{% endif %}</td></tr>
+  {% set stopping = j.status == 'running' and j.stop_requested %}
+  <tr class="uloha" data-stav="{{ j.status }}"><td>
+    <div class="uloha-hlava">
+      <div><b>{{ _(kinds.get(j.kind, j.kind)) }}{% if j.event_name %}: <a href="{{ url_for('ob.race', entry_id=j.entry_id) }}">{{ j.event_name }}</a>{% endif %}</b>
+        <span class="uloha-cas">{% trans when=j.created_at | kdy %}zadáno {{ when }}{% endtrans %}{% if j.finished_at and j.status in ('done', 'failed', 'stopped') %} · {% trans when=j.finished_at | kdy %}skončila {{ when }}{% endtrans %}{% endif %}</span></div>
+      <span class="stav {{ state_icon[j.status] }}">{{ _('zastavuje se') if stopping else _(states[j.status][0]) }}</span>
+    </div>
+    {% if j.status == 'failed' %}
+    <p class="uloha-chyba">{{ (j.error or '-').splitlines()[0] }}</p>
+    {% if j.error and (j.error.splitlines() | length) > 1 %}<details><summary>{{ _('Podrobnosti') }}</summary><pre>{{ j.error }}</pre></details>{% endif %}
+    {% elif j.status == 'queued' %}
+    <p class="uloha-zprava">{{ j.message or _('Čeká, až na ni přijde řada; nic dalšího dělat nemusíš.') }}</p>
+    {% elif j.status == 'running' %}
+    <p class="uloha-zprava" data-uloha="{{ j.id }}">{{ j.message or _('běží') }}</p>
+    <div class="prubeh-cara" aria-hidden="true"><span></span></div>
+    {% elif j.message %}
+    <p class="uloha-zprava">{{ j.message }}</p>
+    {% endif %}
+    <div class="akce-rada">
+      {% if j.status in ('queued', 'running') and not j.stop_requested %}<form method="post" action="{{ url_for('ob.job_stop', job_id=j.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-maly">{{ ikona('zastavit') }}{{ _('Zastavit') }}</button></form>{% endif %}
+      {% if j.status == 'failed' and j.id in by_hand %}<a class="btn btn-maly btn-hlavni" href="{{ url_for('ob.photo_page', entry_id=j.entry_id) }}">{{ _('Usadit fotku ručně') }}</a>{% endif %}
+      {% if j.id in by_crop %}<a class="btn btn-maly btn-hlavni" href="{{ url_for('ob.photo_page', entry_id=j.entry_id, snimek=1) }}">{{ _('Oříznout snímek') }}</a>{% endif %}
+      {% if j.status == 'failed' and j.id in retry %}<form method="post" action="{{ url_for('ob.job_retry', job_id=j.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-maly">{{ ikona('obnovit') }}{{ _('Zkusit znovu') }}</button></form>{% endif %}
+      {% if j.status == 'failed' and j.entry_id %}<a class="btn btn-maly btn-tichy" href="{{ url_for('ob.race', entry_id=j.entry_id) }}#podklady">{{ _('Zkontrolovat podklady závodu') }}</a>{% endif %}
+    </div>
+  </td></tr>
   {% endfor %}
   </tbody>
-</table></div>
+</table>
+<div class="prazdno filtr-prazdno" data-filter-empty="#ulohy-tabulka" hidden><b>{{ _('V tomhle stavu teď žádná úloha není.') }}</b></div>
 {% else %}
-<div class="prazdno empty">{{ ikona('stav', 'ikona-velka') }}{{ _('Zatím žádné úlohy.') }}</div>
+<div class="prazdno">{{ ikona('hodiny', 'ikona-velka') }}<b>{{ _('Zatím žádné úlohy.') }}</b>
+  <p>{{ _('Úloha vznikne, když nahraješ běh nebo mapu, načteš závody z ORIS nebo spustíš přepočet.') }}</p></div>
 {% endif %}
 {% endblock %}

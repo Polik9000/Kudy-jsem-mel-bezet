@@ -1,11 +1,21 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Běhy z Garmin Connect') }}{% endblock %}
+{% set aktivni = 'upload' %}
+{% block crumbs %}<span class="crumb-sep" aria-hidden="true">/</span><a href="{{ url_for('ob.upload') }}">{{ _('Nahrát běhy') }}</a><span class="crumb-sep" aria-hidden="true">/</span><strong>Garmin Connect</strong>{% endblock %}
 {% block content %}
 {% set period_names = {14: _('poslední 2 týdny'), 60: _('poslední 2 měsíce'), 365: _('poslední rok'), 3650: _('všechno')} %}
-<h2 class="s-ikonou">{{ ikona('kompas', 'ikona-nadpis') }}{{ _('Běhy z Garmin Connect') }}</h2>
-<p><a href="{{ url_for('ob.upload') }}">{{ _('Zpět na Nahrát běhy') }}</a></p>
+<a class="zpet-odkaz" href="{{ url_for('ob.upload') }}">{{ ikona('zpet') }}{{ _('Zpět na Nahrát běhy') }}</a>
+<header class="pagehead">
+  <div>
+    <p class="eyebrow">{{ _('Import aktivit') }}</p>
+    <h1>{{ _('Běhy z Garmin Connect') }}</h1>
+    <p class="sub">{% if connected %}{{ _('Účet je připojený. Vyber období a běhy, které chceš načíst.') }}{% else %}{{ _('Účet zatím není připojený.') }}{% endif %}</p>
+  </div>
+  <div class="page-actions"><span class="stav {{ 'ob-ok' if connected else 'ob-off' }}">{{ _('Připojeno') if connected else _('Nepřipojeno') }}</span></div>
+</header>
 {% if not connected %}
-<div class="karta">
+<div class="karta" style="max-width:52rem">
+  <h2 class="sectiontitle">{{ _('Připojit účet klíčem') }}</h2>
   <p>{% trans %}Appka si běhy stáhne přímo z tvého účtu Garmin Connect, bez ručního exportu. Potřebuje k tomu
     <b>klíč Personal API</b>, který si vytvoříš sám v Garmin Connect. Heslo k účtu Garmin appka nikdy nedostane.{% endtrans %}</p>
   <ol>
@@ -18,15 +28,16 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="akce" value="klic">
     <label class="ob-pole">{{ _('Klíč Personal API') }}
-      <input type="password" name="klic" required autocomplete="off" spellcheck="false"></label>
+      <input type="password" name="klic" required autocomplete="off" spellcheck="false">
+      <span class="pole-napoveda">{{ _('Klíč se nezobrazuje; vlož ho celý ze schránky. Heslo k účtu Garmin sem nepatří.') }}</span></label>
     <div class="controls"><button type="submit" class="btn btn-hlavni">{{ _('Připojit účet Garmin') }}</button></div>
   </form>
-  <p class="hint">{% trans %}Klíč se uloží jen do datové složky appky v tomhle počítači a posílá se jen Garminu. Kdo má klíč,
+  <p class="hint">{{ ikona('zamek') }} {% trans %}Klíč se uloží jen do datové složky appky v tomhle počítači a posílá se jen Garminu. Kdo má klíč,
     může číst tvoje data z Garmin Connect, takže ho nikomu neposílej. Když klíč vyprší nebo ho v Garmin Connect
     smažeš, appka řekne, ať vložíš nový.{% endtrans %}</p>
 </div>
 {% else %}
-<form method="get" class="controls karta">
+<form method="get" class="filtry">
   <label>{{ _('Období') }}
     <select name="dni" onchange="this.form.submit()">
       {% for d in periods %}<option value="{{ d }}" {{ 'selected' if d == days }}>{{ period_names[d] }}</option>{% endfor %}
@@ -71,10 +82,16 @@
       jak rychle běháš do kopce a z kopce, stejně jako z exportu účtu Garmin. Z nich zůstanou jen běhy ze závodů;
       ostatní (ukazují, kde bydlíš) se smažou. Obojí proběhne najednou.{% endtrans %}</p>
   </details>
+  {% if rows is none %}
+  <div class="stalewarn" role="alert">{% trans %}Seznam aktivit se z Garmin Connect nepodařilo načíst (důvod je v hlášení nahoře). Je to chyba
+    spojení, ne prázdný účet: zkus to za chvíli znovu, nebo klíč obnov (odpoj účet níže a vlož nový).{% endtrans %}
+    <div class="akce-rada"><a class="btn btn-maly" href="{{ url_for('ob.garmin_page', dni=days) }}">{{ ikona('obnovit') }}{{ _('Zkusit znovu') }}</a></div></div>
+  {% endif %}
   {% if rows is not none %}
   {% if rows %}
-  <div class="tablewrap"><table>
-    <thead><tr><th></th><th data-sort="text">{{ _('Start') }}</th><th data-sort="text">{{ _('Název') }}</th><th data-sort="text">{{ _('Druh') }}</th>
+  <div class="filtry"><input type="search" data-filter="#garmin-aktivity" placeholder="{{ _('Hledat podle názvu') }}" aria-label="{{ _('Hledat podle názvu') }}" autocomplete="off"></div>
+  <div class="tablewrap"><table id="garmin-aktivity">
+    <thead><tr><th><span class="sr-only">{{ _('Vybrat') }}</span></th><th data-sort="text">{{ _('Start') }}</th><th data-sort="text">{{ _('Název') }}</th><th data-sort="text">{{ _('Druh') }}</th>
         <th class="num" data-sort="number">{{ _('Čas') }}</th><th class="num" data-sort="number">km</th><th>{{ _('V appce') }}</th></tr></thead>
     <tbody>
     {% for r in rows %}
@@ -82,14 +99,15 @@
                {{ 'checked' if r.run and not r.in_app }}></td>
         <td data-value="{{ r.start }}">{{ r.start | kdy }}</td><td class="ob-wrap">{{ r.name }}</td><td>{{ r.type }}</td>
         <td class="num" data-value="{{ r.time_s }}">{{ r.time_s | mmss }}</td>
-        <td class="num">{{ '%.2f' | format(r.km) }}</td><td>{{ _('ano') if r.in_app else '' }}</td></tr>
+        <td class="num">{{ '%.2f' | format(r.km) }}</td><td>{% if r.in_app %}<span class="stav ob-ok">{{ _('ano') }}</span>{% endif %}</td></tr>
     {% endfor %}
     </tbody>
   </table></div>
   {# the same button again at the end of the table, for whoever went through it all #}
   <div class="controls"><button type="submit" class="btn btn-hlavni" data-garmin-odeslat>{{ _('Načíst vybrané a model kopců') }}</button></div>
   {% else %}
-  <p>{{ _('Za tohle období nejsou v Garmin Connect žádné aktivity.') }}</p>
+  <div class="prazdno"><b>{{ _('Za tohle období nejsou v Garmin Connect žádné aktivity.') }}</b>
+    <p>{{ _('Zkus delší období nahoře. Připojení funguje; jen v něm nic není.') }}</p></div>
   {% endif %}
   {% endif %}
 </form>
@@ -110,7 +128,7 @@
   if (!form || !sel) return;
   var rows = Array.prototype.slice.call(form.querySelectorAll("tbody tr[data-druh]"));
   var info = document.getElementById("garmin-pocet");
-  function visible(r) { return r.style.display !== "none"; }
+  function visible(r) { return r.style.display !== "none" && !r.hidden; }
   function count() {
     var n = rows.filter(function (r) { return r.querySelector("input").checked; }).length;
     info.textContent = {{ _('Zaškrtnuto') | tojson }} + ": " + n + " / " + rows.length;
@@ -129,11 +147,12 @@
   count();
 })();
 </script>
-<form method="post" class="karta">
+<form method="post" class="karta tichy" data-potvrdit="{{ _('Odpojit účet Garmin? Klíč se z tohoto počítače smaže; pro další načítání ho budeš muset vložit znovu.') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="akce" value="odpojit">
   <p class="hint">{{ _('Účet Garmin je připojený klíčem uloženým jen v tomhle počítači.') }}</p>
-  <button type="submit" class="btn btn-maly">{{ _('Odpojit účet Garmin') }}</button>
+  <p class="hint">{{ _('Když klíč vyprší, odpoj účet a vlož nový klíč.') }}</p>
+  <button type="submit" class="btn btn-maly btn-nebezpeci">{{ _('Odpojit účet Garmin') }}</button>
 </form>
 {% endif %}
 {% endblock %}

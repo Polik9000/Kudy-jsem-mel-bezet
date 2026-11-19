@@ -1,7 +1,7 @@
 {% extends "ob/base.html" %}
 {% block title %}{{ _('Aplikace ukončena') }}{% endblock %}
 {% block content %}
-<h2>{{ _('Aplikace je ukončená') }}</h2>
-<p class="karta">{% trans %}Tohle okno můžeš zavřít. Data zůstávají ve složce <code>{{ data_dir }}</code>, příště je aplikace
+<header class="pagehead"><div><h1>{{ _('Aplikace je ukončená') }}</h1></div></header>
+<p class="nota">{% trans %}Tohle okno můžeš zavřít. Data zůstávají ve složce <code>{{ data_dir }}</code>, příště je aplikace
   najde zase.{% endtrans %}</p>
 {% endblock %}

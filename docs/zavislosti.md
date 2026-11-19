@@ -43,7 +43,7 @@ Nástroj `tools/shot.mjs` (screenshoty) potřebuje Node 22+ a Chrome; do aplikac
 |---|---|
 | `webapp/static/base.css` | Obecná kostra a rozložení aplikace |
 | `webapp/static/ob.css` | Komponenty rozboru postupů |
-| `webapp/static/les.css` | Jediný podporovaný vzhled „Lesní klid“ |
+| `webapp/static/les.css` | Jediný podporovaný vzhled „Kartografie“ |
 | `webapp/static/app-icons.svg` | SVG symboly používané v rozhraní |
 | `webapp/static/ob-logo.svg` | Logo aplikace |
 
