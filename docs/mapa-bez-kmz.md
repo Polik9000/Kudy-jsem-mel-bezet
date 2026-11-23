@@ -90,3 +90,13 @@ Nápady na později, nedělat bez schválení:
 
 - hledat trať i v červené barvě (`georef.loose_purple`);
 - usadit mapu jiné kategorie podle kontrol se stejným kódem (kódy jsou v popisu kontrol, kódy ražení v ORIS).
+
+## Navazující dokumenty
+
+- [oresults-csos.md](oresults-csos.md): koho oslovit kvůli mapám (OResults, ČSOS, kluby, Livelox), návrh zprávy
+  a nápad s rozborem přímo v Aftershow OResults.
+- [zahranici.md](zahranici.md): výsledky, mezičasy a mapy v zahraničí (Švédsko, Rakousko, Finsko a další).
+- Upřesnění z 23. 11. 2026: archiv ČSOS dává náhled jako `https://mapy.ceskyorientak.cz/data/jpg/<id>X.jpg`.
+  U nových map má asi 2700 px, u starších jen asi 1000 px. Údaj „244 dpi“ je chyba v metadatech (96 bodů na cm).
+  ORIS na archiv u závodu odkazuje typem „Stará mapa“. OB Postupy jsou mimo provoz (obpostupy.cz je parkovací
+  stránka).
